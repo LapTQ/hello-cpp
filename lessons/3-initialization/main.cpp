@@ -18,6 +18,18 @@ int main()
     [[maybe_unused]] int d { 7 };   // direct-list initialization (initial value in braces)
     [[maybe_unused]] int f {};      // value-initialization (empty braces)
 
+    /* default-initialization
+    * Unlike some programming languages, C/C++ does not automatically initialize in default-initialization.
+      In this case, default-initialization performs no actual initialization. the default value of that 
+      variable is whatever (garbage) value happens to already be in that memory address!
+    
+    * ALWAYS initialize your variables:
+      + For example, the standard may say, “you must do X before Y”, but a compiler author may feel
+        that’s unnecessary, and make Y work even if you don’t do X first. An uninitialized variable
+        might cause "undefined behavior".
+
+    */
+
     /* copy-initialization
     * This form of initialization was inherited from the C language.
     
