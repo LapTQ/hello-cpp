@@ -6,7 +6,7 @@ int main()
     width = 5; // copy-assignment
 
     [[maybe_unused]] int w0 { 6 }; // initialization
-    /* Unlike assignment (which is comparably simple), initialization in C++ is surprisingly complex 
+    /* Unlike assignment (which is comparably simple), initialization in C++ is complex 
     
     There are 5 commonly used ways to initialize variables in C++:
     */
