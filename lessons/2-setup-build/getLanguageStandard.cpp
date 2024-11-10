@@ -1,6 +1,3 @@
-// This program prints the C++ language standard your compiler is currently using
-// Freely redistributable, courtesy of learncpp.com (https://www.learncpp.com/cpp-tutorial/what-language-standard-is-my-compiler-using/)
-
 #include <iostream>
 
 const int numStandards = 7;
@@ -57,3 +54,12 @@ int main()
 
     return 0;
 }
+
+/* Configure your compiler
+
+1. https://code.visualstudio.com/docs/cpp/config-linux
+2. https://www.learncpp.com/cpp-tutorial/configuring-your-compiler-build-configurations/
+3. https://www.learncpp.com/cpp-tutorial/configuring-your-compiler-compiler-extensions/
+4. https://www.learncpp.com/cpp-tutorial/configuring-your-compiler-warning-and-error-levels/
+5. https://www.learncpp.com/cpp-tutorial/configuring-your-compiler-choosing-a-language-standard/
+*/
