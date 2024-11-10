@@ -2,6 +2,7 @@ path_src=lessons/1-hello-world/main.cpp
 path_src=lessons/2-setup-build/getLanguageStandard.cpp
 path_src=lessons/3-initialization/main.cpp
 path_src=lessons/4-iostream/main.cpp
+path_src=lessons/6-functions/main.cpp
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
