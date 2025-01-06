@@ -1,8 +1,10 @@
-path_src=lessons/1-hello-world/main.cpp
-path_src=lessons/2-setup-build/getLanguageStandard.cpp
-path_src=lessons/3-initialization/main.cpp
-path_src=lessons/4-iostream/main.cpp
-path_src=lessons/6-functions/main.cpp
+path_src=lessons/1-hello-world
+path_src=lessons/2-setup-build
+path_src=lessons/3-initialization
+path_src=lessons/4-iostream
+path_src=lessons/6-functions
+path_src=lessons/7-forward-declaration
+path_src=lessons/8-multiple-code-files
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -21,13 +23,12 @@ args=$(cat << EOF
 EOF
 )
 
-name_out="${path_src//\//--}"
-name_out="${name_out%%.cpp}".out
+name_out="main.out"
 
 dir_output=outputs
 mkdir -p $dir_output
 
 path_out=$dir_output/$name_out
 
-g++ $args -o $path_out $path_src
+g++ $args -o $path_out $path_src/**.cpp
 $path_out
