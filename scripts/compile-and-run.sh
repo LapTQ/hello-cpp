@@ -5,6 +5,7 @@ path_src=lessons/4-iostream
 path_src=lessons/6-functions
 path_src=lessons/7-forward-declaration
 path_src=lessons/8-multiple-code-files
+path_src=lessons/9-namesapces
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
