@@ -1,11 +1,11 @@
-path_src=lessons/1-hello-world
-path_src=lessons/2-setup-build
-path_src=lessons/3-initialization
-path_src=lessons/4-iostream
-path_src=lessons/6-functions
-path_src=lessons/7-forward-declaration
-path_src=lessons/8-multiple-code-files
-path_src=lessons/9-namesapces
+path_src=lessons/01-hello-world
+path_src=lessons/02-setup-build
+path_src=lessons/03-initialization
+path_src=lessons/04-iostream
+path_src=lessons/06-functions
+path_src=lessons/07-forward-declaration
+path_src=lessons/08-multiple-code-files
+path_src=lessons/09-namesapces
 
 args=$(cat << EOF
 -fdiagnostics-color=always \

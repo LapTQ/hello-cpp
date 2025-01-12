@@ -76,3 +76,9 @@ int main()
 }
 
 */
+
+
+/* References
+- https://www.learncpp.com/cpp-tutorial/naming-collisions-and-an-introduction-to-namespaces/
+
+*/
