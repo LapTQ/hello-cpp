@@ -22,7 +22,6 @@ Or add the following statement to the top of your main() function
 #ifdef DEBUG
 std::cout << std::unitbuf; // enable automatic flushing for std::cout (for debugging)
 #endif
-
 */
 
 /* Using a logger
@@ -38,6 +37,12 @@ std::cout << std::unitbuf; // enable automatic flushing for std::cout (for debug
 - Step into: execute the next statement.
 - Step over: execute the next statement, but if the next statement is a function call, the debugger will execute the entire function without stopping.
 - Step out: 
+- Run to cursor: executes the program until execution reaches the statement selected by your cursor
+- Breakpoint: just as if you's "run to cursor".
+- Continue: simply continues running the program until the program terminates or hits another breakpoint.
+- Jump to cursor: jump to the line of code where your cursor is currently located and skip all the code in between.
+  WARNING: “Step back” (undo) != jumping backwards via “Set next statement”
+- Setting a breakpoint on watched variables
 */
 
 #include <plog/Log.h> // Step 1: include the logger headers
@@ -58,6 +63,11 @@ int getUserInput()
 
 int main()
 {
+
+#ifdef ENABLE_DEBUG
+std::cout << std::unitbuf; // enable automatic flushing for std::cout (for debugging)
+#endif
+
 #ifdef ENABLE_DEBUG
 std::cerr << "main() called\n";
 #endif
@@ -75,5 +85,7 @@ std::cerr << "main() called\n";
 
 - https://www.learncpp.com/cpp-tutorial/basic-debugging-tactics/
 - https://www.learncpp.com/cpp-tutorial/more-debugging-tactics/
+- https://www.learncpp.com/cpp-tutorial/using-an-integrated-debugger-stepping/
+- https://www.learncpp.com/cpp-tutorial/using-an-integrated-debugger-running-and-breakpoints/
 
 */
