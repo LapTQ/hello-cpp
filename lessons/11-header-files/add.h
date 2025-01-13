@@ -10,7 +10,7 @@
 int add(int x, int y);
 
 /*
-- You should avoid putting function or variable "definitions" in header files.
+- You should avoid putting function or variable "definitions" in header files (for now).
   Doing so will generally result in a violation of the one-definition rule (ODR) in cases 
   where the header file is included into more than one source file.
 */

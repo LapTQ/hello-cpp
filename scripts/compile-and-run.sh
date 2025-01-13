@@ -23,6 +23,7 @@ args=$(cat << EOF
 -Wsign-conversion \
 -Werror \
 -std=c++17
+-I./lessons/11-header-files/others
 EOF
 )
 
