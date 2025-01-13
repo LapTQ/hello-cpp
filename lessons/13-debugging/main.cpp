@@ -16,12 +16,28 @@
      some or all of the debugging for that file may not be enabled
 */
 
+/*
+Or add the following statement to the top of your main() function
+
+#ifdef DEBUG
+std::cout << std::unitbuf; // enable automatic flushing for std::cout (for debugging)
+#endif
+
+*/
+
 /* Using a logger
 
 - C++ contains an output stream named std::clog.
 - However, by default, std::clog writes to the standard error stream.
 
 - `plog` logger
+*/
+
+/* Using debugger
+
+- Step into: execute the next statement.
+- Step over: execute the next statement, but if the next statement is a function call, the debugger will execute the entire function without stopping.
+- Step out: 
 */
 
 #include <plog/Log.h> // Step 1: include the logger headers

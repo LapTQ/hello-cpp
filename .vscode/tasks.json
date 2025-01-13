@@ -12,16 +12,17 @@
                 "-DNDEBUG",
                 "-pedantic-errors",
                 "-Wall",
-                "-Weffc++",
+                // "-Weffc++",
                 "-Wextra",
                 "-Wconversion",
                 "-Wsign-conversion",
-                "-Werror",
+                // "-Werror",
                 "-std=c++17",
-                "-I./lessons/11-header-files/others",
+                "-I${fileDirname}/../../lessons/11-header-files/others",
+                "-I${fileDirname}/../../3rd-parties/plog/include",
                 "${fileDirname}/**.cpp",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${fileDirname}/../../outputs/main.out", // "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "${fileDirname}"
