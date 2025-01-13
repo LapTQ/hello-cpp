@@ -8,6 +8,7 @@ path_src=lessons/08-multiple-code-files
 path_src=lessons/09-namesapces
 path_src=lessons/10-preprocessor
 path_src=lessons/11-header-files
+path_src=lessons/12-header-guards
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
