@@ -9,6 +9,7 @@ path_src=lessons/09-namesapces
 path_src=lessons/10-preprocessor
 path_src=lessons/11-header-files
 path_src=lessons/12-header-guards
+path_src=lessons/13-debugging
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -18,15 +19,16 @@ args=$(cat << EOF
 -DNDEBUG \
 -pedantic-errors \
 -Wall \
--Weffc++ \
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--Werror \
 -std=c++17
 -I./lessons/11-header-files/others
+-I./3rd-parties/plog/include
 EOF
 )
+# -Weffc++ \
+# -Werror \
 
 name_out="main.out"
 
