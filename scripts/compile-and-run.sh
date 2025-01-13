@@ -11,6 +11,7 @@ path_src=lessons/11-header-files
 path_src=lessons/12-header-guards
 path_src=lessons/13-debugging
 path_src=lessons/14-data-types
+path_src=lessons/15-floating-point-numbers
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
