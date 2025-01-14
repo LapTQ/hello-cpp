@@ -15,6 +15,8 @@ path_src=lessons/15-floating-point-numbers
 path_src=lessons/16-boolean-values
 path_src=lessons/17-chars
 path_src=lessons/18-type-conversion
+path_src=lessons/20-literals
+path_src=lessons/21-numeral-systems
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
