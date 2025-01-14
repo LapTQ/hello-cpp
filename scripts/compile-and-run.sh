@@ -12,6 +12,9 @@ path_src=lessons/12-header-guards
 path_src=lessons/13-debugging
 path_src=lessons/14-data-types
 path_src=lessons/15-floating-point-numbers
+path_src=lessons/16-boolean-values
+path_src=lessons/17-chars
+path_src=lessons/18-type-conversion
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
