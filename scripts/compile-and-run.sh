@@ -17,6 +17,7 @@ path_src=lessons/17-chars
 path_src=lessons/18-type-conversion
 path_src=lessons/20-literals
 path_src=lessons/21-numeral-systems
+path_src=lessons/23-constexpr-variables
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
