@@ -7,11 +7,12 @@
 
 /* Comparing floating point numbers
 
-- New developers often try to write their own “close enough” function using a epsilon.
+- Not good: New developers often try to write their own “close enough” function using a epsilon.
   While this function can work, it’s not great:
   ++ e.g., if epsion is 1e-5, then 0.0000001 and 0.00001 would be the same.
-- Donald Knuth, a famous computer scientist suggested the following method in his book “The Art of Computer Programming".
+- Better, but not perfect: Donald Knuth, a famous computer scientist suggested the following method in his book “The Art of Computer Programming".
   But it is not perfect: fail when the numbers approach zero.
+- Good enough: see below
 */
 
 #include <iostream>
@@ -25,7 +26,7 @@ bool approximatelyEqualRel(double a, double b, double relEpsilon)
 }
 // if we want to say “close enough” means a and b are within 1% of the larger of a and b, we pass in an relEpsilon of 0.01
 
-
+// Good enough, handle most cases you’ll encounter
 bool approximatelyEqualAbsRel(double a, double b, double absEpsilon, double relEpsilon)
 {
     // Check if the numbers are really close -- needed when comparing numbers near zero.
@@ -34,7 +35,33 @@ bool approximatelyEqualAbsRel(double a, double b, double absEpsilon, double relE
 
     // Otherwise fall back to Knuth's algorithm
     return approximatelyEqualRel(a, b, relEpsilon);
-} // should be good enough to handle most cases you’ll encounter.
+}
+
+/* Making the approximatelyEqual functions constexpr 
+
+- a constexpr function that is used in a constant expression can’t call a non-constexpr function.
+- std::abs wasn’t made constexpr until C++23. Therefore, to make the approximatelyEqual functions constexpr, 
+  we need to use a custom implementation of abs that is constexpr:
+
+template <typename T>
+constexpr T constAbs(T x)
+{
+    return (x < 0 ? -x : x);
+}
+constexpr bool approximatelyEqualRel(double a, double b, double relEpsilon)
+{
+    return (constAbs(a - b) <= (std::max(constAbs(a), constAbs(b)) * relEpsilon));
+}
+constexpr bool approximatelyEqualAbsRel(double a, double b, double absEpsilon, double relEpsilon)
+{
+    // Check if the numbers are really close -- needed when comparing numbers near zero.
+    if (constAbs(a - b) <= absEpsilon)
+        return true;
+
+    // Otherwise fall back to Knuth's algorithm
+    return approximatelyEqualRel(a, b, relEpsilon);
+}
+*/
 
 int main()
 {

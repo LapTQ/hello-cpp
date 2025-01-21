@@ -22,6 +22,7 @@ path_src=lessons/23-constexpr-variables
 path_src=lessons/24-std-string
 path_src=lessons/25-std-string_view
 path_src=lessons/26-floating-point-comparisons
+path_src=lessons/27-user-defined-namespaces
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
