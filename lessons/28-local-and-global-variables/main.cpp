@@ -65,4 +65,5 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/local-variables/
 - https://www.learncpp.com/cpp-tutorial/introduction-to-global-variables/
+- https://www.learncpp.com/cpp-tutorial/variable-shadowing-name-hiding/
 */
