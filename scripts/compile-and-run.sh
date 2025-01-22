@@ -24,6 +24,7 @@ path_src=lessons/25-std-string_view
 path_src=lessons/26-floating-point-comparisons
 path_src=lessons/27-user-defined-namespaces
 path_src=lessons/28-local-and-global-variables
+path_src=lessons/29-linkage
 
 args=$(cat << EOF
 -fdiagnostics-color=always \

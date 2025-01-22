@@ -4,3 +4,5 @@
 {
     return x + y;
 }
+
+extern int min{ -4 }; // give external linkage so that it can be accessed from other files
