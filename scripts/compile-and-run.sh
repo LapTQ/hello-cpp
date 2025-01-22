@@ -26,6 +26,7 @@ path_src=lessons/27-user-defined-namespaces
 path_src=lessons/28-local-and-global-variables
 path_src=lessons/29-linkage
 path_src=lessons/30-inline-functions-and-variables
+path_src=lessons/31-global-variable-across-files
 
 args=$(cat << EOF
 -fdiagnostics-color=always \

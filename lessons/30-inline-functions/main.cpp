@@ -35,7 +35,7 @@ inline int min(int x, int y) // inline keyword means this function is an inline 
 
 - Historically, compilers were not very good at determining whether inline expansion would be beneficial, so the inline keyword was introduced
   as a hint to the compiler.
-- However, modern C++ compilers are better than human in most cases, and will likely ignore the inline keyword => Don't use inline keyword.
+- However, modern C++ compilers are better than human in most cases, and will likely ignore the inline keyword => Don't use inline keyword for this purpose.
 */
 
 /* Modern `inline` keyword - multiple definitions are allowed
