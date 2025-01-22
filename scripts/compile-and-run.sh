@@ -25,6 +25,7 @@ path_src=lessons/26-floating-point-comparisons
 path_src=lessons/27-user-defined-namespaces
 path_src=lessons/28-local-and-global-variables
 path_src=lessons/29-linkage
+path_src=lessons/30-inline-functions-and-variables
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -51,6 +52,7 @@ dir_output=outputs
 mkdir -p $dir_output
 
 path_out=$dir_output/$name_out
+rm -f $path_out
 
 g++ $args -o $path_out $path_src/**.cpp
 $path_out
