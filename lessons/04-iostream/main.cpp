@@ -1,4 +1,5 @@
 #include<iostream>
+#include <limits> // for std::numeric_limits
 
 int main()
 {
@@ -37,6 +38,28 @@ int main()
     std::cin >> y;
     std::cout << "----> " << x << ", " << y << "\n";
     std::cout << "When std::cin >> y is encountered, the program will not wait for input. Instead, the 5 that is still in the input buffer is extracted to variable y.";
+
+
+    // [code snippet] clear the input buffer
+    std::cin.ignore(100, '\n');  // clear up to 100 characters out of the buffer, or until a '\n'
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore all characters up to the next ‘\n’
+
+    
+    // check if there is extraneous input
+    std::cout << (!std::cin.eof() && std::cin.peek() != '\n') << "\n";
+
+    
+    // [code snippet] handle failed extractions or overflow of a numeric type
+    if (std::cin.fail()) // equivalent to if (!std::cin)
+    {
+        if (std::cin.eof()) // If the user entered an EOF
+        {
+            std::exit(0); // Shut down the program now
+        }
+
+        std::cin.clear(); // Put us back in 'normal' operation mode
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');     // And remove the bad input
+    }
 
     return 0;
 }
@@ -88,11 +111,31 @@ Similar to outputting data, inputting data is also a two stage process:
    encounters either a newline character or a character that is not valid
    for the variable being extracted to.
 
-   If no characters could be extracted in this step, e.g. typing a non-digit for a
-   int y, the object being extracted to is assigned the value 0 (as of C++11), 
-   and any future extractions will immediately fail (until until the 
-   input stream is cleared).
+   If no characters could be extracted in this step, e.g. typing a non-digit `a` character 
+   for an int y, 3 things happen at this point:
+   + the object being extracted to is assigned the value 0 (as of C++11)
+   + `a` is left in the input buffer
+   + std::cin goes into “failure mode” (until the clear() function is called): any requests for further extraction are ignored.
+     This means that instead waiting for us to enter an operation, the input prompt is silently skipped.
 
 Any non-extracted characters (including newlines) remain available for the next extraction attempt.
 
+*/
+
+/*
+- The std::cin.eof() function returns true if the last input operation 
+  reached the end of the input stream.
+- The std::cin.peek() function allows us to peek at the next character 
+  in the input stream without extracting it.
+
+
+- In C++, EOF is an error state, not a character. 
+  Different OSes have special character combinations that are treated as a “user-entered EOF request”. 
+  These are sometimes called “EOF characters”.
+*/
+
+
+/* References
+
+- https://www.learncpp.com/cpp-tutorial/stdcin-and-handling-invalid-input/
 */

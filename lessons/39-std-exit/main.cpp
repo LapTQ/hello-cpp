@@ -62,3 +62,19 @@ int main()
 
     return 0;
 }
+
+/* std::abort and std::terminate
+
+- The std::abort() function causes your program to terminate "abnormally".
+  For example, dividing by 0 will result in an abnormal termination. 
+- std::abort() does not do any cleanup.
+
+- The std::terminate() function is typically used in conjunction with exceptions.
+- often called implicitly when an exception isn’t handled.
+- By default, std::terminate() calls std::abort().
+*/
+
+/* References
+
+- https://www.learncpp.com/cpp-tutorial/halts-exiting-your-program-early/
+*/

@@ -30,6 +30,7 @@ path_src=lessons/31-global-variable-across-files
 path_src=lessons/33-using-declarations-and-using-directives
 path_src=lessons/36-switch-statement
 path_src=lessons/40-pseudo-random-number
+path_src=lessons/42-assert-and-static_assert
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
