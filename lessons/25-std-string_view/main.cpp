@@ -55,9 +55,9 @@ int main()
 
     // View modification functions
     std::string_view str{ "Peach" };
-	std::cout << str << '\n';
-	str.remove_prefix(2);
-	std::cout << str << '\n'; // prints "ach"
+    std::cout << str << '\n';
+    str.remove_prefix(2);
+    std::cout << str << '\n'; // prints "ach"
     str.remove_suffix(1);
     std::cout << str << '\n'; // prints "ac"
     // the only way to reset the view is by reassigning the source string to it again:
