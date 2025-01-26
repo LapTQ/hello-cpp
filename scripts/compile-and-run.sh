@@ -31,6 +31,7 @@ path_src=lessons/33-using-declarations-and-using-directives
 path_src=lessons/36-switch-statement
 path_src=lessons/40-pseudo-random-number
 path_src=lessons/42-assert-and-static_assert
+path_src=lessons/44-explicit-type-conversion
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
