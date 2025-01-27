@@ -90,6 +90,14 @@ void foo(double);
 
 foo(5L); // ambiguous match at numeric conversion step.
 
+
+Default arguments can easily lead to ambiguous function calls:
+void foo(int x = 0);
+void foo(double x = 0.0);
+
+foo(); // ambiguous match
+
+
 How to resolve:
 - Define new overloads that can exactly match.
 - Or, explicitly cast the argument to the desired type.
