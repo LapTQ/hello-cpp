@@ -35,6 +35,7 @@ path_src=lessons/44-explicit-type-conversion
 path_src=lessons/46-type-deduction
 path_src=lessons/049-function-templates
 path_src=lessons/050-nontype-template-parameters
+path_src=lessons/052-constexpr-functions
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
