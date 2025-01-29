@@ -61,6 +61,43 @@ void print(bool x)
 }
 
 
+/* Function templates with non-template parameters
+
+For example:
+template <typename T>
+int someFcn(T, double);
+*/
+
+
+/*
+- we can disallow certain types from being used with a function template by using the "delete" specifier.
+*/
+
+template <typename T>
+T addOne(T x)
+{
+    return x + 1;
+}
+template <>
+const char* addOne(const char* x) = delete;
+// addOne("Hello, world!"); // compile error
+
+
+/* Beware function templates with modifiable static local variables
+
+- each function instantiated from that template will have a separate version of the static local variable.
+- This is rarely a problem if the static local variable is const. 
+  But if the static local variable is one that is modified, the results may not be as expected.
+*/
+
+template <typename T>
+void printIDAndValue(T value)
+{
+    static int id{ 0 };
+    std::cout << ++id << ") " << value << '\n';
+}
+
+
 int main()
 {
     std::cout << max<int>(1, 2) << '\n'; // instantiates and calls function max<int>(int, int)
@@ -78,6 +115,12 @@ int main()
     print(true);       // calls print(bool) -- prints true
     // consider both template and non-template function overloads, but non-template function is preferred
     std::cout << '\n';
+
+
+    // Beware function templates with modifiable static local variables
+    printIDAndValue(12);    // 1) 12
+    printIDAndValue(13);    // 2) 13
+    printIDAndValue(14.5);  // 1) 14.5
 
     return 0;
 }
