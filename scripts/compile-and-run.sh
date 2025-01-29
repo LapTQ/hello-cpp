@@ -33,6 +33,7 @@ path_src=lessons/40-pseudo-random-number
 path_src=lessons/42-assert-and-static_assert
 path_src=lessons/44-explicit-type-conversion
 path_src=lessons/46-type-deduction
+path_src=lessons/049-function-templates
 
 args=$(cat << EOF
 -fdiagnostics-color=always \

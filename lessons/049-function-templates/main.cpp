@@ -98,6 +98,102 @@ void printIDAndValue(T value)
 }
 
 
+/* multiple template types
+
+For example:
+```
+template <typename T>
+T max(T x, T y)
+
+max(2, 3.5);  // compile error
+```
+
+- T can only represent a single type.
+
+- You might wonder why the compiler didn’t generate function max<double>(double, double) 
+  and then use numeric conversion to type convert the int argument to a double?
+- The answer is simple: type conversion is done only when resolving function overloads, 
+  not when performing template argument deduction.
+
+- Solution 1: Use static_cast
+    ```
+    max(static_cast<double>(2), 3.5);
+    ```
+    => awkward and hard to read.
+- Solution 2: specify an explicit type template argument
+    ```
+    max<double>(2, 3.5);
+    ```
+    and let the implicit type conversion rules convert int argument to double argument.
+- Solution 3: multiple template type parameters
+    ```
+    max2(2, 3.5)
+    ```
+    Narrowing conversion problem:
+        - 2 will be converted to double
+        - ((2 < 3.5) ? 3.5 : 2) will be 3.5, which is correct
+        - but the return type is T, which is int, so 3.5 will be narrowed to 3.
+    Fix:
+        - return type deduction via `auto` keyword (max3 below)
+
+        Note that:
+            - a function with an auto return type needs to be fully defined before it can be used 
+              (a forward declaration won’t suffice). If we need a function that can be forward declared, 
+              we have to be explicit about the return type. In the case of max3, we can add further `std::common_type_t`:
+                ```
+                template <typename T, typename U>
+                auto max4(T x, U y) -> std::common_type_t<T, U>;
+                ```
+*/
+
+// Solution 3
+template <typename T, typename U>
+T max2(T x, U y)
+{
+    return (x < y) ? y : x;
+    // the conditional operator (?:) requires that both operands have the same type.
+}
+
+// fix narrowing conversion problem
+template <typename T, typename U>
+auto max3(T x, U y)
+{
+    return (x < y) ? y : x;
+}
+
+// add return type deduction
+template <typename T, typename U>
+auto max4(T x, U y) -> std::common_type_t<T, U>
+{
+    return (x < y) ? y : x;
+}
+
+/* (C++20) Abbreviated function templates
+
+- C++20 introduces a new use of the auto keyword:
+```
+auto max(auto x, auto y);
+```
+is equivalent to:
+```
+template <typename T, typename U>
+auto max(T x, U y);
+```
+*/
+
+
+/* Function templates may be overloaded
+*/
+
+template <typename T>
+auto foo(T x, T y) {}
+
+template <typename T, typename U>
+auto foo(T x, U y) {}
+
+template <typename T, typename U, typename V>
+auto foo(T x, U y, V z) {}
+
 int main()
 {
     std::cout << max<int>(1, 2) << '\n'; // instantiates and calls function max<int>(int, int)
@@ -122,6 +218,18 @@ int main()
     printIDAndValue(13);    // 2) 13
     printIDAndValue(14.5);  // 1) 14.5
 
+
+    // multiple template types, solution 3
+    std::cout << max2(2, 3.5) << '\n'; // print 3, due to narrowing conversion problem
+    std::cout << max3(2, 3.5) << '\n'; // print 3.5, correct
+    std::cout << max4(2, 3.5) << '\n'; // print 3.5, correct
+
+
+    // Function templates may be overloaded
+    foo(1.2, 3.4); // call foo<double>(), preferred over foo<int, double>() (prefer the stricter match)
+    foo(1, 3.4);   // call foo<int, double>()
+    foo(1, 2, 3);  // call foo<int, int, int>()
+
     return 0;
 }
 
@@ -137,4 +245,5 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/function-templates/
 - https://www.learncpp.com/cpp-tutorial/function-template-instantiation/
+- https://www.learncpp.com/cpp-tutorial/function-templates-with-multiple-template-types/
 */
