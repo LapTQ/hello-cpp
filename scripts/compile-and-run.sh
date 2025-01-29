@@ -36,6 +36,7 @@ path_src=lessons/46-type-deduction
 path_src=lessons/049-function-templates
 path_src=lessons/050-nontype-template-parameters
 path_src=lessons/052-constexpr-functions
+path_src=lessons/053-consteval
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -48,11 +49,12 @@ args=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++17 \
+-std=c++20 \
 -I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
 )
+# -std=c++17 \
 # -Weffc++ \
 # -Werror \
 
