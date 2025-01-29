@@ -34,6 +34,7 @@ path_src=lessons/42-assert-and-static_assert
 path_src=lessons/44-explicit-type-conversion
 path_src=lessons/46-type-deduction
 path_src=lessons/049-function-templates
+path_src=lessons/050-nontype-template-parameters
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -46,8 +47,8 @@ args=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++17
--I./lessons/11-header-files/others
+-std=c++17 \
+-I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
 )
