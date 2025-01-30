@@ -139,7 +139,7 @@ int main()
     const int& ref_rvalue { 5 }; // okay: a temporary object is created and initialized with the rvalue, ref_rvalue is bound to that temporary object
 
 
-    // Initializing an lvalue reference to const with a value of a different type
+    // Lvalue reference to const, but with a different type
     const double& r1 { 5 };
     std::cout << r1 << '\n'; // prints 5
     char c { 'a' };

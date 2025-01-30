@@ -38,6 +38,7 @@ path_src=lessons/050-nontype-template-parameters
 path_src=lessons/052-constexpr-functions
 path_src=lessons/053-consteval
 path_src=lessons/056-lvalue-references
+path_src=lessons/057-pass-by-lvalue-reference
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
