@@ -72,6 +72,8 @@ With pointer, we can:
   ++ references can not be reassigned, while pointers can.
   ++ references must always be bound to an object, while pointers point to nothing.
   ++ references are safe (outside of dangling references), while pointers can be dangerous.
+
+- Favor references over pointers unless the additional capabilities provided by pointers are needed.
 */
 
 
