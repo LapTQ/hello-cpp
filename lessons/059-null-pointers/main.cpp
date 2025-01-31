@@ -11,6 +11,11 @@
     ```
 */
 
+/* std::nullptr_t
+
+-nullptr has type std::nullptr_t (defined in header <cstddef>).
+*/
+
 #include <iostream>
 
 int main()
@@ -46,7 +51,9 @@ int main()
     int* ptr { NULL }; // initialize a null pointer
     ```
 
-- Both 0 and NULL should be avoided in modern C++ (discuss later)
+- Both 0 and NULL should be avoided in modern C++
+    + 0 can be ambiguous which one we intend: integer literal or null pointer literal.
+    + NULL is not defined by language standard, and it can be defined as 0, 0L, ((void*)0) or something else.
 */
 
 /* References

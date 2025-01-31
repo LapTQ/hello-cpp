@@ -41,6 +41,7 @@ path_src=lessons/056-lvalue-references
 path_src=lessons/057-pass-by-lvalue-reference
 path_src=lessons/058-pointers
 path_src=lessons/060-pointers-and-const
+path_src=lessons/061-pass-by-address
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
