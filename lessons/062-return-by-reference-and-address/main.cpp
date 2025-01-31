@@ -48,10 +48,13 @@ int main()
 
 - The major advantage of return by address over return by reference 
   is that we can have the function return nullptr if there is no valid object to return.
+  If you need the ability to return “no object” or a value (rather than an object),
+  std::optional describes a good alternative (discuss later).
 */
 
 
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/return-by-reference-and-return-by-address/
+- https://www.learncpp.com/cpp-tutorial/in-and-out-parameters/
 */
