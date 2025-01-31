@@ -110,10 +110,10 @@ int main()
 
     
     // Reference initialization
-    // int& invalidRef;   // error: references must be initialized
-    // const int y { 5 };
-    // int& invalidRef { y };  // invalid: non-const lvalue reference can't bind to a non-modifiable lvalue
-    // int& invalidRef2 { 0 }; // invalid: non-const lvalue reference can't bind to an rvalue
+    int& invalidRef;   // error: references must be initialized
+    const int y { 5 };
+    int& invalidRef { y };  // invalid: non-const lvalue reference can't bind to a non-modifiable lvalue
+    int& invalidRef2 { 0 }; // invalid: non-const lvalue reference can't bind to an rvalue
 
     
     // References can’t be reseated 
@@ -129,7 +129,7 @@ int main()
     const int& ref_x3 { x };
     int y3 { 6 };  // modifiable lvalue
     const int& ref_y3 { y3 };
-    // ref_y3 = 7; // error: ref_y3 is const, so we can't modify the value of y3 through ref_y3
+    ref_y3 = 7; // error: ref_y3 is const, so we can't modify the value of y3 through ref_y3
     std::cout << y3 << ref_y3 << '\n'; // 66
     y3 = 7;     // modification reflected in ref_y3, because ref_y3 is bound to y3
     std::cout << y3 << ref_y3 << '\n'; // 77
