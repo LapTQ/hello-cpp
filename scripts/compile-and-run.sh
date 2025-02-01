@@ -46,6 +46,7 @@ path_src=lessons/062-return-by-reference-and-address
 path_src=lessons/065-user-defined-types
 path_src=lessons/066-unscoped-enumerations
 path_src=lessons/067-scoped-enumerations
+path_src=lessons/068-struct
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
