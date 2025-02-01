@@ -92,7 +92,48 @@ struct Foo
 */
 
 
+/* Passing structs (by reference)
+
+Few reminders about passing temporary objects:
+- they are created and initialized at the point of definition, 
+  and are destroyed at the end of the full expression in which they are created.
+- And evaluation of a temporary object is an rvalue expression.
+- it will only bind to parameters that accept rvalues.
+  This includes pass by value and pass by const reference, 
+  and excludes pass by non-const reference and pass by address.
+*/
+
 #include <iostream>
+
+void printEmployee(const Employee& employee) // note pass by reference here
+{
+    std::cout << "ID:   " << employee.id << '\n';
+    std::cout << "Age:  " << employee.age << '\n';
+    std::cout << "Wage: " << employee.wage << '\n';
+}
+
+
+/* Returning structs
+
+- In the case where the function has an explicit return type, we can 
+  even omit the type in the return statement.
+*/
+
+Employee dummyEmployee()
+{
+    return Employee { 1, 32, 60000.0 };
+}
+
+Employee dummyEmployee2()
+{
+    return { 1, 32, 60000.0 };  // can omit the type, implicit conversion
+}
+
+Employee dummyEmployee3()
+{
+    return { };  // value-initialize all members
+}
+
 
 int main()
 {
@@ -115,7 +156,7 @@ int main()
     // Designated initializers (C++20)
     Foo f1 { .a{ 1 }, .c{ 3 } };  // okay, list initialization
     Foo f2 { .a = 1, .c = 3 };    // okay, copy initialization
-    Foo f3{ .b{ 2 }, .a{ 1 } };   // error, order mot match
+    // Foo f3{ .b{ 2 }, .a{ 1 } };   // error, order mot match
     // assignment
     f1 = { .a{ 1 }, .c{ 3 } }; 
 
@@ -126,6 +167,18 @@ int main()
     Foo f5 { f3 }; // direct-list initialization
     Foo f6(f3); // direct-initialization
 
+
+    // Passing structs (by reference)
+    printEmployee(Employee { 14, 32, 24.15 }); // temporary objects
+    printEmployee({ 14, 32, 24.15 });  //  implicit conversion
+
+
+    // Returning structs
+    printEmployee(dummyEmployee());
+    printEmployee(dummyEmployee2());
+    printEmployee(dummyEmployee3());
+    
+
     return 0;
 }
 
@@ -135,5 +188,6 @@ int main()
 - https://www.learncpp.com/cpp-tutorial/introduction-to-structs-members-and-member-selection/
 - https://www.learncpp.com/cpp-tutorial/struct-aggregate-initialization/
 - https://www.learncpp.com/cpp-tutorial/default-member-initialization/
+- https://www.learncpp.com/cpp-tutorial/passing-and-returning-structs/
 */
 
