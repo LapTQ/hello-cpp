@@ -135,6 +135,30 @@ Employee dummyEmployee3()
 }
 
 
+/* Structs that are owners should have data members that are owners
+*/
+
+#include <string>
+#include <string_view>
+
+struct Owner
+{
+    std::string name{}; // std::string is an owner
+};
+
+struct Viewer
+{
+    std::string_view name {}; // std::string_view is a viewer
+};
+
+std::string getName()
+{
+    std::string name{ "Hello" };
+    return name;
+}
+
+
+
 int main()
 {
     Employee joe {};
@@ -177,10 +201,52 @@ int main()
     printEmployee(dummyEmployee());
     printEmployee(dummyEmployee2());
     printEmployee(dummyEmployee3());
+
+
+    // Structs that are owners should have data members that are owners
+    Owner o { getName() };  // destroyed just after initialization
+    std::cout << "The owners name is " << o.name << '\n';  // ok
+    Viewer v { getName() }; // destroyed just after initialization
+    std::cout << "The viewers name is " << v.name << '\n'; // undefined behavior
     
 
     return 0;
 }
+
+
+/* Struct size and data structure alignment
+
+- Typically, the size of a struct is the sum of the size of all its members, but not always!
+- For performance reasons, the compiler will sometimes add gaps into structures (this is called padding).
+  This can actually have a pretty significant impact on the size of the struct:
+    ```
+    #include <iostream>
+
+    struct Foo1
+    {
+        short a{}; // will have 2 bytes of padding after a
+        int b{};
+        short c{}; // will have 2 bytes of padding after c
+    };
+
+    struct Foo2
+    {
+        int b{};
+        short a{};
+        short c{};
+    };
+
+    int main()
+    {
+        std::cout << sizeof(Foo1) << '\n'; // prints 12
+        std::cout << sizeof(Foo2) << '\n'; // prints 8
+
+        return 0;
+    }
+    ```
+
+- You can minimize padding by defining your members in decreasing order of size.
+*/
 
 
 /* References
@@ -189,5 +255,6 @@ int main()
 - https://www.learncpp.com/cpp-tutorial/struct-aggregate-initialization/
 - https://www.learncpp.com/cpp-tutorial/default-member-initialization/
 - https://www.learncpp.com/cpp-tutorial/passing-and-returning-structs/
+- https://www.learncpp.com/cpp-tutorial/struct-miscellany/
 */
 
