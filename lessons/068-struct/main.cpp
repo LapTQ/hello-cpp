@@ -30,11 +30,25 @@ struct Employee
 */
 
 
-/* Missing initializers in an initializer list
+/* initialization possibilities
 
-- each member without an explicit initializer is initialized as follows:
-  + If the member has a default member initializer, that is used.
-  + Otherwise, the member is value-initialized.
+If an aggregate is defined with no initialization list:
+- If a default member initializer exists, the default is used.
+- If no default member initializer exists, the member remains uninitialized.
+If an aggregate is defined with an initialization list:
+- If an explicit initialization value exists, that explicit value is used.
+- If an initializer is missing and a default member initializer exists, the default is used.
+- If an initializer is missing and no default member initializer exists, value initialization occurs.
+
+=> Always provide default values for your members
+
+=> Prefer value initialization over default initialization for aggregates:
+    ```
+    Fraction f1; // default initialization
+    Fraction f2 {}; // value initialization, preferred
+    ```
+    
+    value initialization will protect you from accidentally using uninitialized variables.
 */
 
 struct Employee2
@@ -93,7 +107,8 @@ int main()
     alice = { alice.id, 30, 4000.0 };
 
 
-    // Missing initializers in an initializer list
+    // initialization possibilities
+    Employee2 pat; // no initialization list => pat.whatever is not initialized
     Employee2 bob { 2, 28 }; // bob.whatever is value-initialized { } to 0.0.
 
 
@@ -119,5 +134,6 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/introduction-to-structs-members-and-member-selection/
 - https://www.learncpp.com/cpp-tutorial/struct-aggregate-initialization/
+- https://www.learncpp.com/cpp-tutorial/default-member-initialization/
 */
 
