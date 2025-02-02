@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 
-struct Date
+struct CDate
 {
     int year {};
     int month {};
@@ -132,7 +132,7 @@ struct Something
 int main()
 {
     // Member functions
-    Date today { 2020, 10, 14 };
+    CDate today { 2020, 10, 14 };
     today.print();  // also accessed using member selection operator (.)
 
     Person joe{ "Joe", 29 };
@@ -141,12 +141,12 @@ int main()
 
 
     // Modifying the data members of const objects is disallowed
-    const Date date { 2020, 10, 14 };
+    const CDate date { 2020, 10, 14 };
     date.day += 1; // compile error
 
 
     // Const objects may not call non-const member functions
-    const Date date2 { 2020, 10, 14 };
+    const CDate date2 { 2020, 10, 14 };
     date2.print(); // compile error
 
 
