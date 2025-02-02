@@ -48,6 +48,7 @@ path_src=lessons/066-unscoped-enumerations
 path_src=lessons/067-scoped-enumerations
 path_src=lessons/068-struct
 path_src=lessons/070-class-template
+path_src=lessons/071-member-functions
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
