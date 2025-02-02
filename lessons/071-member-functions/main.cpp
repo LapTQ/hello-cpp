@@ -72,6 +72,63 @@ struct Foo
     int y() { return 5; }
 };
 
+
+/* Modifying the data members of const objects is disallowed
+*/
+
+
+/* Const objects may not call non-const member functions
+
+- Even if the member function doesn’t modify the object, the compiler
+  won’t allow it to be called on a const object unless it is declared const.
+*/
+
+
+/* Const member functions
+
+- ... is a member function that guarantees it will not modify the object 
+  or call any non-const member functions.
+
+Best practice:
+- A member function that does not modify the state of the object 
+  should be made const, so that it can be called on both const and non-const objects.
+*/
+
+struct Date2
+{
+    int year {};
+    int month {};
+    int day {};
+
+    void print() const // const member function
+    {
+        std::cout << year << '/' << month << '/' << day << '\n';
+    }
+};
+
+
+/* (Rare) Member function const and non-const overloading
+
+- it is possible to overload a member function to have a const 
+  and non-const version of the same function. 
+  This works because the const qualifier is considered part of the 
+  function’s signature.
+*/
+
+struct Something
+{
+    void print()
+    {
+        std::cout << "non-const\n";
+    }
+
+    void print() const
+    {
+        std::cout << "const\n";
+    }
+};
+
+
 int main()
 {
     // Member functions
@@ -81,6 +138,30 @@ int main()
     Person joe{ "Joe", 29 };
     Person kate{ "Kate", 27 };
     joe.kisses(kate);   // print: Joe kisses Kate
+
+
+    // Modifying the data members of const objects is disallowed
+    const Date date { 2020, 10, 14 };
+    date.day += 1; // compile error
+
+
+    // Const objects may not call non-const member functions
+    const Date date2 { 2020, 10, 14 };
+    date2.print(); // compile error
+
+
+    // Const member functions
+    const Date2 date3 { 2020, 10, 14 };
+    date3.print(); // okay
+
+
+    // (Rare) Member function const and non-const overloading
+    Something s1{};
+    s1.print(); // calls print()
+
+    const Something s2{};
+    s2.print(); // calls print() const
+
 
     return 0;
 }
@@ -134,4 +215,5 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/introduction-to-classes/
 - https://www.learncpp.com/cpp-tutorial/member-functions/
+- https://www.learncpp.com/cpp-tutorial/const-class-objects-and-const-member-functions/
 */
