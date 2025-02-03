@@ -52,6 +52,7 @@ path_src=lessons/071-member-functions
 path_src=lessons/072-access-specifiers
 path_src=lessons/074-constructors
 path_src=lessons/075-copy-constructor
+path_src=lessons/076-converting-constructors
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
