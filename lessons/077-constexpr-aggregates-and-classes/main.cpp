@@ -96,8 +96,7 @@ constexpr const int* const getXPtr() const { return &m_x; }
 That’s a lot of const-ing!
 
 - The constexpr indicates that the member function can be evaluated at compile-time. 
-- The 1st const int& is the return type of the function.
-- The 2nd const indicates a pointer to const. 
+- The 1st and 2nd const indicates a const pointer to const.
 - The 3rd const means the member-function itself is const so it can be called on const objects.
 */
 
