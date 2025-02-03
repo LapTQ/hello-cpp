@@ -50,6 +50,7 @@ path_src=lessons/068-struct
 path_src=lessons/070-class-template
 path_src=lessons/071-member-functions
 path_src=lessons/072-access-specifiers
+path_src=lessons/074-constructors
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
