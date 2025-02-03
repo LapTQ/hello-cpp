@@ -287,8 +287,11 @@ int main()
 - Remind that normally a non-const member function can’t be invoked on a const object. 
   However, this is one exception: const doesn’t apply to an object under construction, 
   and only comes into effect after the constructor ends.
+*/
 
+/* Fon't use ( ) for initialization
 
+See: https://www.learncpp.com/cpp-tutorial/temporary-class-objects/#:~:text=Creating%20temporary%20objects%20via%20direct%20initialization
 */
 
 /* References
@@ -297,4 +300,5 @@ int main()
 - https://www.learncpp.com/cpp-tutorial/constructor-member-initializer-lists/
 - https://www.learncpp.com/cpp-tutorial/default-constructors-and-default-arguments/
 - https://www.learncpp.com/cpp-tutorial/delegating-constructors/
+- https://www.learncpp.com/cpp-tutorial/temporary-class-objects/
 */
