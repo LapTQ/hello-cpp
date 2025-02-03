@@ -146,6 +146,101 @@ public:
 };
 
 
+/* Default constructor
+
+- A default constructor is a constructor that accepts no arguments.
+*/
+
+class Foo6
+{
+public:
+    Foo6() // default constructor
+    {
+        std::cout << "Foo default constructed\n";
+    }
+};
+
+/* Value initialization vs default initialization for class types
+
+- Both will call the default constructor. However, value initialization is safer.
+  Since it’s difficult to tell whether a class type is an aggregate or non-aggregate.
+  => just use value initialization for everything and not worry about it.
+*/
+
+
+/* Overloaded constructors
+
+- Because constructors are functions, they can be overloaded.
+*/
+
+
+/* An implicit default constructor
+
+- If a non-aggregate class type object has no user-declared constructors,
+  the compiler will generate a public default constructor that has no parameters, 
+  no member initializer list, and no statements in the body of the constructor.
+
+- The implicit default constructor is useful mostly when we have classes that have no data members.
+*/
+
+
+/* Explicitly defaulted default constructor
+
+- ... in cases where we would write a default constructor that is equivalent 
+  to the implicitly generated default constructor.
+*/
+
+class Foo7
+{
+private:
+    int m_x {};
+    int m_y {};
+
+public:
+    Foo7() = default; // generates an explicitly defaulted default constructor
+
+    Foo7(int x, int y)
+        : m_x { x }, m_y { y }
+    {
+        std::cout << "Foo(" << m_x << ", " << m_y << ") constructed\n";
+    }
+};
+
+
+/* Delegating constructors
+
+- Constructors are allowed to delegate initialization to another constructor.
+
+- Flow:
+    1. initialization is delegated to another constructor:
+        1.1. The member initializer list of the delegated constructor initializes the members.
+        1.2. The body of the delegated constructor is executed.
+    2. The body of the delegating constructor is executed.
+*/
+
+#include <string>
+#include <string_view>
+
+class Employee
+{
+private:
+    std::string m_name { "???" };
+    int m_id { 0 };
+
+public:
+    Employee(std::string_view name)
+        : Employee{ name, 0 } // delegate initialization to Employee(std::string_view, int) constructor
+    {
+    }
+
+    Employee(std::string_view name, int id)
+        : m_name{ name }, m_id { id }
+    {
+        std::cout << "Employee " << m_name << " created\n";
+    }
+};
+
+
 int main()
 {
     // Constructor
@@ -167,6 +262,24 @@ int main()
     Foo4 foo4{ 6 };
     foo4.print();    // Foo(6, 2, 0)
 
+
+    // Default constructor
+    Foo6 foo6{}; // No initialization values, calls Foo's default constructor
+
+
+    // Value initialization vs default initialization for class types
+    Foo6 foo7; // default initialization, calls Foo() default constructor
+    Foo6 foo8{}; // value initialization, calls Foo() default constructor, preferred
+
+
+    // Explicitly defaulted default constructor
+    Foo7 foo9{}; // calls Foo7() default constructor
+
+
+    // Delegating constructors
+    Employee e1{ "James" };
+    Employee e2{ "Dave", 42 };
+
     return 0;
 }
 
@@ -182,4 +295,6 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/introduction-to-constructors/
 - https://www.learncpp.com/cpp-tutorial/constructor-member-initializer-lists/
+- https://www.learncpp.com/cpp-tutorial/default-constructors-and-default-arguments/
+- https://www.learncpp.com/cpp-tutorial/delegating-constructors/
 */
