@@ -87,6 +87,8 @@ int main()
 /* Why not make all functions inline and defined in a header file?
 
 - Mainly because doing so can increase your compile times significantly.
+- Conversely, if you change the code in a .cpp file, only that .cpp file needs to be recompiled.
+- If you change any of the code in the header, then you’ll need to recompile every file that includes that header.
 */
 
 /* References
