@@ -56,6 +56,7 @@ path_src=lessons/076-converting-constructors
 path_src=lessons/080-nested-types
 path_src=lessons/081-destructors
 path_src=lessons/086-std-vector
+path_src=lessons/088-arrays-and-loops
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -68,7 +69,7 @@ args=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++20 \
+-std=c++17 \
 -I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
