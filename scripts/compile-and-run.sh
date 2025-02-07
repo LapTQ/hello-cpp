@@ -57,6 +57,9 @@ path_src=lessons/080-nested-types
 path_src=lessons/081-destructors
 path_src=lessons/086-std-vector
 path_src=lessons/088-arrays-and-loops
+path_src=lessons/089-for-each
+path_src=lessons/091-std-vector-resizing-and-capacity
+path_src=lessons/092-std-vector-and-stack-behavior
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -69,7 +72,7 @@ args=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++17 \
+-std=c++20 \
 -I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
