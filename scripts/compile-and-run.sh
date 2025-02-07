@@ -55,6 +55,7 @@ path_src=lessons/075-copy-constructor
 path_src=lessons/076-converting-constructors
 path_src=lessons/080-nested-types
 path_src=lessons/081-destructors
+path_src=lessons/086-std-vector
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
