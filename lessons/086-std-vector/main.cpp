@@ -121,6 +121,8 @@ int main()
     std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
     int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
 
+    std::size_t length3 { primes.size() }; // okay, no conversion required
+
 
     // Accessing array elements
     std::cout << primes[9]; // undefined behavior
