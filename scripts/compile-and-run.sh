@@ -62,6 +62,7 @@ path_src=lessons/091-std-vector-resizing-and-capacity
 path_src=lessons/092-std-vector-and-stack-behavior
 path_src=lessons/099-pointer-arithmetic-and-subscripting
 path_src=lessons/100-C-style-strings
+path_src=lessons/102-iterators
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
