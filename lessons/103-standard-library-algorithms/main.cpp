@@ -76,7 +76,7 @@ int main()
 
 
     // std::for_each
-    std::for_each(arr.begin(), arr.end(), doubleNumber);
+    std::for_each(std::next(arr.begin()), arr.end(), doubleNumber);  // skip elements at the beginning
 
     return 0;
 }
