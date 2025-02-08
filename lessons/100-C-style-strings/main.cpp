@@ -7,6 +7,10 @@
 /* Outputting a C-style string
 
 - When outputting a C-style string, std::cout outputs characters until it encounters the null terminator.
+
+the output streams (e.g. std::cout) make some assumptions about your intent:
++ If you pass it a non-char pointer, it will simply print the contents of that pointer.
++ if you pass it an object of type char* or const char*, it will assume you’re intending to print a string.
 */
 
 
@@ -40,6 +44,32 @@ See the recommended way to read C-style strings below.
 - ... in favor of std::string.
 */
 
+
+/* C-style string symbolic constants
+
+- C++ supports two different ways to create C-style string symbolic constants:
+```
+const char name[] { "Alex" };     // case 1: const C-style string initialized with C-style string literal
+const char* const color{ "Orange" };    // case 2: const pointer to C-style string literal
+```
+C++ deals with the memory allocation for these slightly differently.
+- In case 1:
+    + “Alex” is put into (probably read-only) memory somewhere. 
+    + program allocates memory for a C-style array of length 5.
+    + initializes that memory with the string “Alex”
+    => end up with 2 copies of “Alex”.
+- In case 2:
+    + places the string “Orange” into read-only memory somewhere.
+    + initializes the pointer with the address of the string.
+
+- Favor std::string_view over C-style string symbolic constants
+*/
+
+
+/* Type deduction with const C-style strings
+*/
+
+
 #include <iostream>
 #include <cstring> // for strlen()
 
@@ -52,6 +82,12 @@ int main()
 
     // Outputting a C-style string
     std::cout << str2 << '\n'; // string
+
+    int narr[]{ 9, 7, 5, 3, 1 };
+    std::cout << narr << '\n'; // 0x7ffeeb1b3b40
+
+    char c{ 'Q' };
+    std::cout << &c << '\n'; // undefined behavior
 
 
     // Inputting C-style strings
@@ -69,12 +105,18 @@ int main()
 
     // C-style strings don’t support assignment
     char str[]{ "string" }; // ok
-    str = "rope";           // not ok!
+    // str = "rope";           // not ok!
     str[1] = 'p';           // ok
 
 
     // Getting the length of an C-style string
     std::cout << strlen(str) << '\n'; // 6
+
+
+    // Type deduction with const C-style strings
+    auto s1{ "Alex" };  // type deduced as const char*
+    auto* s2{ "Alex" }; // type deduced as const char*
+    auto& s3{ "Alex" }; // type deduced as const char(&)[5]
 
     return 0;
 }
@@ -83,4 +125,5 @@ int main()
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/c-style-strings/
+- https://www.learncpp.com/cpp-tutorial/c-style-string-symbolic-constants/
 */
