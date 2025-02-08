@@ -3,6 +3,15 @@
 - We’ll use structs to illustrate our points in this lesson. The material applies equally well to classes.
 */
 
+#include <array>
+#include <iostream>
+
+struct House
+{
+    int number{};
+    int stories{};
+    int roomsPerStory{};
+};
 
 
 /* Why the inialization
@@ -60,15 +69,32 @@ struct Student
 };
 
 
-#include <array>
-#include <iostream>
+/* Arrays of references via std::reference_wrapper
 
-struct House
-{
-    int number{};
-    int stories{};
-    int roomsPerStory{};
-};
+- because references are not objects, you cannot make an array of references.
+  The elements of an array must also be assignable, and references can’t be reseated.
+
+- std::reference_wrapper is a standard library class template that behaves like a modifiable lvalue reference to T.
+
+Notes about std::reference_wrapper:
+- Operator= will "reseat" a std::reference_wrapper (change which object is being referenced).
+- std::reference_wrapper<T> will implicitly convert to T&.
+- The get() member function can be used to get a T&. This is useful when we want to 
+  update the value of the object being referenced.
+
+- In this lesson, we’ll use std::array in the examples, but this is equally applicable to all array types.
+*/
+
+#include <functional> // for std::reference_wrapper
+
+
+/* std::ref and std::cref
+
+- Prior to C++17, CTAD didn’t exist.
+- the std::ref() and std::cref() functions were provided as shortcuts to create 
+  std::reference_wrapper and const std::reference_wrapper wrapped objects.
+*/
+
 
 int main()
 {
@@ -109,6 +135,33 @@ int main()
     };
 
 
+    // Arrays of references via std::reference_wrapper
+    int x { 1 };
+    int y { 2 };
+    std::array<int&, 2> refarr { x, y }; // compile error: cannot define array of references
+
+    int& ref1 { x };
+    int& ref2 { y };
+    std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
+
+    std::array<std::reference_wrapper<int>, 2> arr { x, y };
+    arr[0].get() = 10;
+    std::cout << arr[0] << " " << x << '\n'; // 10 10
+
+
+    // std::ref and std::cref
+    // C++11, long
+    std::reference_wrapper<int> ref3 { x };
+    auto ref4 { std::reference_wrapper<int>{ x }};
+
+    // C++11, using shorter std::ref and std::cref
+    auto ref { std::ref(x) };   // C++11, deduces to std::reference_wrapper<int>
+    auto cref { std::cref(x) }; // C++11, deduces to std::reference_wrapper<const int>
+
+    // C++17, using CTAD
+    std::reference_wrapper ref5 { x };
+    auto ref6 { std::reference_wrapper{ x }};
+
     return 0;
 }
 
@@ -116,4 +169,5 @@ int main()
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/stdarray-of-class-types-and-brace-elision/
+- https://www.learncpp.com/cpp-tutorial/arrays-of-references-via-stdreference_wrapper/
 */
