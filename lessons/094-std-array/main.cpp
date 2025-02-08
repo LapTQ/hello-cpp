@@ -46,9 +46,41 @@
 */
 
 
+/* pass std::array by (const) reference
+
+- Note that the type of the non-type template parameter for std::array 
+  should be std::size_t, not int! This is because std::array is defined as 
+  `template<class T, std::size_t N> struct array;`. If you use int, 
+  the compiler will be unable to match the argument.
+*/
+
 #include <array>  // for std::array
 #include <vector> // for std::vector
 #include <iostream> // for std::cout
+
+void passByRef(const std::array<int, 5>& arr) // we must explicitly specify <int, 5> here
+{
+    std::cout << arr[0] << '\n';
+}
+
+template <typename T, std::size_t N> // note that this template parameter declaration matches the one for std::array
+void passByRef2(const std::array<T, N>& arr)
+{
+    static_assert(N != 0); // fail if this is a zero-length std::array
+
+    std::cout << arr[0] << '\n';
+}
+
+
+/* Returning a std::array
+
+- Unlike std::vector, std::array is not move-capable, 
+  so returning a std::array by value will make a copy of the array.
+- We can alternatively return a std::array via an out parameter.
+- Alternatively, consider returning a std::vector instead if you don't need constexpr,
+  because std::vector is move-capable.
+*/
+
 
 int main()
 {
