@@ -60,6 +60,7 @@ path_src=lessons/088-arrays-and-loops
 path_src=lessons/089-for-each
 path_src=lessons/091-std-vector-resizing-and-capacity
 path_src=lessons/092-std-vector-and-stack-behavior
+path_src=lessons/099-pointer-arithmetic-and-subscripting
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
