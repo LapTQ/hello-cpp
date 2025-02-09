@@ -27,52 +27,24 @@ Dynamic memory allocation:
 
 /* Dynamically allocating "single" variables
 
-- To allocate a single variable dynamically, use operator `new`:
-    ```
-    int* ptr{ new int }; 
-
-    int* ptr1{ new int (5) }; // use direct initialization
-    int* ptr2{ new int { 6 } }; // use uniform initialization
-    ```
-- To return the memory back to the OS:
-    ```
-    delete ptr;     // return the memory to the OS
-    ptr = nullptr;
-    ```
-    The OS is then free to reassign that memory to another application. We don't actually delete
-    the `ptr` variable, it can be assigned a new value (e.g., nullptr) just like any other variable.
+- Don't forget to deallocate memory when you're done with it.
+    + The OS is then free to reassign that memory to another application. 
+    + We don't actually delete the `ptr` variable, 
+    it can be assigned a new value (e.g., nullptr) just like any other variable.
 */
 
 
 /* Deallocating memory may create multiple dangling pointers
-
-```
-int main()
-{
-    int* ptr{ new int{} };
-    int* otherPtr{ ptr }; // otherPtr is now pointed at that same memory location
-
-    delete ptr; // ptr and otherPtr are now dangling pointers.
-    ptr = nullptr;
-
-    // however, otherPtr is still a dangling pointer!
-
-    return 0;
-}
-```
 */
 
 
 /* Operator new can fail
 
-- When requesting memory from the OS,  in rare circumstances, the OS may not have any memory to grant.
+- When requesting memory from the OS, in rare circumstances, the OS may not have any memory to grant.
 
-- By default, if new fails, a bad_alloc exception is thrown. If this exception isn’t properly handled,
-  the program will simply crash.
+- By default, if new fails, a bad_alloc exception is thrown. 
+    If this exception isn’t properly handled, the program will simply crash.
 - Alternatively, we can use return a null pointer by adding the constant std::nothrow:
-    ```
-    int* value { new (std::nothrow) int };
-    ```
 */
 
 
@@ -101,7 +73,80 @@ void exampleMemoryLeak2()
 }
 
 
+/* Dynamically allocating arrays
+
+- ... allows us to choose an array length at runtime.
+
+- In these lessons, we’ll be dynamically allocating C-style arrays.
+*/
+
+
+/* Initializing dynamically allocated arrays
+*/
+
+
+/* Resizing arrays
+
+- C++ does not provide a built-in way to resize an array that has already been allocated.
+
+Solutions:
+- Allocate a new array, copy the elements, and delete the old array.
+  => Error prone, especially when the elements type is a class.
+- Use a `std::vector` instead.
+*/
+
+
+#include <cstddef>
+#include <iostream>
+
+int main()
+{
+    // Dynamically allocating "single" variables
+    int* ptr{ new int }; 
+    int* ptr1{ new int (5) }; // use direct initialization
+    int* ptr2{ new int { 6 } }; // use uniform initialization
+
+    delete ptr;     // return the memory to the OS
+    ptr = nullptr;
+    delete ptr1;
+    ptr1 = nullptr;
+    delete ptr2;
+    ptr2 = nullptr;
+
+
+    // Deallocating memory may create multiple dangling pointers
+    int* ptr3{ new int{} };
+    int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
+    delete ptr3; // ptr3 and otherPtr are now dangling pointers.
+    ptr3 = nullptr;
+    // however, otherPtr is still a dangling pointer!
+    
+
+    // Operator new can fail
+    int* value { new (std::nothrow) int };
+
+
+    // Dynamically allocating arrays
+    std::size_t length{ 10 };   // not constepxr
+    int* array{ new int[length]{} }; 
+    array[0] = 5;
+    delete[] array;
+
+
+    // Initializing dynamically allocated arrays
+    int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
+    auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
+    int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
+    delete[] array2;
+    delete[] array3;
+    delete[] array4;
+
+    return 0;
+}
+
+
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/dynamic-memory-allocation-with-new-and-delete/
+- https://www.learncpp.com/cpp-tutorial/dynamically-allocating-arrays/
 */
