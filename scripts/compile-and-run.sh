@@ -65,6 +65,7 @@ path_src=lessons/100-C-style-strings
 path_src=lessons/102-iterators
 path_src=lessons/104-dynamic-memory-allocation
 path_src=lessons/105-void-pointer
+path_src=lessons/106-function-pointer
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
