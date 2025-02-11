@@ -68,6 +68,7 @@ path_src=lessons/105-void-pointer
 path_src=lessons/106-function-pointer
 path_src=lessons/107-stack-and-heap
 path_src=lessons/108-command-line-arguments
+path_src=lessons/109-ellipsis
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
