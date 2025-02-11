@@ -69,6 +69,7 @@ path_src=lessons/106-function-pointer
 path_src=lessons/107-stack-and-heap
 path_src=lessons/108-command-line-arguments
 path_src=lessons/109-ellipsis
+path_src=lessons/110-lambda
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
@@ -81,7 +82,7 @@ args_compile=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++17 \
+-std=c++20 \
 -I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
