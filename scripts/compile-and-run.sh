@@ -67,8 +67,9 @@ path_src=lessons/104-dynamic-memory-allocation
 path_src=lessons/105-void-pointer
 path_src=lessons/106-function-pointer
 path_src=lessons/107-stack-and-heap
+path_src=lessons/108-command-line-arguments
 
-args=$(cat << EOF
+args_compile=$(cat << EOF
 -fdiagnostics-color=always \
 -g \
 -ggdb \
@@ -88,6 +89,12 @@ EOF
 # -Weffc++ \
 # -Werror \
 
+args_run=$(cat << EOF
+Hello
+10
+EOF
+)
+
 name_out="main.out"
 
 dir_output=outputs
@@ -96,5 +103,5 @@ mkdir -p $dir_output
 path_out=$dir_output/$name_out
 rm -f $path_out
 
-g++ $args -o $path_out $path_src/**.cpp
-$path_out
+g++ $args_compile -o $path_out $path_src/**.cpp
+$path_out $args_run
