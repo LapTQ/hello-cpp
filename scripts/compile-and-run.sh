@@ -70,6 +70,7 @@ path_src=lessons/107-stack-and-heap
 path_src=lessons/108-command-line-arguments
 path_src=lessons/109-ellipsis
 path_src=lessons/110-lambda
+path_src=lessons/111-lambda-captures
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
