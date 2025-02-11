@@ -66,6 +66,7 @@ path_src=lessons/102-iterators
 path_src=lessons/104-dynamic-memory-allocation
 path_src=lessons/105-void-pointer
 path_src=lessons/106-function-pointer
+path_src=lessons/107-stack-and-heap
 
 args=$(cat << EOF
 -fdiagnostics-color=always \
@@ -78,7 +79,7 @@ args=$(cat << EOF
 -Wextra \
 -Wconversion \
 -Wsign-conversion \
--std=c++20 \
+-std=c++17 \
 -I./lessons/11-header-files/others \
 -I./3rd-parties/plog/include
 EOF
