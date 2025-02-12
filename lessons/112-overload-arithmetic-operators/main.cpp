@@ -56,6 +56,30 @@ Cents operator-(const Cents& c1, const Cents& c2)
 	return { c1.getCents() - c2.getCents() };
 }
 
+
+/* Using member function
+*/
+
+class Cents3
+{
+private:
+	int m_cents {};
+
+public:
+	Cents3(int cents) : m_cents{ cents } { }
+
+	Cents3 operator+(int value) const;
+
+	int getCents() const { return m_cents; }
+};
+
+// note: this function is a member function!
+Cents3 Cents3::operator+(int value) const
+{
+	return Cents3{ m_cents + value };
+}
+
+
 int main()
 {
 	Cents cents1{ 6 };
@@ -73,8 +97,20 @@ int main()
 	Cents centsSub{ cents1 - cents2 }; // -2
 	std::cout << "I have " << centsSub.getCents() << " cents.\n";
 
+
+	// Using member functions
+	Cents3 cents3{ 6 };
+	Cents3 cents4{ cents3 + 8 }; // 14
+	std::cout << "I have " << cents4.getCents() << " cents.\n";
+
 	return 0;
 }
+
+/* 
+- When dealing with binary operators that don’t modify the left operand (e.g. operator+), the normal or friend function version is typically preferred.
+- When dealing with binary operators that do modify the left operand (e.g. operator+=), the member function version is typically preferred.
+- Unary operators are usually overloaded as member functions as well, since the member version has no parameters.
+*/
 
 
 /* References
