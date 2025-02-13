@@ -72,6 +72,7 @@ path_src=lessons/109-ellipsis
 path_src=lessons/110-lambda
 path_src=lessons/111-lambda-captures
 path_src=lessons/112-overload-arithmetic-operators
+path_src=lessons/115-overload-typecast
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
