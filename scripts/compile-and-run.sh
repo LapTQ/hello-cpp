@@ -75,6 +75,7 @@ path_src=lessons/112-overload-arithmetic-operators
 path_src=lessons/115-overload-typecast
 path_src=lessons/117-shallow-vs-deep-copy
 path_src=lessons/118-smart-pointers-and-move-semantics
+path_src=lessons/119-rvalue-references
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
