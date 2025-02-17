@@ -164,7 +164,7 @@ public:
 Auto_ptr4<Resource> generateResource2()
 {
 	Auto_ptr4<Resource> res{new Resource};
-	return res; // moved instead of copied, even though res is an l-value!!!
+	return res; // moved instead of copied, even though res is an l-value!!! Explain below.
 }
 
 void func2()
@@ -188,7 +188,7 @@ Here is what happens:
 */
 
 
-/* Why is move constructor/assignment is called instead of copy constructor/assignment?
+/* When is move constructor/assignment is called instead of copy constructor/assignment?
 
 - They are called when they are defined and the argument is an rvalue.
 - The copy constructor/assignment is called otherwise.
@@ -230,6 +230,77 @@ This makes Auto_ptr5 smarter, and in fact the standard library contains a class 
 */
 
 
+/* std::move
+
+- in the mySwapCopy, we're making expensive but not necessary copies. a and b are l-values, so the copy constructor and copy assignment are called.
+
+- std::move is a function that casts (using static_cast) its argument into an r-value reference, so that move semantics can be invoked
+*/
+
+template <typename T>
+void mySwapCopy(T& a, T& b)
+{
+	T tmp { a }; // invokes copy constructor because a is an l-value
+	a = b; // invokes copy assignment because b is an l-value
+	b = tmp; // invokes copy assignment because tmp is an l-value
+}
+
+#include <utility> // for std::move
+
+template <typename T>
+void mySwapMove(T& a, T& b)
+{
+	T tmp { std::move(a) }; // invokes move constructor
+	a = std::move(b); // invokes move assignment
+	b = std::move(tmp); // invokes move assignment
+}
+
+void func3()
+{
+	Auto_ptr4<Resource> res1{new Resource};
+	Auto_ptr4<Resource> res2{new Resource};
+
+	mySwapCopy(res1, res2); // expensive copies
+	mySwapMove(res1, res2); // efficient moves
+}
+
+#include <vector>
+#include <string>
+
+void func4()
+{
+	std::vector<std::string> v;
+
+	// We use std::string because it is movable (std::string_view is not)
+	std::string str { "Knock" };
+
+	std::cout << "Copying str\n";
+	v.push_back(str); // calls l-value version of push_back => copies
+	std::cout << "str: " << str << '\n';	// str is unchanged
+	std::cout << "vector: " << v[0] << '\n';
+
+	std::cout << "\nMoving str\n";
+	v.push_back(std::move(str)); // calls r-value version of push_back => moves
+	std::cout << "str: " << str << '\n'; // str is now indeterminate
+	std::cout << "vector:" << v[0] << ' ' << v[1] << '\n';
+}
+
+/* 
+- When we move the value from a temporary object, it doesn’t matter what value the moved-from object is left with, 
+  because the temporary object will be destroyed immediately anyway.
+- Because we can continue to access these objects after their values have been moved, it is useful to know what value they are left with.
+- There are two schools of thought here:
+	+ One school believes that objects that have been moved from should be reset back to some default / zero state (like str in the example above).
+	+ other school believes that we should do whatever is most convenient
+
+	the C++ standard says, “Unless otherwise specified, moved-from objects shall be placed in a valid but unspecified state.”
+	=> str can be any valid string, including an empty string, the original string => we should avoid using the value of a moved-from object, 
+	as the results will be implementation-specific.
+
+- With a moved-from object, it is safe to call any function that does not depend on the current value of the object.
+*/
+
+
 int main()
 {
 	// Recap copy constructor and copy assignment
@@ -240,12 +311,25 @@ int main()
 	func2();
 
 
+	// std::move
+	func3();
+	func4();
+
+
 	return 0;
 }
+
+
+/* Where else is std::move useful?
+
+- std::move can also be useful when sorting an array of elements. Many sorting algorithms work by swapping pairs of elements.
+- It can also be useful if we want to move the contents managed by one smart pointer to another.
+*/
 
 
 
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/move-constructors-and-move-assignment/
+- https://www.learncpp.com/cpp-tutorial/stdmove/
 */

@@ -77,6 +77,7 @@ path_src=lessons/117-shallow-vs-deep-copy
 path_src=lessons/118-smart-pointers-and-move-semantics
 path_src=lessons/119-rvalue-references
 path_src=lessons/120-move-constructor-and-move-assignment
+path_src=lessons/121-std-unique_ptr
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
