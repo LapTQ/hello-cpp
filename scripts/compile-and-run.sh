@@ -80,6 +80,7 @@ path_src=lessons/120-move-constructor-and-move-assignment
 path_src=lessons/121-std-unique_ptr
 path_src=lessons/122-std-shared_ptr-and-std-weak_ptr
 path_src=lessons/123-std-initializer_list
+path_src=lessons/124-inheritance
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
