@@ -81,6 +81,7 @@ path_src=lessons/121-std-unique_ptr
 path_src=lessons/122-std-shared_ptr-and-std-weak_ptr
 path_src=lessons/123-std-initializer_list
 path_src=lessons/124-inheritance
+path_src=lessons/126-overriding
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \

@@ -16,12 +16,12 @@ Here’s what actually happens when derived is instantiated:
 
 #include <iostream>
 
-class Base
+class Base3
 {
 public:
     int m_id {};
 
-    Base(int id=1)
+    Base3(int id=1)
         : m_id { id }
     {
         std::cout << "Base\n";
@@ -30,7 +30,7 @@ public:
     int getId() const { return m_id; }
 };
 
-class Derived1: public Base
+class Derived1: public Base3
 {
 public:
     double m_cost {};
@@ -47,7 +47,7 @@ public:
 void func1()
 {
     std::cout << "Instantiating Base\n";
-    Base base;
+    Base3 base;
 
     std::cout << "Instantiating Derived\n";
     Derived1 derived;
@@ -81,13 +81,13 @@ this print:
 - To explicitly choose which Base class constructor will be called:
 */
 
-class Derived2: public Base
+class Derived2: public Base3
 {
 public:
     double m_cost {};
 
     Derived2(double cost=0.0, int id=0)
-        : Base{ id } // Call Base(int) constructor with value id!
+        : Base3{ id } // Call Base(int) constructor with value id!
         , m_cost{ cost }
     {
     }
