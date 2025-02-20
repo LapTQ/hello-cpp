@@ -82,6 +82,8 @@ path_src=lessons/122-std-shared_ptr-and-std-weak_ptr
 path_src=lessons/123-std-initializer_list
 path_src=lessons/124-inheritance
 path_src=lessons/126-overriding
+path_src=lessons/127-hiding-inherited-functionality
+path_src=lessons/128-multiple-inheritance
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
