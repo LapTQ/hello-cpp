@@ -10,9 +10,6 @@
   Consequently, pAnimal->speak() calls Animal::speak() rather than the Cat::speak() function.
 */
 
-#include <iostream>
-#include <string_view>
-
 class Base1
 {
 public:
@@ -53,10 +50,6 @@ void func1()
   even if they are not explicitly marked as such.
 */
 
-
-#include <iostream>
-#include <string_view>
-
 class Base2
 {
 public:
@@ -83,6 +76,147 @@ void func2()
 }
 
 
+/* a derived class virtual function is only considered an override if its signature and return types match exactly.
+
+=> That can lead to inadvertent issues: functions that are meant to be overrides but aren’t
+*/
+
+class A1
+{
+public:
+	virtual std::string_view getName1(int x) { return "A"; }
+	virtual std::string_view getName2(int x) { return "A"; }
+};
+
+class B1 : public A1
+{
+public:
+	virtual std::string_view getName1(short x) { return "B"; } // note: parameter is a short
+	virtual std::string_view getName2(int x) const { return "B"; } // note: function is const
+};
+
+void func3()
+{
+	B1 b{};
+	A1& rBase{ b };
+	std::cout << rBase.getName1(1) << '\n';     // A
+	std::cout << rBase.getName2(2) << '\n';     // A
+}
+
+
+/* override specifiers
+
+- ... to help address the issue of functions that are meant to be overrides but aren’t.
+- If a function marked as override:
+    + does not override a base class function
+    + or is applied to a non-virtual function)
+  the compiler will flag the function as an error.
+
+- the override specifier implies virtual => no need to use both together.
+
+- all virtual override functions should be tagged using the override specifier.
+*/
+
+class C1 : public A1
+{
+public:
+	std::string_view getName1(short x) override { return "C"; } // compile error, function is not an override
+	std::string_view getName2(int x) const override { return "C"; } // compile error, non-virtual member function cannot be marked as override
+    std::string_view getName2(int x) override { return "C"; }
+};
+
+
+/* final specifier
+
+- There may be cases where you don’t want someone to be able to override a virtual function, or inherit from a class.
+*/
+
+class A2
+{
+public:
+	virtual std::string_view getName() const { return "A"; }
+};
+
+class B2 : public A2
+{
+public:
+	std::string_view getName() const override final { return "B"; } // okay, overrides A::getName()
+};
+
+class C2 : public B2
+{
+public:
+	std::string_view getName() const override { return "C"; } // compile error: overrides B::getName(), which is final
+};
+
+class D2 final : public A2 // note use of final specifier here
+{
+public:
+	std::string_view getName() const override { return "D"; }
+};
+
+class E2 : public D2 // compile error: cannot inherit from final class
+{
+public:
+	std::string_view getName() const override { return "E"; }
+};
+
+
+/* Covariant return types
+
+- There is one special case in which a derived class virtual function override can have a different return type 
+  than the base class and still be considered a matching override: when the return type of a virtual function 
+  is a pointer or a reference to some class, override functions can return a pointer or a reference to a "derived" class
+*/
+
+
+class Base3
+{
+public:
+	// This version of getThis() returns a pointer to a Base class
+	virtual Base3* getThis() { std::cout << "called Base::getThis()\n"; return this; }
+	void printType() { std::cout << "returned a Base\n"; }
+};
+
+class Derived3 : public Base3
+{
+public:
+	// Normally override functions have to return objects of the same type as the base function
+	// However, it's okay to return Derived* instead of Base* because Derived is derived from Base.
+	Derived3* getThis() override { std::cout << "called Derived::getThis()\n";  return this; }
+	void printType() { std::cout << "returned a Derived\n"; }
+};
+
+void func4()
+{
+	Derived3 d{};
+	Base3* b{ &d };
+	d.getThis()->printType(); // calls Derived::getThis(), returns a Derived*, calls Derived::printType
+	b->getThis()->printType(); // calls Derived::getThis(), returns a Base*, calls Base::printType because printType is not virtual
+}
+
+
+int main()
+{
+    // Pointer and references to the base class of derived objects
+    func1();
+    
+    
+    // Virtual functions and polymorphism
+    func2();
+
+
+    // a derived class virtual function is only considered an override if its signature and return types match exactly.
+    func3();
+
+
+    // covariant return types
+    func4();
+    
+    return 0;
+}
+
+
 /* A warning: call virtual functions from constructors or destructors.
 
 - When you create an object of a derived class, the base class constructor is called first.
@@ -91,19 +225,6 @@ void func2()
 
 - Similarly, when you destroy an object of a derived class, the derived portion of the object is destroyed first...
 */
-
-
-int main()
-{
-    // Pointer and references to the base class of derived objects
-    func1();
-
-
-    // Virtual functions and polymorphism
-    func2();
-
-    return 0;
-}
 
 
 /* why not just make all functions virtual
