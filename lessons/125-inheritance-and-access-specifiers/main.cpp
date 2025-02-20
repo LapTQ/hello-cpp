@@ -1,7 +1,7 @@
 /* Access specifiers
 */
 
-class Base
+class Base1
 {
 public:
     int m_public {}; // can be accessed by anybody
@@ -11,7 +11,7 @@ private:
     int m_private {}; // can only be accessed by Base members and friends (but not derived classes)
 };
 
-class Derived1: public Base
+class Derived1: public Base1
 {
 public:
     Derived1()
@@ -24,7 +24,7 @@ public:
 
 void func1()
 {
-    Base base;
+    Base1 base;
     base.m_public = 1; // allowed: can access public members from outside class
     base.m_protected = 2; // not allowed: can not access protected members from outside class
     base.m_private = 3; // not allowed: can not access private members from outside class
@@ -49,21 +49,21 @@ void func1()
 */
 
 // Inherit from Base publicly
-class Pub: public Base
+class Pub: public Base1
 {
 };
 
 // Inherit from Base protectedly
-class Pro: protected Base
+class Pro: protected Base1
 {
 };
 
 // Inherit from Base privately
-class Pri: private Base
+class Pri: private Base1
 {
 };
 
-class Def: Base // Defaults to private inheritance
+class Def: Base1 // Defaults to private inheritance
 {
 };
 
