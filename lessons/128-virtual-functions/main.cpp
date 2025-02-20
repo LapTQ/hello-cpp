@@ -196,6 +196,36 @@ void func4()
 }
 
 
+/* Ignoring virtualization
+
+- There may be cases where you want a Base pointer to a Derived object to call Base::getName() 
+  instead of Derived::getName(). To do so, simply use the scope resolution operator:
+*/
+
+class Base
+{
+public:
+    virtual ~Base() = default;
+    virtual std::string_view getName() const { return "Base"; }
+};
+
+class Derived: public Base
+{
+public:
+    virtual std::string_view getName() const { return "Derived"; }
+};
+
+void func5()
+{
+    Derived derived {};
+    const Base& base { derived };
+
+    // Calls Base::getName() instead of the virtualized Derived::getName()
+    std::cout << base.Base::getName() << '\n';
+
+}
+
+
 int main()
 {
     // Pointer and references to the base class of derived objects
@@ -227,6 +257,20 @@ int main()
 */
 
 
+/* Virtual destructors
+
+- Sometimes you will want to provide your own destructor (particularly if the class needs to deallocate memory).
+  => Whenever you are dealing with inheritance, you should make any destructors virtual.
+*/
+
+
+/* Virtual assignment
+
+- unlike the destructor case where virtualization is always a good idea, virtualizing the assignment operator 
+  really opens up a bag full of worms and gets into some advanced topics outside of the scope of this tutorial.
+*/
+
+
 /* why not just make all functions virtual
 
 - because it’s inefficient -- resolving a virtual function call takes longer than resolving a regular one.
@@ -239,4 +283,6 @@ int main()
 
 - https://www.learncpp.com/cpp-tutorial/pointers-and-references-to-the-base-class-of-derived-objects/
 - https://www.learncpp.com/cpp-tutorial/virtual-functions/
+- https://www.learncpp.com/cpp-tutorial/the-override-and-final-specifiers-and-covariant-return-types/
+- https://www.learncpp.com/cpp-tutorial/virtual-destructors-virtual-assignment-and-overriding-virtualization/
  */
