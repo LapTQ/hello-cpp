@@ -42,9 +42,11 @@ void func1()
 
 - A virtual function, when called, resolves to the "most-derived" version of the function for the "actual type" of the object being referenced or pointed to.
 
-- But note that, Calling a virtual member function directly on an object (not through a pointer or reference) will always invoke 
+- Object slicing: note that, Calling a virtual member function directly on an object (not through a pointer or reference) will always invoke 
   the member function belonging to the same type of that object.
   => Virtual function resolution only works when a member function is called through a pointer or reference to a class type object.
+
+  if used improperly, object slicing can lead to Frankenobject.
 
 - if a function is marked as virtual, all matching overrides in derived classes are also implicitly considered virtual, 
   even if they are not explicitly marked as such.
@@ -70,9 +72,18 @@ void func2()
     Base2& rBase{ derived };
     std::cout << "rBase is a " << rBase.getName() << '\n';  // rBase is a Derived
 
-    // call a virtual function directly on an object (not through a pointer or reference)
+    // Object slicing
     Base2 base { derived };     // copies the A portion of c into a
     std::cout << "base is a " << base.getName() << '\n';    // base is a Base, always calls Base::getName()
+
+    // Frankenobject
+    Derived2 d1 {};
+    Derived2 d2 {};
+    Base2& b{ d1 };
+    b = d2; // you might assume that d2 is copied into d1
+    // but what actually happens is that: because b is a Base, and operator= is not virtual by default,
+    // only the Base part of d2 is copied into d1, while the Derived part of d1 remains unchanged.
+    // => d1 is now a Frankenobject: composed of parts of multiple objects.
 }
 
 
@@ -202,14 +213,14 @@ void func4()
   instead of Derived::getName(). To do so, simply use the scope resolution operator:
 */
 
-class Base
+class Base5
 {
 public:
-    virtual ~Base() = default;
+    virtual ~Base5() = default;
     virtual std::string_view getName() const { return "Base"; }
 };
 
-class Derived: public Base
+class Derived: public Base5
 {
 public:
     virtual std::string_view getName() const { return "Derived"; }
@@ -218,11 +229,61 @@ public:
 void func5()
 {
     Derived derived {};
-    const Base& base { derived };
+    const Base5& base { derived };
 
     // Calls Base::getName() instead of the virtualized Derived::getName()
-    std::cout << base.Base::getName() << '\n';
+    std::cout << base.Base5::getName() << '\n';
 
+}
+
+
+/* Slicing vectors
+
+- To avoid slicing in a vector of objects, you can use pointers or references wrapper (because references are not reassignable).
+*/
+
+#include <vector>
+#include <functional>
+
+class Base6
+{
+public:
+    virtual ~Base6() = default;
+    virtual std::string_view getName() const { return "Base"; }
+};
+
+class Derived6: public Base6
+{
+public:
+    virtual std::string_view getName() const { return "Derived"; }
+};
+
+void func6WithPointer()
+{
+    std::vector<Base6*> v;
+    Derived6 d1;
+    Derived6 d2;
+    v.push_back(&d1);
+    v.push_back(&d2);
+
+    for (const auto& element : v)
+    {
+        std::cout << element->getName() << '\n';
+    }
+}
+
+void func6WithReferenceWrapper()
+{
+    std::vector<std::reference_wrapper<Base6>> v;
+    Derived6 d1;
+    Derived6 d2;
+    v.push_back(d1);
+    v.push_back(d2);
+
+    for (const auto& element : v)
+    {
+        std::cout << element.get().getName() << '\n';
+    }
 }
 
 
@@ -242,6 +303,11 @@ int main()
 
     // covariant return types
     func4();
+
+
+    // Slicing vectors
+    func6WithPointer();
+    func6WithReferenceWrapper();
     
     return 0;
 }
@@ -285,4 +351,5 @@ int main()
 - https://www.learncpp.com/cpp-tutorial/virtual-functions/
 - https://www.learncpp.com/cpp-tutorial/the-override-and-final-specifiers-and-covariant-return-types/
 - https://www.learncpp.com/cpp-tutorial/virtual-destructors-virtual-assignment-and-overriding-virtualization/
+- https://www.learncpp.com/cpp-tutorial/object-slicing/
  */
