@@ -85,6 +85,7 @@ path_src=lessons/126-overriding
 path_src=lessons/127-hiding-inherited-functionality
 path_src=lessons/128-multiple-inheritance
 path_src=lessons/128-virtual-functions
+path_src=lessons/135-rethrow-exception
 
 args_compile=$(cat << EOF
 -fdiagnostics-color=always \
