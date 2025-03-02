@@ -1,5 +1,7 @@
 # hello-cpp
 
-Chúc mừng năm mới Ất Tỵ 2025!
-Happy New Year!
-Happy New Commit!
+
+
+## Next?
+
+1. Understanding of best practices: https://github.com/isocpp/CppCoreGuidelines
