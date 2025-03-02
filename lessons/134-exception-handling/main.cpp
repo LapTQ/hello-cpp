@@ -194,4 +194,5 @@ int func3()
 - https://www.learncpp.com/cpp-tutorial/basic-exception-handling/
 - https://www.learncpp.com/cpp-tutorial/uncaught-exceptions-catch-all-handlers/
 - https://www.learncpp.com/cpp-tutorial/exceptions-classes-and-inheritance/
+- https://www.learncpp.com/cpp-tutorial/exception-dangers-and-downsides/
 */
