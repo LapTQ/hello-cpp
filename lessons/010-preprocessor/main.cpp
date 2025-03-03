@@ -1,5 +1,5 @@
 /*
-- When you compile your project, prior to compilation, each code (.cpp) file goes through a preprocessing phase.
+- When you compile your project, prior to compilation, each code file goes through a preprocessing phase.
 - When the preprocessor has finished processing a code file, the result is called a translation unit. This translation unit 
   is what is then compiled by the compiler.
 - The entire process of preprocessing, compiling, and linking is called translation.
