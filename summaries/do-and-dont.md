@@ -36,7 +36,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Use a complex name for your header guard (e.g., `PROJECT_PATH_FILE_H`). This is to avoid case where 2 separated header files (e.g., `A/config.h` and `B/config.h`) might have the same name of header guard (e.g., `CONFIG_H`).
 
 
-# Debugging
+## Debugging
 
 * ✅ use `std::cerr` (not buffered) instead of `std::cout` (may be buffered).
 * To enable/disable debugging mode:
@@ -53,17 +53,17 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ⚠️ `std::int8_t` and `std::uint8_t` likely behave like `signed char` and `unsigned char` instead of integers.
 
 
-# Input text
+### Input text
 
 * To read whitespace characters (type `char`):
-    * ❌ can't use `std::cin >>`
+  * ❌ can't use `std::cin >>`
     * ✅ use `std::cin.get(ch)`
 * To read a line (including whitespace):
     * ❌ don't use `std::cin >>`
     * ✅ use `std::getline()`
 
 
-# Compile-time optimization
+## Compile-time optimization
 
 * ✅ Most compilers default to no optimization, so if you’re using a command-line 
   compiler, you’ll need to enable optimization yourself.
@@ -103,14 +103,14 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         ```
 
 
-# Comparing floating point values
+## Comparing floating point values
 
 * ❌ It's very dangerous to compare floating point values directly using relational operators (<, >, <=, >=, ==, !=).
     * 👍 One exception: compare a floating point **literal** with a **variable of the same type** that has been initialized with a **literal of the same type**.
 * ❌ It's generally not safe to compare floating point values of **different** types.
 
 
-# Namespaces
+## Namespaces
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
     
