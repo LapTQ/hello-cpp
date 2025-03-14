@@ -56,7 +56,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ### Input text
 
 * To read whitespace characters (type `char`):
-  * ❌ can't use `std::cin >>`
+    * ❌ can't use `std::cin >>`
     * ✅ use `std::cin.get(ch)`
 * To read a line (including whitespace):
     * ❌ don't use `std::cin >>`
