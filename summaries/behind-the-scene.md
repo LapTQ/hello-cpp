@@ -40,3 +40,8 @@
 * Directives are only valid from the point of definition to the end of the file in which they are defined.
     
     => directives defined in one file do not carry over to other files that are compiled separately (unless they are #included in those files).
+
+
+# One-Definition Rule (ODR)
+
+* A variable or function identifier can only have one definition (not declaration).
