@@ -69,7 +69,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
   compiler, you’ll need to enable optimization yourself.
 
 
-# Using `std:string` and `std::string_view`
+## Using `std:string` and `std::string_view`
 
 * ⚠️ Don't pass a `std::string` to a function by value. Because, it will make an expensive copy.
 * ✅ Use `std::string_view` when passing a string to a function by value for read-only access purpose to avoid expensive copy.
