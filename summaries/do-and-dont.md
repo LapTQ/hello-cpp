@@ -58,9 +58,23 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * To read whitespace characters (type `char`):
     * ❌ can't use `std::cin >>`
     * ✅ use `std::cin.get(ch)`
+* To read a line (including whitespace):
+    * ❌ don't use `std::cin >>`
+    * ✅ use `std::getline()`
 
 
 # Compile-time optimization
 
 * ✅ Most compilers default to no optimization, so if you’re using a command-line 
   compiler, you’ll need to enable optimization yourself.
+
+
+
+
+
+- Initializing a std::string is expensive (a copy of the string used to initialize it is made.)
+- When a std::string is passed to a function by value, this results in an expensive copy.
+  We’ll discuss what to do instead (use std::string_view).
+- However, it is okay when a function returns a std::string by value to the caller.
+  std::string supports "move semantics", which allows an object that will be destroyed 
+  at the end of the function to instead be returned by value without making a copy.

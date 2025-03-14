@@ -77,3 +77,12 @@
 * **Constexpr functions**:
     * is a function that can be called in a constant expression.
     * The return value of a non-constexpr function is not a constant expression.
+
+
+# C-style string, `std::string`, `std::string_view`
+
+* `std::string` and `std::string_view` aren’t fundamental types (they’re class types).
+* String literals:
+    * `"Hello, world!"`: C-style string literal
+    * `"Hello, world!"s`: std::string literal
+    * 

@@ -52,3 +52,22 @@ std::cin.clear(); // reset any error flags
 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore any characters in the input buffer until we find a newline
 std::cin.get(); // get one more char from the user (waits for user to press enter)
 ```
+
+
+## Initialize string
+
+```C++
+std::string name {}; // empty string
+std::string name2 { "Alex" }; // initialize name with C-style string literal "Alex"
+name2 = "Johnnnn";               // change name using C-style string literal
+```
+
+
+## Extract a line of text from input stream, including whitespace
+
+```C++
+std::getline(std::cin >> std::ws, name); // read a full line of text into name
+// The std::ws input manipulator tells std::cin to ignore any leading whitespace
+// (spaces, tabs, newlines) at the start of the string.
+// This needs to be done for each std::getline() call, as std::ws is not preserved across calls.
+```
