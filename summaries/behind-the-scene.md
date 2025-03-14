@@ -82,7 +82,18 @@
 # C-style string, `std::string`, `std::string_view`
 
 * `std::string` and `std::string_view` aren’t fundamental types (they’re class types).
+* `std::string_view` provides read-only access to an existing string without making a copy.
+* Both a C-style string and a `std::string` will implicitly convert to a `std::string_view`.
+* `std::string_view` will not implicitly convert to `std::string`.
+* `std::string` is a (sole) owner, `std::string_view` is a viewer.
 * String literals:
     * `"Hello, world!"`: C-style string literal
-    * `"Hello, world!"s`: std::string literal
-    * 
+    * `"Hello, world!"s`: `std::string` literal
+    * `"Hello, world!"ss`: `std::string_view` literal
+
+
+# Namespace
+
+* If `::` is used without providing a namespace name (e.g. `::doSomething`), the identifier (e.g. `doSomething`) is explicitly looked for in the global namespace.
+* If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
+* Multiple namespace blocks and nested namespaces are allowed

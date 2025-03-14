@@ -42,8 +42,8 @@ int main()
     // printString(s2); // error
     std::string_view sv{ "Hello, world!" };
     std::string s3{ sv }; // okay: we can create std::string using std::string_view initializer
-	printString(s3);      // and call the function with the std::string
-	printString(static_cast<std::string>(sv)); // okay: we can explicitly cast a std::string_view to a std::string
+    printString(s3);      // and call the function with the std::string
+    printString(static_cast<std::string>(sv)); // okay: we can explicitly cast a std::string_view to a std::string
 
     // Literals for std::string_view
     using namespace std::string_view_literals; // access the sv suffix
@@ -88,7 +88,11 @@ int main()
 - std::string_view remains dependent on the initializer through its lifetime. 
   If the string being viewed is modified or destroyed, unexpected or undefined behavior will result.
 - Do not initialize a std::string_view with a std::string literal.
-  If the std::string reallocates memory in order to accommodate the new string data, it will return the old memory to the OS.
+  ```
+  std::string_view name { "Alex"s }; // "Alex"s creates a temporary std::string
+  std::cout << name << '\n'; // undefined behavior
+  ```
+- If the std::string reallocates memory in order to accommodate the new string data, it will return the old memory to the OS.
   => the std::string_view is pointing to a now-invalid object.
 - It is okay to initialize a std::string_view with a C-style string literal or a std::string_view literal.
 - Be careful returning a std::string_view. Because std::string_view is viewing a local variable, which will be destroyed.

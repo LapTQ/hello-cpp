@@ -19,7 +19,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ❌ Avoid using **object-like macros with substitution text**, as better methods are available.
 
 
-## `#include`
+## `#include` and header files
 
 * ❌ Avoid `#including` .cpp files.
 * Including header files from other directories:
@@ -69,12 +69,48 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
   compiler, you’ll need to enable optimization yourself.
 
 
+# Using `std:string` and `std::string_view`
+
+* ⚠️ Don't pass a `std::string` to a function by value. Because, it will make an expensive copy.
+* ✅ Use `std::string_view` when passing a string to a function by value for read-only access purpose to avoid expensive copy.
+* ✅ To view a substring of a string, use `std::string_view` with `.remove_prefix()` and `.remove_suffix()`.
+* Initialize a `std::string_view`:
+    * ❌ Don't initialize with a `std::string` **literal**. Because, the temporary `std::string` literal will be destroyed at the end of the statement:
+
+        ```C++
+        std::string_view name { "Alex"s }; // "Alex"s creates a temporary std::string
+        std::cout << name << '\n'; // undefined behavior
+        ```
+    * 👍 It's okay to initialize with a C-style string **literal** or a `std::string_view` **literal**. Because, C-style string literals exist for the entire program.
+* ⚠️ Returning a string in a function that has return type `std::string_view`: 2 main cases when this can be done safely:
+    * 👍 when the returned object is a C-style string literals:
+
+        ```C++
+        std::string_view getBoolName(bool b)
+        {
+            return "false";
+        }
+        ```
+    * 👍 when the returned object is a function parameter of type `std::string_view`:
+
+        ```C++
+        std::string_view firstAlphabetical(std::string_view s1, std::string_view s2)
+        {
+            if (s1 < s2)
+                return s1;
+            return s2;
+        }
+        ```
 
 
+# Comparing floating point values
 
-- Initializing a std::string is expensive (a copy of the string used to initialize it is made.)
-- When a std::string is passed to a function by value, this results in an expensive copy.
-  We’ll discuss what to do instead (use std::string_view).
-- However, it is okay when a function returns a std::string by value to the caller.
-  std::string supports "move semantics", which allows an object that will be destroyed 
-  at the end of the function to instead be returned by value without making a copy.
+* ❌ It's very dangerous to compare floating point values directly using relational operators (<, >, <=, >=, ==, !=).
+    * 👍 One exception: compare a floating point **literal** with a **variable of the same type** that has been initialized with a **literal of the same type**.
+* ❌ It's generally not safe to compare floating point values of **different** types.
+
+
+# Namespaces
+
+* ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
+    

@@ -20,6 +20,12 @@ namespace NamespaceIdentifier
 #include "circle.h" // for BasicMath::pi
 #include <iostream>
 
+void func1()
+{
+    std::cout << BasicMath::add(4, 3) << '\n';
+    std::cout << BasicMath::pi << '\n';
+}
+
 // Nested namespaces
 namespace Foo
 {
@@ -35,21 +41,35 @@ namespace Foo
 // namespace Foo::Goo // Goo is a namespace inside the Foo namespace (C++17 style).
 // It’s worth noting that namespaces in C++ were not originally designed as a way to implement hierarchy -- they were designed primarily to prevent naming collisions.
 
+void func2()
+{
+    std::cout << Foo::Goo::add(1, 2) << '\n';
+}
+
 /* Namespace aliases
 
 - One nice advantage of namespace aliases: If you ever want to move the functionality within Foo::Goo
   to a different place, you can just update the Active alias to reflect the new destination, rather than having to find/replace every instance of Foo::Goo.
 */
 
-int main()
+void func3()
 {
-    std::cout << BasicMath::add(4, 3) << '\n';
-    std::cout << BasicMath::pi << '\n';
-
-    std::cout << Foo::Goo::add(1, 2) << '\n';
-
     namespace Active = Foo::Goo; // namespace alias
     std::cout << Active::add(1, 2) << '\n';
+}
+
+int main()
+{
+    // multiple namespace blocks are allowed
+    func1();
+
+    
+    // nested namespaces
+    func2();
+
+
+    // namespace aliases
+    func3();
 
     return 0;
 }

@@ -5,6 +5,32 @@
 - It is generally not safe to compare floating point literals of different types.
 */
 
+#include <iostream>
+#include <algorithm> // for std::max
+#include <cmath>     // for std::abs
+
+void dangerousComparison()
+{
+    constexpr double d1{ 100.0 - 99.99 }; // should equal 0.01 mathematically
+    constexpr double d2{ 10.0 - 9.99 }; // should equal 0.01 mathematically
+
+    if (d1 == d2)
+        std::cout << "d1 == d2" << '\n';
+    else if (d1 > d2)
+        std::cout << "d1 > d2" << '\n'; // this is the output
+    else if (d1 < d2)
+        std::cout << "d1 < d2" << '\n';
+
+    std::cout << std::boolalpha << (0.3 == 0.2 + 0.1) << "\n"; // prints false
+}
+
+void safeComparison()
+{
+    constexpr double gravity { 9.8 }; // variable of type double, initialized with a literal of the same type
+    std::cout << (gravity == 9.8) << "\n"; // compare with a literal of the same type => safe
+    std::cout << (gravity == 9.8f) << "\n"; // print "false"
+}
+
 /* Comparing floating point numbers
 
 - Not good: New developers often try to write their own “close enough” function using a epsilon.
@@ -14,10 +40,6 @@
   But it is not perfect: fail when the numbers approach zero.
 - Good enough: see below
 */
-
-#include <iostream>
-#include <algorithm> // for std::max
-#include <cmath>     // for std::abs
 
 // Donald Knuth
 bool approximatelyEqualRel(double a, double b, double relEpsilon)
@@ -65,27 +87,16 @@ constexpr bool approximatelyEqualAbsRel(double a, double b, double absEpsilon, d
 
 int main()
 {
-    constexpr double d1{ 100.0 - 99.99 }; // should equal 0.01 mathematically
-    constexpr double d2{ 10.0 - 9.99 }; // should equal 0.01 mathematically
+    
+    dangerousComparison();
+    safeComparison();
 
-    if (d1 == d2)
-        std::cout << "d1 == d2" << '\n';
-    else if (d1 > d2)
-        std::cout << "d1 > d2" << '\n'; // this is the output
-    else if (d1 < d2)
-        std::cout << "d1 < d2" << '\n';
-
-    std::cout << std::boolalpha << (0.3 == 0.2 + 0.1) << "\n"; // prints false
-
-
-    constexpr double gravity { 9.8 }; // variable of type double, initialized with a literal of the same type
-    std::cout << (gravity == 9.8) << "\n"; // compare with a literal of the same type => safe
-    std::cout << (gravity == 9.8f) << "\n"; // print "false"
 
     // Donald Knuth is not perfect
     constexpr double a { 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 };
     std::cout << approximatelyEqualRel(a, 1.0, 1e-8) << '\n'; // prints true
     std::cout << approximatelyEqualRel(a - 1.0, 0.0, 1e-8) << '\n'; // prints false
+    
     
     // good enough
     std::cout << approximatelyEqualAbsRel(a, 1.0, 1e-12, 1e-8) << '\n';     // compare "almost 1.0" to 1.0
