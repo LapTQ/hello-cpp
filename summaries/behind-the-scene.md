@@ -45,3 +45,35 @@
 # One-Definition Rule (ODR)
 
 * A variable or function identifier can only have one definition (not declaration).
+
+
+# Fundamental data types
+
+* C++ standard does not define the exact size (in bits) of any of the fundamental types.
+* WARNING: `std::int8_t` and `std::uint8_t` typically behave like chars.
+* The fixed-width integers actually don’t define new types -- they are just aliases for existing integral types.
+* Types that use less memory are not sure to be faster than types that use more memory. CPUs are often optimized to process data of a certain size (e.g. 32 bits).
+* **integer** vs **integral**:
+    * **integer**: refer to a broad set including `short`, `int`, `long`, `long long`.
+    * **integral**: means “like an integer”, includes the broader set of types that are stored in memory as integers, including `bool`, `char`.
+* Fast and least integral types. E.g.:
+    * `std::int_fast32_t` gives the fastest (i.e., most quickly by the CPU) signed integer type that’s at least 32-bits.
+    * `std::int_least32_t` gives the smallest (i.e., least memory) signed integer type that’s at least 32-bits.
+* `sizeof()` returns a value of type `std::size_t`, which is an **alias** for an *implementation-defined* **unsigned** integral type.
+* Floating point numbers:
+    * `float` is almost always implemented using the 4-byte IEEE 754 single-precision format.
+    * `double` is almost always implemented using the 8-byte IEEE 754 double-precision format.
+    * `long double`: On different platforms, its size can vary between 8 and 16 bytes or may not use an IEEE 754 compliant format. 
+* Boolean values are **stored** and **evaluated to** as integral values: 0, 1, not `true` or `false`.
+
+
+# Constant expression
+
+* **Constant expression** is an expression that *must* be evaluatable at compile-time.
+* `constexpr` means that the object can be used in a constant expression.
+* **Constexpr variable**:
+    * must be initialized with a constant expression.
+    * are implicitly `const`.
+* **Constexpr functions**:
+    * is a function that can be called in a constant expression.
+    * The return value of a non-constexpr function is not a constant expression.
