@@ -16,7 +16,7 @@
 
 /* Global variables have static duration
 
-- Global variables are created when the program starts (before main() begins execution), and destroyed when it ends. 
+- Global variables are created when the program starts (before main() begins execution), and destroyed when the program ends. 
 - This is called "static duration". Variables with static duration are sometimes called "static variables".
 */
 

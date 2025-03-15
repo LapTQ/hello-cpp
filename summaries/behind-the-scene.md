@@ -32,7 +32,7 @@
     * `#define`: 2 types: object-like macros and function-like macros.
 
 
-# Scope of directives
+## Scope of directives
 
 * an `#include` can "copy" directives (other `#include` and `#define`) from the included file into the current file.
 
@@ -42,12 +42,12 @@
     => directives defined in one file do not carry over to other files that are compiled separately (unless they are #included in those files).
 
 
-# One-Definition Rule (ODR)
+## One-Definition Rule (ODR)
 
 * A variable or function identifier can only have one definition (not declaration).
 
 
-# Fundamental data types
+## Fundamental data types
 
 * C++ standard does not define the exact size (in bits) of any of the fundamental types.
 * WARNING: `std::int8_t` and `std::uint8_t` typically behave like chars.
@@ -67,7 +67,7 @@
 * Boolean values are **stored** and **evaluated to** as integral values: 0, 1, not `true` or `false`.
 
 
-# Constant expression
+## Constant expression
 
 * **Constant expression** is an expression that *must* be evaluatable at compile-time.
 * `constexpr` means that the object can be used in a constant expression.
@@ -79,7 +79,7 @@
     * The return value of a non-constexpr function is not a constant expression.
 
 
-# C-style string, `std::string`, `std::string_view`
+## C-style string, `std::string`, `std::string_view`
 
 * `std::string` and `std::string_view` aren’t fundamental types (they’re class types).
 * `std::string_view` provides read-only access to an existing string without making a copy.
@@ -92,8 +92,45 @@
     * `"Hello, world!"ss`: `std::string_view` literal
 
 
-# Namespace
+## Namespace
 
 * If `::` is used without providing a namespace name (e.g. `::doSomething`), the identifier (e.g. `doSomething`) is explicitly looked for in the global namespace.
 * If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
 * Multiple namespace blocks and nested namespaces are allowed
+
+
+## Storage duration
+
+* Global variables are variables that are defined outside of any function. Global variables can also be defined inside a user-defined namespace.
+* **Storage duration** determines when and how a variable will be created and destroyed.
+* **Automatic duration**: variables are created at the point of definition and destroyed at the end of the block they are defined in.
+* **Static duration**: variables are created when the program starts (before `main()` begins execution) and destroyed when the program ends
+* Local variables have **automatic duration**.
+* Global variables have **static duration**.
+
+
+## Linkage
+
+* An identifier’s **linkage** determines whether other declarations of that name refer to the same object or not.
+* **Internal linkage**: the identifier can be seen and used within a single **translation unit**, but it is not accessible from other translation units. This means that if 2 source files have identical internal linkage identifiers, they are treated as independent.
+* Global variables with internal linkage are called **internal variables**.
+* Global variables with external linkage are called **external variables**.
+* By default:
+    * Non-constant globals have external linkage: `int g_x1{};`. 
+        
+        It can be set to internal linkage by using the `static` keyword: `static int g_x1{};`.
+    * `const` globals have internal linkage: `const int g_x2{};`.
+
+        It can be set to external linkage by using the `extern` keyword: `extern const int g_x2{};`.
+    * `constexpr` globals have internal linkage: `constexpr int g_x3{};`.
+    
+        It can be set to external linkage by using the `extern` keyword: `extern constexpr int g_x3{};`.
+    * Functions have external linkage: `void doSomething();`.
+    
+        Functions can be set to internal linkage by using the `static` keyword: `static void doSomething();`.
+
+* To use an external that has been defined in another file:
+    * With external global varibale: you must put a forward declaration of the variable using the `extern` keyword with no initialization value.
+    * With external function: just put a forward declaration of the function without the `extern` keyword.
+
+Global variables are visible from the point of declaration until the end of the "file" in which they are declared.

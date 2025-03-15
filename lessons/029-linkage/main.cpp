@@ -8,16 +8,33 @@
   will be treated as independent.
 */
 
+
 /* Global variables
 
 - Global variables with internal linkage are sometimes called internal variables.
 - Global variables with external linkage are sometimes called external variables.
 */
 
+// internal linkage
+static int g_x1{}; // non-constant globals have external linkage by default, but can be given internal linkage via the static keyword
+const int g_y1{ 1 }; // const globals have internal linkage by default
+constexpr int g_z1{ 2 }; // constexpr globals have internal linkage by default
+// only accessible within this main.cpp
+
+// external linkage
+int g_x2 { 2 }; // non-constant globals are external by default (no need to use extern)
+extern const int g_y2 { 3 }; // const globals can be defined as extern, making them external
+extern constexpr int g_z2 { 3 }; // constexpr globals can be defined as extern, making them external
+
+
 /* Functions with internal linkage
 
 - function identifiers also have linkage. Functions default to external linkage, but can be set to internal linkage via the static keyword.
 */
+
+// This program won’t link, because function add is not accessible outside of add.cpp.
+int add(int x, int y);
+
 
 /* Use an external global variable that has been defined in another file
 
@@ -33,24 +50,11 @@ WARNING:
   another file)'s value is known until link time.
 */
 
-#include <iostream>
-
-// internal linkage
-static int g_x1{}; // non-constant globals have external linkage by default, but can be given internal linkage via the static keyword
-const int g_y1{ 1 }; // const globals have internal linkage by default
-constexpr int g_z1{ 2 }; // constexpr globals have internal linkage by default
-// only accessible within this main.cpp
-
-// external linkage
-int g_x2 { 2 }; // non-constant globals are external by default (no need to use extern)
-extern const int g_y2 { 3 }; // const globals can be defined as extern, making them external
-extern constexpr int g_z2 { 3 }; // constexpr globals can be defined as extern, making them external
-
-// This program won’t link, because function add is not accessible outside of add.cpp.
-int add(int x, int y);
-
 // forward declaration of a global variable defined in another file
 extern int min;
+
+
+#include <iostream>
 
 int main()
 {
@@ -58,10 +62,6 @@ int main()
     return 0;
 }
 
-/* When to use internal linkage
-
-- want to make sure isn’t accessible to other files. E.g., helper functions that are only used in one file.
-*/
 
 /* References
 

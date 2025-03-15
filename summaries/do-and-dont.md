@@ -113,4 +113,5 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Namespaces
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
+* ✅ Prefer defineing global variables inside a namespace rather than in the global namespace.
     
