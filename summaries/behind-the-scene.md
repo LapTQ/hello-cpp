@@ -95,6 +95,7 @@
 
 ## Namespace
 
+* **Namespace** is used to prevent *naming conflicts*.
 * If `::` is used without providing a namespace name (e.g. `::doSomething`), the identifier (e.g. `doSomething`) is explicitly looked for in the global namespace.
 * If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
 * Multiple namespace blocks and nested namespaces are allowed
@@ -153,6 +154,7 @@
 * For small functions (such as `min()` above), the overhead costs can be larger than the time needed to actually execute the function’s code! If it is called often, it can result in a significant performance penalty over writing the same code in-place.
 * **Inline expansion** is a process where a function call is replaced by the code from the called function’s definition.
 * Historically, compilers were not very good at determining whether it should apply inline expansion, so the `inline` keyword was introduced. However, modern C++ compilers are better than human in most cases, so it will likely ignore the `inline` keyword for this purpose.
+
 
 ## Inline functions
 
