@@ -71,3 +71,11 @@ std::getline(std::cin >> std::ws, name); // read a full line of text into name
 // (spaces, tabs, newlines) at the start of the string.
 // This needs to be done for each std::getline() call, as std::ws is not preserved across calls.
 ```
+
+
+## Namespaces alias
+
+```C++
+namespace Active = Foo::Goo;
+```
+

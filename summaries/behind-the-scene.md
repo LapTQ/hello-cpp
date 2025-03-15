@@ -108,6 +108,7 @@
 * **Static duration**: variables are created when the program starts (before `main()` begins execution) and destroyed when the program ends
 * Local variables have **automatic duration**.
 * Global variables have **static duration**.
+* Static local variables have **static duration** (like global variables), but have **local scope** (like local variables).
 
 
 ## Linkage

@@ -114,6 +114,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
 * ✅ Prefer defineing global variables inside a namespace rather than in the global namespace.
+* ❌ Do not use using-statements in header files.
+* ❌ Do not use using-statements before an #include directive.
     
 
 ## Share variables across multiple files

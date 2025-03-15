@@ -19,7 +19,7 @@ using namespace std;
 /* Do not use using-statements in header files, or before an #include directive
 
 - But what about using-statements within functions defined inside header files? => NO (for the same reason that we shouldn’t use using-statements before an #include directive.!!!!
-  Se example below
+  See example below
 */
 
 #include <iostream>
