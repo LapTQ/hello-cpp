@@ -77,6 +77,7 @@
 * **Constexpr functions**:
     * is a function that can be called in a constant expression.
     * The return value of a non-constexpr function is not a constant expression.
+* Forward declaration cannot be `constexpr`, because the compiler will need to know the full definition of the function/variable to evaluate it at compile time.
 
 
 ## C-style string, `std::string`, `std::string_view`
@@ -125,6 +126,7 @@
     * `constexpr` globals have internal linkage: `constexpr int g_x3{};`.
     
         It can be set to external linkage by using the `extern` keyword: `extern constexpr int g_x3{};`.
+    * `inline` variables have external linkage.
     * Functions have external linkage: `void doSomething();`.
     
         Functions can be set to internal linkage by using the `static` keyword: `static void doSomething();`.
@@ -133,4 +135,34 @@
     * With external global varibale: you must put a forward declaration of the variable using the `extern` keyword with no initialization value.
     * With external function: just put a forward declaration of the function without the `extern` keyword.
 
-Global variables are visible from the point of declaration until the end of the "file" in which they are declared.
+
+## Function overhead and inline expansion
+
+* For example,
+
+    ```C++
+    int min(int x, int y)
+    {
+        return (x < y) ? x : y;
+    }
+    ```
+    1. When a call to `min()` is encountered, the CPU must store the address of the current instruction it is executing along with the values of various CPU registers. Then parameters x and y must be instantiated and then initialized. 
+    2. Then the execution path has to jump to the code in the `min()` function. When the function ends, the program has to jump back to the location of the function call, and the return value has to be copied so it can be output.
+* All of the extra work that must happen to setup, facilitate, and/or cleanup after some task is called **overhead**.
+* For small functions (such as `min()` above), the overhead costs can be larger than the time needed to actually execute the function’s code! If it is called often, it can result in a significant performance penalty over writing the same code in-place.
+* **Inline expansion** is a process where a function call is replaced by the code from the called function’s definition.
+* Historically, compilers were not very good at determining whether it should apply inline expansion, so the `inline` keyword was introduced. However, modern C++ compilers are better than human in most cases, so it will likely ignore the `inline` keyword for this purpose.
+
+## Inline functions
+
+* The `inline` keyword is now used to suppress the ODR violation: an inline function is one that is allowed to be *defined* in multiple translation units.
+* Requirements of `inline` function:
+    1. Inline functions must have full *definitions* in every translation unit that uses them.
+    2. Every definition of an inline function must be the identical. Otherwise, the program will have undefined behavior.
+* The linker will then de-duplicate the definitions.
+* `constexpr` functions are implicitly inline.
+* `constexpr` variables are not implicitly inline.
+
+
+
+For non-extern constant global variables are visible from the point of declaration until the end of the "file" in which they are declared.

@@ -24,7 +24,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ❌ Avoid `#including` .cpp files.
 * Including header files from other directories:
     * ❌ Avoid using relative path (e.g, `#include "headers/myHeader.h"`).
-    * ✅ Tell your compiler about other locations to search for (e.g., `-I./lessons/11-header-files/others`).
+    * ✅ Instead, tell your compiler about other locations to search for (e.g., `-I./lessons/11-header-files/others`).
 * ✅ To maximize the chance that missing includes will be flagged by compiler, order your `#includes` as follows:
     1. the paired header file (`add.cpp` and `#include "add.h"`)
     2. other headers from same project
@@ -115,3 +115,41 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
 * ✅ Prefer defineing global variables inside a namespace rather than in the global namespace.
     
+
+## Share variables across multiple files
+
+* Global **constants**:
+    * 👍 Solution 1: Global constants as internal variables
+        1. Create a header file and define a namespace in it.
+        2. Put the global constants inside the namespace, make it `constexpr`.
+        3. `#include` the header file wherever you need.
+
+        * 👍 Simple
+        * 👎️ Changing in the header file will require recompiling all files that include it.
+        * 👎️ Each translation unit get its own copy of the constants => use more memory.
+    * 👍 Solution 2: Global constants as external variables
+        1. Create a .cpp file and define a namespace in it.
+        2. Put the global constants inside the namespace, make it `extern constexpr`.
+        3. Create a header file and forward declare the global constants.
+        4. `#include` the header file wherever you need.
+
+        * 👍 Changeing the constant only require recompiling the .cpp file.
+        * 👎️ Because forward declarations can’t be constexpr, the constant cannot be used in constant expression outside of the .cpp file which defines the constant.
+    * ✅ Solution3: Global constants as inline variables:
+        1. Create a header file and define a namespace in it.
+        2. Put the global constants inside the namespace, make it `inline constexpr`.
+        3. `#include` the header file wherever you need.
+
+        * 👍 The constants will only be instantiated once and shared across all code files (linker will de-duplicate definition).
+        * 👍 Can be used in constant expressions in any translation unit.
+        * 👎️ Changing in the headeer file will require recompiling all files that include it.
+
+
+Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
+   that needs to see the full definition of the identifier. This ensures that all inline definitions for an identifier are "identical".
+   This is particularly useful for "header-only libraries" (no .cpp files are included).
+
+Why not make all functions inline and defined in a header file?
+- Mainly because doing so can increase your compile times significantly.
+- Conversely, if you change the code in a .cpp file, only that .cpp file needs to be recompiled.
+- If you change any of the code in the header, then you’ll need to recompile every file that includes that header.
