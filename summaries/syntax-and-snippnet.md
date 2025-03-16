@@ -151,3 +151,8 @@ int main()
 
 * The function being registered must take no parameters and have no return value.
 * You can register multiple cleanup functions, and they will be called in the reverse order they were registered.
+
+
+## Pseudo-random number generation
+
+Please go to the lesson.

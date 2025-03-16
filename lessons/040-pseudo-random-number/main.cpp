@@ -48,7 +48,7 @@ int main()
     // uniform distribution
     std::uniform_int_distribution uid{ 1, 6 }; // Create a uniform distribution from 1 to 6
     for (int count{ 1 }; count <= 6; ++count)
-	{
+    {
         std::cout << uid(mt) << '\n'; // Generate a random number from 1 to 6
     }
 
@@ -66,7 +66,7 @@ int main()
 
     // seed_seq, better seed quality
     std::random_device rd{};
-	std::seed_seq ss{ rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd() }; // get 8 integers of random numbers
+	  std::seed_seq ss{ rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd() }; // get 8 integers of random numbers
     std::mt19937 mt4{ ss };
     std::cout << mt4() << '\n';
 

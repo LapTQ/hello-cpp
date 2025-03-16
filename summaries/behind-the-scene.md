@@ -197,7 +197,7 @@
 * Historically, compilers were not very good at determining whether it should apply inline expansion, so the `inline` keyword was introduced. However, modern C++ compilers are better than human in most cases, so it will likely ignore the `inline` keyword for this purpose.
 
 
-## Inline functions
+## Inline functions and variables
 
 * The `inline` keyword is now used to suppress the ODR violation: an inline function is one that is allowed to be *defined* in multiple translation units.
 * Requirements of `inline` function:
@@ -221,6 +221,17 @@
 * `std::abort()` function causes your program to terminate "abnormally" (e.g., dividing by 0).
 * `std::abort()` does not do any cleanup.
 * `std::terminate()` often called implicitly when an exception isn’t handled. By default, `std::terminate()` calls `std::abort()`.
+
+
+## `assert` and `static_assert`
+
+* When assertion fails, the program will terminate via `std::abort()`.
+* C++ comes with a built-in macro `NDEBUG`: if it's defined, the assert macro gets disabled.
+* A `static_assert` is checked at compile-time rather than at runtime => the condition must be a constant expression.
+
+    ```C++
+    #undef NDEBUG // enable asserts (must be placed before any #includes)
+    ```
 
 
 

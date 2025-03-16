@@ -116,6 +116,14 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Exception: when you need to exit a nested loop.
 
 
+## Pseudo-random number generation
+
+* 👍 For most applications, Mersenne Twister is fine. However, by modern PRNG standards, Mersenne Twister is a bit outdated.
+* ✅ For highest/fastest quality random results, consider:
+    * The Xoshiro family and Wyrand for non-cryptographic PRNGs.
+    * The Chacha family for cryptographic (non-predictable) PRNGs.
+
+
 ## Namespaces
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)
@@ -157,6 +165,13 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         * 👍 The constants will only be instantiated once and shared across all code files (linker will de-duplicate definition).
         * 👍 Can be used in constant expressions in any translation unit.
         * 👎️ Changing in the headeer file will require recompiling all files that include it.
+
+
+## Assertion
+
+* ✅ Favor `static_assert` over `assert()` whenever possible.
+
+
 
 
 Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
