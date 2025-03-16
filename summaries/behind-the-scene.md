@@ -270,7 +270,16 @@
     * Lossy conversions: E.g., `int` -> `float` -> `int`.
         * ❌ The compiler will raise warnings.
         * Strangely, conversion from a floating point type to an integral type is always considered narrowing, even if the value can be represented exactly.
+
+            ```C++
+            int n { 5.0 }; // compile error: narrowing conversion
+            ```
         * Strangely, conversion from a floating point type to a narrower floating point type is not considered narrowing despite loss of precision.
+        
+            ```C++
+            constexpr double d { 0.1 };
+            float f { d }; // not narrowing, even though loss of precision results
+            ```
 * **Arithmetic conversions**: e.g., `??? y { 2 + 3.5 };`
     * In C++, certain operators require that their operands be of the same type. One or both of the operands will be implicitly converted to **common type** using **usual arithmetic conversions**.
     * The compiler has a ranked list of types (simplified):
