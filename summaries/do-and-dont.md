@@ -172,6 +172,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Favor `static_assert` over `assert()` whenever possible.
 
 
+## Explicit type conversion
+
+* ✅ Use `static_cast` for most type conversions.
+* ❌ Do not use C-style casts: e.g., `(int) x`.
+* ❌ Do not use const cast and reinterpret cast unless you have a very good reason.
+
 
 
 Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
