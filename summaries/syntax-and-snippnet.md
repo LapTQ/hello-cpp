@@ -156,3 +156,14 @@ int main()
 ## Pseudo-random number generation
 
 Please go to the lesson.
+
+
+## Type aliases and typedef
+
+```C++
+using score_t = int; // type alias
+typedef int score_t;  // typedef
+```
+
+* Prefer type aliases over typedefs. typedef is an older way of creating an alias for a type.
+* They do not actually define a new, distinct type.
