@@ -30,7 +30,7 @@ There are (at least) two reasons:
 
 /* std::atexit
 
-- ecause std::exit() terminates the program immediately, you may want to 
+- Because std::exit() terminates the program immediately, you may want to 
   manually do some cleanup before terminating (e.g. closing files, writing logs, etc.).
 
 - std::atexit allows you to specify a function that will automatically be called on program termination via std::exit().

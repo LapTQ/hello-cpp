@@ -129,3 +129,25 @@ for ( ; ; ) // infinite loop
 for (int x{ 0 }, y{ 9 }; x < 10; ++x, --y)  // multiple counters
     std::cout << x << ' ' << y << '\n';
 ```
+
+
+## Exit
+
+```C++
+void cleanup()
+{
+    // code here to do any kind of cleanup required
+    std::cout << "cleanup!\n";
+}
+
+int main()
+{
+    // register cleanup() to be called automatically when std::exit() is called
+    std::atexit(cleanup);
+
+    return 0;
+}
+```
+
+* The function being registered must take no parameters and have no return value.
+* You can register multiple cleanup functions, and they will be called in the reverse order they were registered.

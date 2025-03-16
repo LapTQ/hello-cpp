@@ -208,7 +208,19 @@
 * `constexpr` variables are not implicitly inline.
 
 
+## Exit
 
+* `std::exit()` causes the program to **terminate normally**.
+* Note that "terminate normally" does not mean your program was successful. It can return a non-zero status code, but still have a normal termination.
+* `std::exit()` is called implicitly after function `main()` returns.
+* `std::exit()` performs a number of cleanup functions:
+    * Objects with static storage duration are destroyed.
+    * Miscellaneous file cleanup is done if any files were used.
+    * ⚠️ It does not clean up local variables.
+* `std::atexit` allows you to specify a function that will automatically be called on program termination via `std::exit()`.
+* `std::abort()` function causes your program to terminate "abnormally" (e.g., dividing by 0).
+* `std::abort()` does not do any cleanup.
+* `std::terminate()` often called implicitly when an exception isn’t handled. By default, `std::terminate()` calls `std::abort()`.
 
 
 
