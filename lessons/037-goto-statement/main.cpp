@@ -3,6 +3,24 @@
 - goto-statement: unconditional jump, through use of a "statement label".
 */
 
+#include <iostream>
+#include <cmath> // for sqrt() function
+
+void func1()
+{
+
+    double x{};
+    
+tryAgain: // this is a statement label
+    std::cout << "Enter a non-negative number: ";
+    std::cin >> x;
+    
+    if (x < 0.0)
+        goto tryAgain; // this is the goto statement
+    
+    std::cout << "The square root of " << x << " is " << std::sqrt(x) << '\n';
+}
+
 
 /* Statement labels have function scope
 
@@ -12,39 +30,38 @@
   that is still in scope at the location being jumped to.
 */
 
-
-#include <iostream>
-#include <cmath> // for sqrt() function
-
-int main()
+void func2()
 {
-    double x{};
-
-tryAgain: // this is a statement label
-    std::cout << "Enter a non-negative number: ";
-    std::cin >> x;
-
-    if (x < 0.0)
-        goto tryAgain; // this is the goto statement
-
-    std::cout << "The square root of " << x << " is " << std::sqrt(x) << '\n';
-
-    
     // can jump forward
     bool skip{ true };
     if (skip)
         goto end; // jump forward; statement label 'end' is visible here due to it having function scope
-
+    
     std::cout << "cats\n";
 end:
     ; // statement labels must be associated with a statement
+}
 
-
+void func3()
+{
     // can’t jump forward over an initialization
     goto skip;   // error: this jump is illegal because...
     int x { 5 }; // this initialized variable is still in scope at statement label 'skip'
 skip:
     x += 3;      // what would this even evaluate to if x wasn't initialized?
+}
+
+
+int main()
+{
+    // go-to statement
+    func1();
+
+    
+    // jump forward
+    func2();
+    func3();
+
     return 0;
 }
 

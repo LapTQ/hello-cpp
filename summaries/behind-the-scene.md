@@ -93,6 +93,31 @@
     * `"Hello, world!"ss`: `std::string_view` literal
 
 
+## Switch-case
+
+* Declaration is allowed, but initialization is disallowed underneath a `case` label. But it allowd inside an explicit block.
+
+
+## `goto` statement
+
+* If you jump forward, you can’t jump forward over the initialization of any variable 
+  that is still in scope at the location being jumped to.
+
+
+## `for` loop
+
+* The order of execution:
+
+    ```
+    for (init-statement; condition; end-expression)
+        statement;
+    ```
+    1. Init-statement: only happens once when the loop is initiated.
+    2. Condition: with each loop iteration, the condition is evaluated. If this evaluates to true, the statement is executed.
+    3. Loop body: the statement is executed.
+    4. End-expression: executed after the statement, then jumps back to condition.
+
+
 ## Namespace
 
 * **Namespace** is used to prevent *naming conflicts*.
@@ -184,4 +209,16 @@
 
 
 
+
+
+
+
+
+
 For non-extern constant global variables are visible from the point of declaration until the end of the "file" in which they are declared.
+
+
+New programmers often think that creating variables is expensive.
+- However, creating a variable has no cost.
+- it is the initialization that has a cost, and there is typically 
+  no cost difference between initialization and assignment. 

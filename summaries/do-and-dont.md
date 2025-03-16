@@ -110,6 +110,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ❌ It's generally not safe to compare floating point values of **different** types.
 
 
+## `goto` statement
+
+* ❌ Avoid using `goto` statement.
+* ✅ Exception: when you need to exit a nested loop.
+
+
 ## Namespaces
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)

@@ -79,3 +79,53 @@ std::getline(std::cin >> std::ws, name); // read a full line of text into name
 namespace Active = Foo::Goo;
 ```
 
+
+# Switch case
+
+```C++
+switch (2)
+{
+case 1: // Does not match
+    std::cout << 1 << '\n'; // Skipped
+case 2: // Match!
+    std::cout << 2 << '\n'; // Execution begins here
+    [[fallthrough]]; // intentional fallthrough -- note the semicolon to indicate the null 
+case 3:
+    std::cout << 3 << '\n'; // This is also executed
+    [[fallthrough]]; // intentional fallthrough -- note the semicolon to indicate the null 
+default:
+    std::cout << 5 << '\n'; // This is also executed
+}
+```
+
+* without a `break` or `return`, execution will overflow into subsequent cases.
+* The [[fallthrough]] attribute is used to tell the compiler that the fallthrough is intended.
+
+
+## `for` loop
+
+```C++
+int i{ 0 };
+for ( ; i < 10; ) // no init-statement or end-expression
+{
+    std::cout << i << ' ';
+    ++i;
+}
+```
+
+```C++
+for ( ; ; ) // infinite loop
+{
+    std::cout << "Enter 'q' to quit: ";
+    char c{};
+    std::cin >> c;
+
+    if (c == 'q')
+        break;
+} // equivalent to while (true)
+```
+
+```C++
+for (int x{ 0 }, y{ 9 }; x < 10; ++x, --y)  // multiple counters
+    std::cout << x << ' ' << y << '\n';
+```
