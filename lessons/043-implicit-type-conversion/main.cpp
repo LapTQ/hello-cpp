@@ -75,7 +75,23 @@ Advantages:
 - In C++, certain operators require that their operands be of the same type. 
 - If one of these operators is invoked with operands of different types,
   one or both of the operands will be implicitly converted to "common type" using "usual arithmetic conversions".
-- ...
+- The compiler has a ranked list of types (simplified):
+    1. long double (highest rank)
+    2. double
+    3. float
+    4. long long
+    5. long
+    6. int (lowest rank)
+- Rules to find a **matching type**:
+    1. Step 1:
+        * If one operand is an **integral type** and the other a **floating point type**, the integral operand is converted to the type of the floating point operand (no integral promotion takes place).
+        * Otherwise, any integral operands are numerically promoted.
+    2. Step 2:
+        * After promotion, if one operand is signed and the other unsigned, special rules apply:
+            * If the rank of the unsigned operand is greater than or equal to the rank of the signed operand, the signed operand is converted to the type of the unsigned operand.
+            * If the type of the signed operand can represent all the values of the type of the unsigned operand, the type of the unsigned operand is converted to the type of the signed operand.
+            * Otherwise both operands are converted to the corresponding unsigned type of the signed operand.
+        * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
 */
 
 #include <iostream> 

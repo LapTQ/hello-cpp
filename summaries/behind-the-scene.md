@@ -234,7 +234,64 @@
     ```
 
 
+## Implicit type conversions
 
+* 4 **standard** conversions:
+    * Numeric promotions
+    * Numeric conversions
+    * Arithmetic conversions 
+    * Other conversions
+* When a type conversion is needed, the compiler may apply zero, one, or two standard conversions.
+* **Numeric promotions** includes the following *specific* narrower to wider numeric types:
+    * `float` -> `double`
+    * `signed char`, `signed short` -> `int`
+    * `unsigned char`, `char8_t`, `unsigned short` -> `int` if `int` can represent all values of the original type, otherwise `unsigned int`
+    * `bool` -> `int`, with false becoming `0` and true becoming `1`
+
+    Not all widening conversions (such as `char` to `short`, or `int` to `long`) are numeric promotions because they do not assist converting *efficiently*.
+
+    ✅ Numeric promotions are value-preserving, and thus “safe” => reduces redundancy. You can define `void printInt(int x)` and pass `short`, `char` to it without having to define `void printShort(short x)`, `void printChar(char x)`.
+* **Numeric conversions**:
+    * integral type -> any integral type (excluding integral promotions)
+    * floating point type -> any floating point type (excluding floating point promotions)
+    * floating point type -> any integral type
+    * integral type -> any floating point type
+    * integral type or floating point type -> bool
+
+    Numeric conversions fall into 3 categories:
+    * Value-preserving conversions:
+        * ✅ The compiler will not raise warnings.
+        * ✅ The destination type can represent all values of the source type.
+        * ✅ Can be converted back to the source type without loss of information. E.g., `int` -> `long` -> `int`.
+    * Reinterpretive conversions:
+        * ⚠️ The compiler might not raise warnings.
+        * ⚠️ The destination type cannot represent all values of the source type.
+        * ✅ Can be converted back to the source type without loss of information. E.g., `int` -> `unsigned int` -> `int`.
+    * Lossy conversions: E.g., `int` -> `float` -> `int`.
+        * ❌ The compiler will raise warnings.
+        * Strangely, conversion from a floating point type to an integral type is always considered narrowing, even if the value can be represented exactly.
+        * Strangely, conversion from a floating point type to a narrower floating point type is not considered narrowing despite loss of precision.
+* **Arithmetic conversions**: e.g., `??? y { 2 + 3.5 };`
+    * In C++, certain operators require that their operands be of the same type. One or both of the operands will be implicitly converted to **common type** using **usual arithmetic conversions**.
+    * The compiler has a ranked list of types (simplified):
+        1. long double (highest rank)
+        2. double
+        3. float
+        4. long long
+        5. long
+        6. int (lowest rank)
+    * Rules to find a **matching type**:
+        1. Step 1:
+            * If one operand is an **integral type** and the other a **floating point type**, the integral operand is converted to the type of the floating point operand (no integral promotion takes place).
+            * Otherwise, any integral operands are numerically promoted.
+        2. Step 2:
+            * After promotion, if one operand is signed and the other unsigned, special rules apply:
+                * If the rank of the unsigned operand is greater than or equal to the rank of the signed operand, the signed operand is converted to the type of the unsigned operand.
+                * If the type of the signed operand can represent all the values of the type of the unsigned operand, the type of the unsigned operand is converted to the type of the signed operand.
+                * Otherwise both operands are converted to the corresponding unsigned type of the signed operand.
+            * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
+    
+    
 
 
 
