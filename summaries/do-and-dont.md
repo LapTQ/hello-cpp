@@ -116,6 +116,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Prefer defineing global variables inside a namespace rather than in the global namespace.
 * ❌ Do not use using-statements in header files.
 * ❌ Do not use using-statements before an #include directive.
+* ✅ If you want to version your code, you can use **inline namespaces**.
+
+
+## Linkage
+
+* ✅ If you want to make all declarations to have internal linkage without having to use `static` keyword, you can put them in an unnamed namespace.
     
 
 ## Share variables across multiple files

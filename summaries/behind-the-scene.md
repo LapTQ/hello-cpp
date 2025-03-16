@@ -98,7 +98,9 @@
 * **Namespace** is used to prevent *naming conflicts*.
 * If `::` is used without providing a namespace name (e.g. `::doSomething`), the identifier (e.g. `doSomething`) is explicitly looked for in the global namespace.
 * If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
-* Multiple namespace blocks and nested namespaces are allowed
+* Multiple namespace blocks and nested namespaces are allowed.
+* **Unnamed namespace**: All content declared in an unnamed namespace is treated as part of the parent namespace.
+* **Inlide namespace**: (Much like an unnamed namespace) All content declared in an inline namespace is treated as part of the parent namespace. The difference is that the inline namespace can be versioned.
 
 
 ## Storage duration
@@ -114,7 +116,7 @@
 
 ## Linkage
 
-* An identifier’s **linkage** determines whether other declarations of that name refer to the same object or not.
+* An identifier’s **linkage** determines whether it can be seen and used by other translation units.
 * **Internal linkage**: the identifier can be seen and used within a single **translation unit**, but it is not accessible from other translation units. This means that if 2 source files have identical internal linkage identifiers, they are treated as independent.
 * Global variables with internal linkage are called **internal variables**.
 * Global variables with external linkage are called **external variables**.
@@ -136,6 +138,20 @@
 * To use an external that has been defined in another file:
     * With external global varibale: you must put a forward declaration of the variable using the `extern` keyword with no initialization value.
     * With external function: just put a forward declaration of the function without the `extern` keyword.
+* All identifiers inside an unnamed namespace are treated as if they have internal linkage:
+
+    ```C++
+    namespace // unnamed namespace
+    {
+        void doA() // can only be accessed in this file
+        {
+            std::cout << "v1\n";
+        }
+    }
+    // equivalent to:
+    // static void doA()
+    // ...
+    ```
 
 
 ## Function overhead and inline expansion

@@ -38,8 +38,6 @@ Use case:
   For example, in the below code, we can switch the doSomething() function between V1 and V2 by placing `inline` before the preferred version. 
 */
 
-
-
 inline namespace V1 // declare an inline namespace named V1, an unqualified call to doSomething() will call the V1 version
 {
     void doSomething()
@@ -55,6 +53,8 @@ namespace V2 // declare a normal namespace named V2
         std::cout << "V2\n";
     }
 }
+
+
 
 int main()
 {
