@@ -179,3 +179,18 @@ auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
 ```C++
 std::cout << typeid(i).name() << '\n'; // show us the name of the type for i
 ```
+
+
+## Delete function
+
+```C++
+void printInt(bool) = delete; // calls to this function will halt compilation
+```
+
+Deleting all non-matching overloads:
+```C++
+void printInt(int x) // This function will take precedence for arguments of type int
+
+template <typename T>
+void printInt(T x) = delete; // This function will take precedence for all other types
+```
