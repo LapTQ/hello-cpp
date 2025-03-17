@@ -312,6 +312,42 @@
     ```
 
 
+## Function overloading
+
+* **Function overloading**: multiple functions with the same name, each has different number/type of parameters. Each function is called an **overloaded function** (or **overload**).
+* **Signature**: = function name + number of parameters + parameter type + function-level qualifiers.
+* **Overload resolution**: The process of matching function calls to a specific overloaded function. Steps:
+    1. The compiler tries to find an exact match (this includes **trivial conversions**). For examples:
+
+        ```C++
+        void foo(int);
+        void foo(double);
+        foo(5); // exact match with foo(int)
+        foo(5.0); // exact match with foo(double)
+        ```
+
+        ```C++
+        void foo(const int);
+        void foo(const double&); // reference
+        foo(5); // exact match with foo(const int) via trivial conversion
+        foo(5.0); // exact match with foo(const double&) via trivial conversion
+        ```
+
+        ```C++
+        void foo(int);
+        void foo(const int&);
+
+        foo(5); // ambiguous match
+        ```
+    2. If no exact match is found, the compiler tries to match by applying numeric promotion to the argument(s).
+    3. If no match is found, the compiler tries to match by numeric conversion.
+    4. If no match is found, the compiler tries to match by applying user-defined conversions.
+    5. If no match is found, the compiler will use ellipsis.
+    6. If no match is found, the compiler will report an error.
+* Matching for functions with multiple arguments: 
+    * The compiler applies the matching rules to each argument *in turn*.
+    * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
+
 
 
 For non-extern constant global variables are visible from the point of declaration until the end of the "file" in which they are declared.

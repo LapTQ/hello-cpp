@@ -19,6 +19,13 @@ void func1()
     const int a { 5 };
     auto b { a };      // b has type int, not const int
     const auto e { a }; // if you want b to be const, you must explicitly specify it
+
+    // for string literals
+    auto s { "Hello, world" }; // s will be type const char*, not std::string
+    using namespace std::string_literals;
+    auto s1 { "goo"s };  // "goo"s is a std::string literal, so s1 will be deduced as a std::string
+    using namespace std::string_view_literals;
+    auto s2 { "moo"sv }; // "moo"sv is a std::string_view literal, so s2 will be deduced as a 
 }
 
 /* Type deduction for functions
@@ -43,12 +50,17 @@ auto add2(int x, int y)
 
 auto foo();
 
+void func2()
+{
+    foo(); // compile error
+}
+
 
 /* Trailing return type syntax
 
 - The auto keyword can also be used to declare functions where
-  the return type is specified after the rest of the function prototype:
-
+  the return type is specified after the rest of the function prototype.
+- It's also useful when the return type must be deduced based on the type of the function parameters.
 */
 
 auto add3(int x, int y) -> int // equivalent to `int add(int x, int y)`
@@ -56,14 +68,21 @@ auto add3(int x, int y) -> int // equivalent to `int add(int x, int y)`
   return (x + y);
 }
 
-/*
-- It helps making the function easier to read, especially when the
-  return type is complex or when we want to align function's declaration vertically.
-- It's also useful when the return type must be deduced based on the type of the function parameters:
-    #include <type_traits> // note: decltype(x) evaluates to the type of x
+#include <type_traits> // note: decltype(x) evaluates to the type of x
     
-    std::common_type_t<decltype(x), decltype(y)> add(int x, double y);         // Compile error: compiler hasn't seen definitions of x and y yet
-    auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>; // ok
+std::common_type_t<decltype(x), decltype(y)> add4(int x, double y)         // Compile error: compiler hasn't seen definitions of x and y yet
+{
+    return x + y;
+}
+
+auto add5(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>
+{
+    return x + y;
+}
+
+/*
+- It's also useful when the return type must be deduced based on the type of the function parameters:
+    
 */
 
 
@@ -73,23 +92,13 @@ int main()
     func1();
     
 
-    // for string literals
-    auto s { "Hello, world" }; // s will be type const char*, not std::string
-    using namespace std::string_literals;
-    auto s1 { "goo"s };  // "goo"s is a std::string literal, so s1 will be deduced as a std::string
-    using namespace std::string_view_literals;
-    auto s2 { "moo"sv }; // "moo"sv is a std::string_view literal, so s2 will be deduced as a 
+    // Type deduction for functions
+    func2();
 
-
-    foo(); // compile error
 
     return 0;
 }
 
-auto foo()
-{
-    return 5;
-}
 
 /* References
 
