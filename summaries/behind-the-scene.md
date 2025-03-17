@@ -301,17 +301,6 @@
             * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
 
 
-## Type deduction
-
-* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
-
-    ```C++
-    const int a { 5 };
-    auto b { a };      // b has type int, not const int
-    const auto e { a }; // must explicitly specify const
-    ```
-
-
 ## Function overloading
 
 * **Function overloading**: multiple functions with the same name, each has different number/type of parameters. Each function is called an **overloaded function** (or **overload**).
@@ -349,12 +338,33 @@
     * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
 
 
+## Type deduction
+
+* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
+
+    ```C++
+    const int a { 5 };
+    auto b { a };      // b has type int, not const int
+    const auto e { a }; // must explicitly specify const
+    ```
+* A function with `auto` return type needs to be fully defined before it can be called (a forward declaration is not enough). If we need a function that can be forward declared we have to be explicit about the return type:
+    ```C++
+    auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
+    ```
+    ```C++
+    template <typename T, typename U>
+    auto max(T x, U y) -> std::common_type_t<T, U>;
+    ```
+
+
 ## Function templates
 
 * Function templates are not actually functions. They generate functions.
 * The process of creating functions from function templates is called **instantiation**.
 * A **function instance** is only instantiated **once**, by the first time a function call is made in each translation unit. Further calls to the function are routed to the already instantiated function.
 * ⚠️ Beware function templates with **modifiable static local variables**: each function instantiated from that template will have a separate version of the static local variable.
+* Function templates can be overloaded.
+* A **non-type template parameter**: a template parameter with a fixed type that serves as a placeholder for a constexpr value.
 
 
 

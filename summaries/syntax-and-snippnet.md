@@ -215,7 +215,7 @@ void print(bool x) { std::cout << std::boolalpha << x; }
     print(true); // deduces print(bool) (prints true): consider both template and non-template functions, but non-template functions take precedence
     ```
 
-we can disallow certain types from being used with a function template by using the `delete` specifier:
+We can disallow certain types from being used with a function template by using the `delete` specifier:
 ```C++
 template <typename T>
 T addOne(T x)
@@ -226,4 +226,24 @@ T addOne(T x)
 template <>
 const char* addOne(const char* x) = delete;
 // addOne("Hello, world!"); // compile error
+```
+
+Non-type template parameters:
+```C++
+template <double D> // requires C++20 for floating point non-type parameters
+double getSqrt2()
+{
+    static_assert(D >= 0.0);
+
+    if constexpr (D >= 0)
+        return std::sqrt(D);
+
+    return 0.0;
+}
+
+template <auto N>   // type deduction for non-type template parameters
+void print2()
+{
+    std::cout << N << '\n';
+}
 ```

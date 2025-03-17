@@ -191,6 +191,14 @@ auto max4(T x, U y) -> std::common_type_t<T, U>
     return (x < y) ? y : x;
 }
 
+void func4()
+{
+    std::cout << max2(2, 3.5) << '\n'; // print 3, due to narrowing conversion problem
+    std::cout << max3(2, 3.5) << '\n'; // print 3.5, correct
+    std::cout << max4(2, 3.5) << '\n'; // print 3.5, correct
+}
+
+
 /* (C++20) Abbreviated function templates
 
 - C++20 introduces a new use of the auto keyword:
@@ -217,6 +225,14 @@ auto foo(T x, U y) {}
 template <typename T, typename U, typename V>
 auto foo(T x, U y, V z) {}
 
+void func5()
+{
+    foo(1.2, 3.4); // call foo<double>(), preferred over foo<int, double>() (prefer the stricter match)
+    foo(1, 3.4);   // call foo<int, double>()
+    foo(1, 2, 3);  // call foo<int, int, int>()
+}
+
+
 int main()
 {   
     // function template
@@ -231,16 +247,13 @@ int main()
     func3();    
 
 
-    // multiple template types, solution 3
-    std::cout << max2(2, 3.5) << '\n'; // print 3, due to narrowing conversion problem
-    std::cout << max3(2, 3.5) << '\n'; // print 3.5, correct
-    std::cout << max4(2, 3.5) << '\n'; // print 3.5, correct
+    // multiple template types
+    func4();
+    
 
 
     // Function templates may be overloaded
-    foo(1.2, 3.4); // call foo<double>(), preferred over foo<int, double>() (prefer the stricter match)
-    foo(1, 3.4);   // call foo<int, double>()
-    foo(1, 2, 3);  // call foo<int, int, int>()
+    
 
     return 0;
 }

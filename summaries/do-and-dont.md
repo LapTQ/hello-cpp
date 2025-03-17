@@ -184,6 +184,11 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Can use **trailing return type syntax** to make code more readable and dynamic. E.g., this function has return type based on its parameter types: `auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;`
 
 
+## Function templates
+
+* ✅ Use non-type template parameters to when we need to pass constexpr values to functions/class types. For example, to `static_assert` at compile time.
+
+
 
 
 
