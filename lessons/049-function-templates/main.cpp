@@ -10,6 +10,7 @@
   Instead, function templates have one job: to generate functions.
 */
 
+#include <iostream>
 
 // template parameter declaration
 template <typename T> // tell the compiler: this is a template, and T is a type template parameter
@@ -18,6 +19,13 @@ T max(T x, T y)
     return (x < y) ? y : x;
 }
 // The scope of a template parameter declaration is strictly limited to the function template that follows.
+
+void func1()
+{
+    std::cout << max<int>(1, 2) << '\n'; // instantiates and calls function max<int>(int, int)
+    std::cout << max<int>(4, 3) << '\n';    // calls already instantiated function max<int>(int, int)
+    std::cout << max<double>(1, 2) << '\n'; // instantiates and calls function max<double>(double, double)
+}
 
 
 /* Function template instantiation
@@ -34,7 +42,6 @@ the addition of the type in angled brackets is called a "template argument".
   Further calls to the function are routed to the already instantiated function.
 */
 
-#include <iostream>
 
 
 /* Template argument deduction
@@ -49,16 +56,24 @@ the addition of the type in angled brackets is called a "template argument".
 
 // generic
 template <typename T>
-void print(T x)
+void print(T x) { std::cout << x; }
+
+void print(bool x) { std::cout << std::boolalpha << x; }
+
+
+void func2()
 {
-    std::cout << x;
+    print<bool>(true); // calls print<bool>(bool) -- prints 1
+    std::cout << '\n';
+
+    print<>(true);     // deduces print<bool>(bool) (non-template functions not considered) -- prints 1
+    std::cout << '\n';
+
+    print(true);       // calls print(bool) -- prints true
+    // consider both template and non-template function overloads, but non-template function is preferred
+    std::cout << '\n';
 }
 
-// specialize how to handles printing of a bool
-void print(bool x)
-{
-    std::cout << std::boolalpha << x;
-}
 
 
 /* Function templates with non-template parameters
@@ -78,6 +93,7 @@ T addOne(T x)
 {
     return x + 1;
 }
+
 template <>
 const char* addOne(const char* x) = delete;
 // addOne("Hello, world!"); // compile error
@@ -95,6 +111,13 @@ void printIDAndValue(T value)
 {
     static int id{ 0 };
     std::cout << ++id << ") " << value << '\n';
+}
+
+void func3()
+{
+    printIDAndValue(12);    // 1) 12
+    printIDAndValue(13);    // 2) 13
+    printIDAndValue(14.5);  // 1) 14.5
 }
 
 
@@ -195,28 +218,17 @@ template <typename T, typename U, typename V>
 auto foo(T x, U y, V z) {}
 
 int main()
-{
-    std::cout << max<int>(1, 2) << '\n'; // instantiates and calls function max<int>(int, int)
-    std::cout << max<int>(4, 3) << '\n';    // calls already instantiated function max<int>(int, int)
-    std::cout << max<double>(1, 2) << '\n'; // instantiates and calls function max<double>(double, double)
-
+{   
+    // function template
+    func1();
+    
 
     // Template argument deduction
-    print<bool>(true); // calls print<bool>(bool) -- prints 1
-    std::cout << '\n';
-
-    print<>(true);     // deduces print<bool>(bool) (non-template functions not considered) -- prints 1
-    std::cout << '\n';
-
-    print(true);       // calls print(bool) -- prints true
-    // consider both template and non-template function overloads, but non-template function is preferred
-    std::cout << '\n';
+    func2();
 
 
     // Beware function templates with modifiable static local variables
-    printIDAndValue(12);    // 1) 12
-    printIDAndValue(13);    // 2) 13
-    printIDAndValue(14.5);  // 1) 14.5
+    func3();    
 
 
     // multiple template types, solution 3

@@ -194,3 +194,36 @@ void printInt(int x) // This function will take precedence for arguments of type
 template <typename T>
 void printInt(T x) = delete; // This function will take precedence for all other types
 ```
+
+
+## Function templates
+
+Template argument deduction:
+```C++
+template <typename T>
+void print(T x) { std::cout << x; }
+
+void print(bool x) { std::cout << std::boolalpha << x; }
+```
+
+* To consider only template function overloads (with the empty angled brackets):
+    ```C++
+    print<>(true); // deduces print<bool>(bool) (prints 1): non-template functions not considered
+    ```
+* To consider all overloads:
+    ```C++
+    print(true); // deduces print(bool) (prints true): consider both template and non-template functions, but non-template functions take precedence
+    ```
+
+we can disallow certain types from being used with a function template by using the `delete` specifier:
+```C++
+template <typename T>
+T addOne(T x)
+{
+    return x + 1;
+}
+
+template <>
+const char* addOne(const char* x) = delete;
+// addOne("Hello, world!"); // compile error
+```

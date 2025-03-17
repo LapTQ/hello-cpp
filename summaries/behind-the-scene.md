@@ -349,6 +349,26 @@
     * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
 
 
+## Function templates
+
+* Function templates are not actually functions. They generate functions.
+* The process of creating functions from function templates is called **instantiation**.
+* A **function instance** is only instantiated **once**, by the first time a function call is made in each translation unit. Further calls to the function are routed to the already instantiated function.
+* ⚠️ Beware function templates with **modifiable static local variables**: each function instantiated from that template will have a separate version of the static local variable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 For non-extern constant global variables are visible from the point of declaration until the end of the "file" in which they are declared.
 
