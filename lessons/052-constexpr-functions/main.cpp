@@ -34,6 +34,19 @@ constexpr double calcCircumference2(double radius) // now a constexpr function
     return 2.0 * pi * radius;
 }
 
+void func1()
+{
+    constexpr double radius { 3.0 };
+    constexpr double pi { 3.14159265359 };
+
+    // Function call to a normal function are not allowed in constant expressions.
+    constexpr double circumference { 2.0 * radius * pi }; // compile
+    constexpr double circumference2 { calcCircumference(radius) }; // compile error
+
+    // constexpr function
+    constexpr double circumference3 { calcCircumference2(radius) }; // compile
+}
+
 
 /* Constexpr/consteval function parameters are not constexpr
 
@@ -44,6 +57,12 @@ constexpr double calcCircumference2(double radius) // now a constexpr function
 constexpr int foo(int b)    // b is not constexpr, and cannot be used in constant expressions
 {
     constexpr int b2 { b }; // compile error: constexpr variable requires constant expression initializer
+}
+
+void func2()
+{
+    constexpr int a { 5 };
+    std::cout << foo(a); // okay: constant expression a can be used as argument to constexpr function foo()
 }
 
 
@@ -71,31 +90,29 @@ constexpr int greater(int x, int y)
     return (x > y ? x : y);
 }
 
+void func3()
+{
+    constexpr int g { greater(5, 6) };              // case 1: always evaluated at compile-time
+    greater(5, 6);                                  // case 2: all arguments are constant expressions => may be evaluated at either runtime or compile-time
+    int x{ 5 };                                          // not constexpr but value is known at compile-time
+    greater(x, 6);                                    // case 3: likely evaluated at runtime
+    std::cin >> x;
+    greater(x, 6);                                    // case 4: always evaluated at runtime
+}
+
+
 int main()
 {
-    constexpr double radius { 3.0 };
-    constexpr double pi { 3.14159265359 };
-
-    // Function call to a normal function are not allowed in constant expressions.
-    constexpr double circumference { 2.0 * radius * pi }; // compile
-    constexpr double circumference2 { calcCircumference(radius) }; // compile error
-
     // constexpr function
-    constexpr double circumference3 { calcCircumference2(radius) }; // compile
+    func1();
 
 
     // Constexpr/consteval function parameters are not constexpr
-    constexpr int a { 5 };
-    std::cout << foo(a); // okay: constant expression a can be used as argument to constexpr function foo()
-
+    func2();
+    
     
     // another example
-    constexpr int g { greater(5, 6) };              // case 1: always evaluated at compile-time
-    greater(5, 6); // case 2: all arguments are constant expressions => may be evaluated at either runtime or compile-time
-    int x{ 5 }; // not constexpr but value is known at compile-time
-    greater(x, 6); // case 3: likely evaluated at runtime
-    std::cin >> x;
-    greater(x, 6); // case 4: always evaluated at runtime
+    func3();
 
     return 0;
 }

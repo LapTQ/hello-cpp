@@ -75,9 +75,35 @@
     * must be initialized with a constant expression.
     * are implicitly `const`.
 * **Constexpr functions**:
-    * is a function that can be called in a constant expression.
+    * is a function that **can** be called in a constant expression (i.e., non-`constexpr` functions cannot be called in a constant expression).
     * The return value of a non-constexpr function is not a constant expression.
+    * To evaluate at compile-time, two other things must also be true:
+        * passed arguments must be constant expressions
+        * all statements in the function must be evaluatable at compile-time.
 * Forward declaration cannot be `constexpr`, because the compiler will need to know the full definition of the function/variable to evaluate it at compile time.
+* The parameters of a constexpr function cannot be declared as `constexpr` (nor implicitly `constexpr`). 
+    * It means these parameters cannot be used in constant expressions within the function:
+        
+        ```C++
+        constexpr int foo(int b)    // b is not constexpr
+        {
+            constexpr int b2 { b }; // compile error: b cannot be used in constant expressions
+        }
+        ```
+    * However, these parameters can be used in a call to another `constexpr` function:
+        
+        ```C++
+        constexpr int goo(int c) { return c; }
+
+        // b is not a constant expression within foo(), but goo() will be evaluated at compile-time if foo() is called at compile-time
+        constexpr int foo(int b) { return goo(b); }
+
+        int main()
+        {
+            constexpr int a { foo(5) };     // foo(5) must evaluate at compile-time
+        }
+        ```
+* In a non-constant expression that uses a constexpr function, the compiler may choose to or not to evaluate the constexpr function at either compile-time. `consteval` (C++20) forces the compiler to evaluate the function at compile-time.
 
 
 ## C-style string, `std::string`, `std::string_view`
@@ -204,7 +230,7 @@
     1. Inline functions must have full *definitions* in every translation unit that uses them.
     2. Every definition of an inline function must be the identical. Otherwise, the program will have undefined behavior.
 * The linker will then de-duplicate the definitions.
-* `constexpr` functions are implicitly inline.
+* `constexpr` functions are implicitly inline. Because, the compiler needs its definition in every translation unit that uses it to be able to evaluate it at compile time.
 * `constexpr` variables are not implicitly inline.
 
 

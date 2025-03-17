@@ -124,6 +124,23 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * The Chacha family for cryptographic (non-predictable) PRNGs.
 
 
+## Constant expressions
+
+* ✅ Constexpr/consteval functions should be defined in a header file.
+* ✅ If you want to force a constexpr function to be evaluated at compile time, use `consteval` with a helper function:
+    ```C++
+    consteval auto compileTimeEval(auto value) { return value; }
+
+    constexpr int greater2(int x, int y) { return (x > y ? x : y); }
+
+    int main()
+    {
+        compileTimeEval(greater2(3, 4)); // will be evaluated at compile time
+    }
+    ```
+* ❌ C++ does not currently provide any reliable mechanisms to notify you if a function is being evaluated at compile time or runtime.
+
+
 ## Namespaces
 
 * ✅ Naming convention: Company or org :: project or library :: module (e.g. `Foosoft::Foologger::Lang`)

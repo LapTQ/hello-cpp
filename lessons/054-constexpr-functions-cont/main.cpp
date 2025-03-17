@@ -27,7 +27,8 @@ constexpr int foo(int b) // b is not a constant expression within foo()
 
 int main()
 {
-    std::cout << foo(5);
+    constexpr int a { foo(5) };     // foo(5) must evaluate at compile-time
+    std::cout << a << '\n';
 
     return 0;
 }

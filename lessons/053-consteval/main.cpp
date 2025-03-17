@@ -22,6 +22,14 @@ consteval int greater(int x, int y) // function is consteval
     return (x > y ? x : y);
 }
 
+void func1()
+{
+    constexpr int g { greater(5, 6) };  // ok: will evaluate at compile-time
+    greater(5, 6);                      // ok: will evaluate at compile-time
+    int x{ 5 }; // not constexpr
+    greater(x, 6);                      // error: consteval functions must evaluate at compile-time    
+}
+
 
 /* To have both compile-time or run-time evaluation when we want
 
@@ -42,19 +50,24 @@ constexpr int greater2(int x, int y) // function is constexpr
     return (x > y ? x : y);
 }
 
-
-int main()
-{
-    constexpr int g { greater(5, 6) };  // ok: will evaluate at compile-time
-    greater(5, 6);                      // ok: will evaluate at compile-time
+void func2()
+{   
     int x{ 5 }; // not constexpr
-    greater(x, 6);                      // error: consteval functions must evaluate at compile-time
-
-
-    // To have both compile-time or run-time evaluation when we want
+    
     greater2(5, 6); // may or may not evaluate at compile-time
     compileTimeEval(greater2(5, 6)); // will evaluate at compile-time
     greater2(x, 6); // can still call the function at runtime
+}
+
+
+int main()
+{   
+    // consteval
+    func1();
+
+
+    // To have both compile-time or run-time evaluation when we want
+    func2();
 
     return 0;
 }
