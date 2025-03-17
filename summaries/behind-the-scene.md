@@ -301,6 +301,15 @@
             * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
 
 
+## Type deduction
+
+* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
+
+    ```C++
+    const int a { 5 };
+    auto b { a };      // b has type int, not const int
+    const auto e { a }; // must explicitly specify const
+    ```
 
 
 

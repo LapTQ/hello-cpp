@@ -179,6 +179,13 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ❌ Do not use const cast and reinterpret cast unless you have a very good reason.
 
 
+## Type deduction
+
+* ✅ Can use **trailing return type syntax** to make code more readable and flexible: `auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;`
+
+
+
+
 
 Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
    that needs to see the full definition of the identifier. This ensures that all inline definitions for an identifier are "identical".

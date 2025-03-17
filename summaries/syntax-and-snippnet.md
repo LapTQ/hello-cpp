@@ -167,3 +167,15 @@ typedef int score_t;  // typedef
 
 * Prefer type aliases over typedefs. typedef is an older way of creating an alias for a type.
 * They do not actually define a new, distinct type.
+
+
+## Get type
+
+```C++
+#include <type_traits> // note: decltype(x) evaluates to the type of x
+auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
+```
+
+```C++
+std::cout << typeid(i).name() << '\n'; // show us the name of the type for i
+```
