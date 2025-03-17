@@ -187,6 +187,31 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Function templates
 
 * ✅ Use non-type template parameters to when we need to pass constexpr values to functions/class types. For example, to `static_assert` at compile time.
+* Function templates in multiple files:
+    * ❌ A forward declaration of the function template is not enough:
+    
+        ```C++
+        // add.h
+        template <typename T>
+        T add(T x, T y);
+        
+        // add.cpp => assume that the function template is defined here
+        // ...
+
+        // main.cpp
+        #include "add.h"
+        int main()
+        {
+            add(1, 2);
+            return 0;
+        }
+        ```
+
+        Linker error: 
+        * When compiling `main.cpp`, it assumes that `addOne<int>` exists elsewhere and will be linked in later.
+        * When compile `add.cpp`, there is no uses of this template so the compiler will not instantiate anything.
+    * ✅ Put all the template code in a header (.h) file instead of a source (.cpp) file. It does not violate the ODR (because functions implicitly instantiated from templates are implicitly inline).
+
 
 
 

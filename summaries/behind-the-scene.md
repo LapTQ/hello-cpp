@@ -365,6 +365,7 @@
 * ⚠️ Beware function templates with **modifiable static local variables**: each function instantiated from that template will have a separate version of the static local variable.
 * Function templates can be overloaded.
 * A **non-type template parameter**: a template parameter with a fixed type that serves as a placeholder for a constexpr value.
+* Functions implicitly instantiated from templates are implicitly inline.
 
 
 
