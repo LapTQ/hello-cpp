@@ -45,18 +45,18 @@
 
   auto ref1 { x }; // int: const int&  -> const int (drop reference) -> int (drop top-level const)
 
-  const auto ref2 { x }; // const int: const int& -> const int (drop reference) -> int (drop top-level const) -> const int (reapply const)
+  const auto ref2 { x }; // const int. Because: const int& -> const int (drop reference) -> int (drop top-level const) -> const int (reapply const)
 
-  auto& ref2 { x }; //  const int&: const int& -> const int (drop reference) -> const int& (reapply reference) 
+  auto& ref2 { x }; //  const int&. Because: const int& -> const int (drop reference) -> const int& (reapply reference) 
   ```
 
    Example 2:
     ```
     constexpr const int& x { ... }; // constexpr is top-level, const is low-level
 
-    auto ref1 { x }; // int: constexpr const int& -> constexpr const int (drop reference, now both constexpr and const are top-level) -> int (drop top-level const)
+    auto ref1 { x }; // int. Because: constexpr const int& -> constexpr const int (drop reference, now both constexpr and const are top-level) -> int (drop top-level const)
 
-    auto& ref2 { x }; // const int&: constexpr const int& -> constexpr const int (drop reference) -> constexpr const int& (reapply reference, only constexpr is top-level) -> const int& (drop top-level const)
+    auto& ref2 { x }; // const int&. Because: constexpr const int& -> constexpr const int (drop reference) -> constexpr const int& (reapply reference, only constexpr is top-level) -> const int& (drop top-level const)
     ```
 */
 

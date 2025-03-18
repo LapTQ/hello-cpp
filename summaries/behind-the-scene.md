@@ -364,25 +364,6 @@
     * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
 
 
-## Type deduction
-
-* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
-
-    ```C++
-    const int a { 5 };
-    auto b { a };      // b has type int, not const int
-    const auto e { a }; // must explicitly specify const
-    ```
-* A function with `auto` return type needs to be fully defined before it can be called (a forward declaration is not enough). If we need a function that can be forward declared we have to be explicit about the return type:
-    ```C++
-    auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
-    ```
-    ```C++
-    template <typename T, typename U>
-    auto max(T x, U y) -> std::common_type_t<T, U>;
-    ```
-
-
 ## Function templates
 
 * Function templates are not actually functions. They generate functions.
@@ -449,7 +430,85 @@
 * Actually, references are normally implemented by the compiler using pointers. Therefore, we can conclude that C++ really passes everything by value!
 
 
-## Pass by references
+## Low-level const and top-level const
+
+* **Low-level const** applies to the object being pointed to or referenced to.
+* **Top-level const** applies to the object itself.
+
+    ```C++
+    const int* ptr; // low-level const, apply to the int
+    const int& ref; // low-level const, apply to the int
+
+    const int x; // top-level const, apply to the int
+    int* const ptr; // top-level const, apply to the pointer
+    int& ref; // reference are implicitly top-level const
+
+    constexpr const int& ref; // constexpr applies to the reference (top-level), const applies to the int (low-level)
+    ```
+* ⚠️ Dropping a reference may change a low-level const to a top-level const. For example:
+    
+    ```C++
+    const int&  // low-level const
+    const int   // top-level const
+    ```
+
+
+## Type deduction
+
+* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
+
+    ```C++
+    const int a { 5 };
+    auto b { a };      // b has type int, not const int
+    const auto e { a }; // must explicitly specify const
+    ```
+* Type deduction also drops references. If you want them, you must explicitly specify them:
+
+    ```C++
+    int& getRef();
+    auto x { getRef() }; // x has type int, not int&
+    auto& y { getRef() }; // must explicitly specify reference
+    ```
+* ⚠️ Type deduction only drops top-level const, not low-level const.
+* If the initializer is a **reference to const**:
+    1. the reference is dropped first (and "then" reapplied if applicable), 
+    2. then any top-level const is dropped
+
+    ```C++
+    const int& x { ... }; // x is a "reference to const" int, low-level const
+
+    auto ref1 { x }; // int. Because: const int&  -> const int (drop reference) -> int (drop top-level const)
+    const auto ref2 { x }; // const int. Because: const int& -> const int (drop reference) -> int (drop top-level const) -> const int (reapply const)
+    auto& ref2 { x }; //  const int&. Because: const int& -> const int (drop reference) -> const int& (reapply reference) 
+    ```
+
+    ```C++
+    constexpr const int& x { ... }; // constexpr is top-level, const is low-level
+
+    auto ref1 { x }; // int. Because: constexpr const int& -> constexpr const int (drop reference, now both constexpr and const are top-level) -> int (drop top-level const)
+    auto& ref2 { x }; // const int&. Because: constexpr const int& -> constexpr const int (drop reference) -> constexpr const int& (reapply reference, only constexpr is top-level) -> const int& (drop top-level const)
+    ```
+* Type deduction does not drop pointers (Unlike references).
+
+    ```C++
+    int* x;
+
+    auto y { x }; // int*, also a pointer
+    auto* z { x }; // int*, also a pointer (same, but more clear)
+
+    auto y { *x }; // int, not a pointer
+    auto* z { *x }; // compile error: initializer not a pointer
+    ```
+    
+* A function with `auto` return type needs to be fully defined before it can be called (a forward declaration is not enough). If we need a function that can be forward declared we have to be explicit about the return type:
+    ```C++
+    auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
+    ```
+    ```C++
+    template <typename T, typename U>
+    auto max(T x, U y) -> std::common_type_t<T, U>;
+    ```
+
 
         
 
