@@ -71,8 +71,6 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 ## Using `std:string` and `std::string_view`
 
-* ⚠️ Don't pass a `std::string` to a function by value. Because, it will make an expensive copy.
-* ✅ Use `std::string_view` when passing a string to a function by value for read-only access purpose to avoid expensive copy.
 * ✅ To view a substring of a string, use `std::string_view` with `.remove_prefix()` and `.remove_suffix()`.
 * Initialize a `std::string_view`:
     * ❌ Don't initialize with a `std::string` **literal**. Because, the temporary `std::string` literal will be destroyed at the end of the statement:
@@ -229,6 +227,14 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         * When compile `add.cpp`, there is no uses of this template so the compiler will not instantiate anything.
     * ✅ Put all the template code in a header (.h) file instead of a source (.cpp) file. It does not violate the ODR (because functions implicitly instantiated from templates are implicitly inline).
 
+
+## Passing arguments to functions
+
+* ✅ It's okay to pass fundamental types by value. They are cheap to copy. Don't pass by reference unless you need to modify the argument.
+* ✅ It's okay pass class types by reference (or const reference). Binding a reference is always cheap.
+* ⚠️ Don't pass a `std::string` to a function by value. Because, it will make an expensive copy.
+* ✅ It's okay to pass a `std::string_view` by value for read-only access purpose. It's cheap. For function parameters, prefer `std::string_view` over `const std::string&` in most cases (whatever the passed argument is `std::string`, `std::string_view`, or C-style string).
+* ⚠️ When passing by reference, ensure the type of the argument matches the type of the parameter. Otherwise, it will results in an unexpected (and possibly expensive) type conversion.
 
 
 

@@ -430,7 +430,12 @@
     * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
 
         This is an example of case when reference is not identical to the object it is bound to.
-* 
+* Binding a reference is always cheap.
+
+
+
+## Pass by references
+
         
 
 
