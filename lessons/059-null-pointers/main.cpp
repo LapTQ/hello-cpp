@@ -13,7 +13,7 @@
 
 /* std::nullptr_t
 
--nullptr has type std::nullptr_t (defined in header <cstddef>).
+- nullptr has type std::nullptr_t (defined in header <cstddef>).
 */
 
 #include <iostream>

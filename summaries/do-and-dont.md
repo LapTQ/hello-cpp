@@ -228,6 +228,11 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ✅ Put all the template code in a header (.h) file instead of a source (.cpp) file. It does not violate the ODR (because functions implicitly instantiated from templates are implicitly inline).
 
 
+## Pointers
+
+* ✅ Use `nullptr` for null pointers. ❌  Don't use `NULL` or `0`.
+
+
 ## Passing arguments to functions
 
 * ✅ It's okay to pass fundamental types by value. They are cheap to copy. Don't pass by reference unless you need to modify the argument.

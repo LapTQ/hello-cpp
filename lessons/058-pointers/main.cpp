@@ -20,6 +20,16 @@ The & symbol tends to cause confusion because it has different meanings dependin
 - access the object stored at an address. It returns an lvalue.
 */
 
+#include <iostream>
+
+void func1()
+{
+    int x{ 5 };
+    std::cout << &x << '\n'; // address-of operator (&), print 0x7ffd4717a684
+    std::cout << *(&x) << '\n'; // dereference operator (*), print 5
+}
+
+
 /* Pointer
 
 - A pointer is an object that holds a memory address (typically of another variable) as its value.
@@ -34,6 +44,18 @@ The & symbol tends to cause confusion because it has different meanings dependin
     int* x, * y; // correct
   you generally should not declare multiple variables on a single line.
 */
+
+void func2()
+{
+    int x{ 5 };
+
+    int* ptr; // an uninitialized pointer (holds a garbage address)
+    int* ptr2{};     // a null pointer (we'll discuss these in the next lesson)
+    int* ptr3{ &x }; // a pointer initialized with the address of variable x
+    // the address-of operator (&) returns a pointer
+
+    std::cout << *ptr3 << '\n'; // dereference, print 5
+}
 
 /* Pointer initialization
 
@@ -59,6 +81,19 @@ With pointer, we can:
 - change the value of the object being pointed to
 */
 
+void func3()
+{   
+    int x{ 5 };
+    int y{ 7 };
+
+    int* ptr3{ &x };
+    ptr3 = &y; // change what ptr3 points to
+    std::cout << *ptr3 << '\n'; // dereference, print 7
+
+    *ptr3 = 10; // change the value of the object being pointed to, *ptr3 is an lvalue
+    std::cout << y << '\n'; // print 10
+}
+
 
 /* Pointers behave much like lvalue references
 
@@ -70,41 +105,18 @@ With pointer, we can:
   ++ references must be initialized, while pointers do not.
   ++ references are not objects, while pointers are.
   ++ references can not be reassigned, while pointers can.
-  ++ references must always be bound to an object, while pointers point to nothing.
+  ++ references must always be bound to an object, while pointers can point to nothing.
   ++ references are safe (outside of dangling references), while pointers can be dangerous.
 
 - Favor references over pointers unless the additional capabilities provided by pointers are needed.
 */
 
-
-#include <iostream>
-
-int main()
+void func4()
 {
     int x{ 5 };
-    std::cout << &x << '\n'; // address-of operator (&), print 0x7ffd4717a684
-    std::cout << *(&x) << '\n'; // dereference operator (*), print 5
 
-    // pointer
-    int* ptr; // an uninitialized pointer (holds a garbage address)
-    int* ptr2{};     // a null pointer (we'll discuss these in the next lesson)
-    int* ptr3{ &x }; // a pointer initialized with the address of variable x
-    // the address-of operator (&) returns a pointer
-
-    std::cout << *ptr3 << '\n'; // dereference, print 5
-
-
-    // Pointers and assignment
-    int y{ 7 };
-    ptr3 = &y; // change what ptr3 points to
-    std::cout << *ptr3 << '\n'; // dereference, print 7
-
-    *ptr3 = 10; // change the value of the object being pointed to, *ptr3 is an lvalue
-    std::cout << y << '\n'; // print 10
-
-
-    // Pointers behave much like lvalue references
     int& ref { x };  // get a reference to x
+    int* ptr;
     ptr = &x; // get a pointer to x
 
     std::cout << x;
@@ -120,6 +132,24 @@ int main()
     std::cout << x;
     std::cout << ref;  // use the reference to print x's value (7)
     std::cout << *ptr << '\n'; // use the pointer to print x's value (7)
+}
+
+
+int main()
+{
+    func1();
+    
+
+    // pointer
+    func2();
+
+
+    // Pointers and assignment
+    func3();
+
+
+    // Pointers behave much like lvalue references
+    func4();
 
 
     return 0;

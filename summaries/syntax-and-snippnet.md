@@ -259,3 +259,36 @@ int y3 { 6 };  // modifiable lvalue
 const int& ref_y3 { y3 };
 ```
 
+## Pointers
+
+```C++
+int x{ 5 };
+    
+int* ptr; // an uninitialized pointer (holds a garbage address)
+int* ptr2{};     // a null pointer (we'll discuss these in the next lesson)
+int* ptr3{ &x }; // a pointer initialized with the address of variable x
+// the address-of operator (&) returns a pointer
+```
+
+Checking for null pointers:
+```C++
+if (ptr == nullptr) // explicit test for equivalence
+    std::cout << "ptr is null\n";
+else
+    std::cout << "ptr is non-null\n";
+```
+
+Create a **pointer to const**:
+```C++
+const int* ptr { ... }; // const keyword before the data type
+```
+
+Create a **const pointer**:
+```C++
+int* const ptr { ... }; // const keyword after the data type
+```
+
+Create a **const pointer to a const**:
+```C++
+const int* const ptr { ... }; // const keyword before and after the data type
+```

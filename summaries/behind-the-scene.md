@@ -414,7 +414,7 @@
 * A **reference** is an **alias** for an existing object.
 * References aren’t objects. So, you can't have a reference to a reference.
 * An **lvalue reference** is an alias to an existing lvalue. We can read or modify the value of the object being referenced to via the reference.
-* ⚠️ An **lvalue reference to a const**: treat the object being referenced to as const (although the object being referenced to is a modifiable lvalue):
+* ⚠️ An **lvalue reference to a const**: treat the object being referenced to as const (regardless of the object being referenced to is const or not):
 * ⚠️ Nomenclature:
     * An **lvalue reference to a non-const** is commonly just called:
         * **lvalue reference to non-const**
@@ -431,6 +431,20 @@
 
         This is an example of case when reference is not identical to the object it is bound to.
 * Binding a reference is always cheap.
+* A **pointer** is an **object** that holds a memory address as its value.
+* The address-of operator (`&`) does not return a literal. Instead, it returns a pointer, whose type is derived from the argument.
+* The dereference operator (`*`) accesses the object stored at an address. It returns an **lvalue**.
+* Pointers behave much like lvalue references. The primary difference:
+    * References must be initialized, while pointers do not.
+    * References are not objects, while pointers are.
+    * References can not be reassigned, while pointers can.
+    * References must always be bound to an object, while pointers can point to nothing.
+    * References are safer to use than pointers.
+* The size of pointers is always the same. It is dependent upon the architecture.
+* ⚠️ Nomenclature:
+    * A **pointer to const** treats the object being pointed to as const (regardless of the object being pointed to is const or not).
+    * A *const pointer** is a pointer that can’t be reseated (changed to point to another object).
+    * You can have a **const pointer to a const**.
 
 
 
