@@ -394,7 +394,44 @@
 * Functions implicitly instantiated from templates are implicitly inline.
 
 
+## Value categories 
 
+* All expressions in C++ have two properties: a type and a value category.
+* An **lvalue** is an expression that evaluates to an **identifiable** object.
+* A **rvalue** is not identifiable (meaning they have to be used immediately), and only exist within the scope of the expression in which they are used. 
+    ```C++
+    int x { 5 };    // 5 is an rvalue
+    int y { x };    // x is an lvalue
+    int z { x + 1 }; // x + 1 is an rvalue
+    int t{ return5() }; // return5() is an rvalue
+    ```
+* **Lvalue-to-rvalue conversion**: assignment operations expect the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
+* Unlike the other **literals** (which are rvalues), a C-style string **literal** is an lvalue because C-style strings decay to a pointer.
+
+
+## References and Pointers
+
+* A **reference** is an **alias** for an existing object.
+* References aren’t objects. So, you can't have a reference to a reference.
+* An **lvalue reference** is an alias to an existing lvalue. We can read or modify the value of the object being referenced to via the reference.
+* ⚠️ An **lvalue reference to a const**: treat the object being referenced to as const (although the object being referenced to is a modifiable lvalue):
+* ⚠️ Nomenclature:
+    * An **lvalue reference to a non-const** is commonly just called:
+        * **lvalue reference to non-const**
+        * **non-const lvalue reference**
+        * **lvalue reference** (!!!)
+    * An **lvalue reference to a const** is commonly just called:
+        * **lvalue reference to const**
+        * **const lvalue reference**
+* Reference initialization:
+    * All references **must** be initialized. 
+    * Once initialized, references **can’t be reseated** (changed to refer to another object)
+    * ⚠️ An **lvalue reference to const** can be initialized with an rvalue. C++ has a special rule: When a **const lvalue reference** is **directly** bound to a **temporary** object, the lifetime of the temporary object is extended to match the lifetime of the reference.
+    * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
+
+        This is an example of case when reference is not identical to the object it is bound to.
+* 
+        
 
 
 

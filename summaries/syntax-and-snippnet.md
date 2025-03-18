@@ -247,3 +247,15 @@ void print2()
     std::cout << N << '\n';
 }
 ```
+
+
+## Lvalue reference to const
+
+```C++
+const int x3 { 5 };
+const int& ref_x3 { x3 };
+
+int y3 { 6 };  // modifiable lvalue
+const int& ref_y3 { y3 };
+```
+

@@ -36,6 +36,27 @@
   For example: int& is the type of an lvalue reference to an int object
 */
 
+#include <iostream>
+
+void func1()
+{
+    int x { 5 };    // x is a normal integer variable
+    int& ref { x }; // ref is an lvalue reference variable that can now be used as an alias for variable x
+    int& reff { ref }; // reff bound to x, not to ref because ref evaluate to x
+    // From the compiler’s perspective, it doesn’t matter whether you write `int& ref` or `int &ref`.
+
+    std::cout << x << '\n';  // print the value of x (5)
+    std::cout << ref << '\n'; // print the value of x via ref (5)
+
+
+    // modify value using references
+    ref = 6;
+    std::cout << x << ref << '\n';
+    x = 7;
+    std::cout << x << ref << '\n';
+}
+
+
 /* Reference initialization
 
 - all references "must" be initialized, using a form of initialization called "reference initialization".
@@ -44,6 +65,24 @@
 - Once initialized, references can’t be reseated (changed to refer to another object)
 - Non-const lvalue references can only be bound to a modifiable lvalue.
 */
+
+void func2()
+{
+    // Reference initialization
+    int& invalidRef;   // error: references must be initialized
+    const int y { 5 };
+    int& invalidRef2 { y };  // invalid: non-const lvalue reference can't bind to a non-modifiable lvalue
+    int& invalidRef3 { 0 }; // invalid: non-const lvalue reference can't bind to an rvalue
+
+    
+    // References can’t be reseated 
+    int x2 { 5 };
+    int y2 { 6 };
+    int& ref2 { x2 }; // ref is now an alias for x2
+    ref2 = y2; // doesn't change reference, instead assigns 6 (the value of y2) to x2
+    std::cout << x2 << '\n'; // 6
+
+}
 
 /* In most cases, a reference will only bind to an object whose type matches the referenced type
 */
@@ -68,6 +107,19 @@
   In such a case, the object being referenced is treated as const when "accessed through the reference".
 */
 
+void func3()
+{
+    const int x3 { 5 };
+    const int& ref_x3 { x3 };
+    
+    int y3 { 6 };  // modifiable lvalue
+    const int& ref_y3 { y3 };
+    ref_y3 = 7; // error: ref_y3 is const, so we can't modify the value of y3 through ref_y3
+    std::cout << y3 << ref_y3 << '\n'; // 66
+    y3 = 7;     // modification reflected in ref_y3, because ref_y3 is bound to y3
+    std::cout << y3 << ref_y3 << '\n'; // 77
+}
+
 
 /* Initializing an lvalue reference to const with an rvalue
 
@@ -80,6 +132,11 @@ You might wonder: Temporary objects are normally destroyed at the end of the exp
   bound to a temporary object, the lifetime of the temporary object is extended to match the lifetime of the reference.
 */
 
+void func4()
+{
+    const int& ref_rvalue { 5 }; // okay: a temporary object is created and initialized with the rvalue, ref_rvalue is bound to that temporary object
+}
+
 
 /* Initializing an lvalue reference to const with a value of a different type
 
@@ -88,58 +145,8 @@ You might wonder: Temporary objects are normally destroyed at the end of the exp
 => this is an example of case when reference is not identical to the object it is bound to.
 */
 
-
-#include <iostream>
-
-int main()
+void func5()
 {
-    int x { 5 };    // x is a normal integer variable
-    int& ref { x }; // ref is an lvalue reference variable that can now be used as an alias for variable x
-    int& reff { ref }; // reff bound to x, not to ref because ref evaluate to x
-    // From the compiler’s perspective, it doesn’t matter whether you write `int& ref` or `int &ref`.
-
-    std::cout << x << '\n';  // print the value of x (5)
-    std::cout << ref << '\n'; // print the value of x via ref (5)
-
-    
-    // modify value using references
-    ref = 6;
-    std::cout << x << ref << '\n';
-    x = 7;
-    std::cout << x << ref << '\n';
-
-    
-    // Reference initialization
-    int& invalidRef;   // error: references must be initialized
-    const int y { 5 };
-    int& invalidRef { y };  // invalid: non-const lvalue reference can't bind to a non-modifiable lvalue
-    int& invalidRef2 { 0 }; // invalid: non-const lvalue reference can't bind to an rvalue
-
-    
-    // References can’t be reseated 
-    int x2 { 5 };
-    int y2 { 6 };
-    int& ref2 { x2 }; // ref is now an alias for x2
-    ref2 = y2; // doesn't change reference, instead assigns 6 (the value of y2) to x2
-    std::cout << x2 << '\n'; // 6
-
-
-    // Lvalue reference to const
-    const int x3 { 5 };
-    const int& ref_x3 { x };
-    int y3 { 6 };  // modifiable lvalue
-    const int& ref_y3 { y3 };
-    ref_y3 = 7; // error: ref_y3 is const, so we can't modify the value of y3 through ref_y3
-    std::cout << y3 << ref_y3 << '\n'; // 66
-    y3 = 7;     // modification reflected in ref_y3, because ref_y3 is bound to y3
-    std::cout << y3 << ref_y3 << '\n'; // 77
-
-
-    // Initializing an lvalue reference to const with an rvalue
-    const int& ref_rvalue { 5 }; // okay: a temporary object is created and initialized with the rvalue, ref_rvalue is bound to that temporary object
-
-
-    // Lvalue reference to const, but with a different type
     const double& r1 { 5 };
     std::cout << r1 << '\n'; // prints 5
     char c { 'a' };
@@ -149,6 +156,29 @@ int main()
     const int& r3 { s };
     s--;          // modification not reflected in r3, because r3 is bound to a temporary copy
     std::cout << s << r3 << '\n'; // 56
+}
+
+
+int main()
+{
+    // Lvalue reference
+    func1();
+
+
+    // Reference initialization
+    func2();
+
+
+    // Lvalue reference to const
+    func3();
+
+
+    // Initializing an lvalue reference to const with an rvalue
+    func4();
+    
+
+    // Lvalue reference to const, but with a different type
+    func5();
 
     return 0;
 }
