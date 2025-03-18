@@ -197,6 +197,19 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Type deduction
 
 * ✅ Can use **trailing return type syntax** to make code more readable and dynamic. E.g., this function has return type based on its parameter types: `auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;`
+* ✅ Use `auto*` instead of `auto` for type deduction with pointers. It's more clear and *less error-prone*.
+
+    ```C++
+    int* x;
+
+    // auto => order not matter
+    const auto y { x }; // int* const (a const pointer)
+    auto const y { x }; // int* const (a const pointer)
+
+    // auto* => order matters
+    const auto* y { x }; // const int* (a pointer to const)
+    auto* const y { x }; // int* const (a const pointer)
+    ```
 
 
 ## Function templates
@@ -241,19 +254,6 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ It's okay to pass a `std::string_view` by value for read-only access purpose. It's cheap. For function parameters, prefer `std::string_view` over `const std::string&` in most cases (whatever the passed argument is `std::string`, `std::string_view`, or C-style string).
 * ⚠️ When passing by reference, ensure the type of the argument matches the type of the parameter. Otherwise, it will results in an unexpected (and possibly expensive) type conversion.
 * ✅ It's okay to pass by address. Copying a pointer is always cheap.
-* ✅ Use `auto*` instead of `auto` for type deduction with pointers. It's more clear and *less error-prone*.
-
-    ```C++
-    int* x;
-
-    // auto => order not matter
-    const auto y { x }; // int* const (a const pointer)
-    auto const y { x }; // int* const (a const pointer)
-
-    // auto* => order matters
-    const auto* y { x }; // const int* (a pointer to const)
-    auto* const y { x }; // int* const (a const pointer)
-    ```
 
 
 
