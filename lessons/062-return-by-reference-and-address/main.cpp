@@ -8,7 +8,7 @@
 
 - Be aware of dangling references. The object being returned by reference must exist after the function returns.
 
-- Attention: assign a reference to a non-reference variable will copy the value.2
+- Attention: assign a reference to a non-reference variable will copy the value.
 */
 
 /* Solution: return reference parameters by reference

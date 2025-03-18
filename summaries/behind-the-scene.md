@@ -430,6 +430,7 @@
     * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
 
         This is an example of case when reference is not identical to the object it is bound to.
+* Assign a reference to a non-reference variable will **copy** the value.
 * Binding a reference is always cheap.
 * A **pointer** is an **object** that holds a memory address as its value.
 * The address-of operator (`&`) does not return a literal. Instead, it returns a pointer, whose type is derived from the argument.
@@ -445,7 +446,7 @@
     * A **pointer to const** treats the object being pointed to as const (regardless of the object being pointed to is const or not).
     * A *const pointer** is a pointer that can’t be reseated (changed to point to another object).
     * You can have a **const pointer to a const**.
-
+* Actually, references are normally implemented by the compiler using pointers. Therefore, we can conclude that C++ really passes everything by value!
 
 
 ## Pass by references
@@ -459,6 +460,9 @@
 
 
 
+
+When passing arguments into a function by value, a copy of the argument is made.
+- We encounter a similar situation when returning by value: a copy of the return value is passed back to the caller.
 
 
 

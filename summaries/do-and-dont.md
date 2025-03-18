@@ -240,6 +240,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ⚠️ Don't pass a `std::string` to a function by value. Because, it will make an expensive copy.
 * ✅ It's okay to pass a `std::string_view` by value for read-only access purpose. It's cheap. For function parameters, prefer `std::string_view` over `const std::string&` in most cases (whatever the passed argument is `std::string`, `std::string_view`, or C-style string).
 * ⚠️ When passing by reference, ensure the type of the argument matches the type of the parameter. Otherwise, it will results in an unexpected (and possibly expensive) type conversion.
+* ✅ It's okay to pass by address. Copying a pointer is always cheap.
+* 
 
 
 
