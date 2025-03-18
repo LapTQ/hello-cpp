@@ -257,7 +257,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 
 
+## Returning values from functions
 
+* ✅ When your function may or may not return a value of type `T`:
+    * Use `std::optional<T>` if `T` would normally be passed by value.
+
+    This is because `std::optional` has value semantics: local objects are copied.
 
 
 
