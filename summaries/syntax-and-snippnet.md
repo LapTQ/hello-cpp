@@ -7,7 +7,7 @@ int a;         // default-initialization (no initializer)
 int b = 5;     // copy-initialization
 int c ( 6 );   // direct-initialization
 
-int f {};      // value-initialization
+int f {};      // value-initialization/zero-initialization
 int d { 7 };   // direct-list initialization
 ```
 

@@ -265,6 +265,25 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     This is because `std::optional` has value semantics: local objects are copied.
 
 
+## Program-defined types
+
+* ✅ It's okay to pass enumerations by value. They are small and cheap to copy.
+* ✅ For **unscoped enumerations**, it's recommended to add an "invalid" or "unknown" enumerator with value 0 to avoid semantically invalid enumeration when it's zero-initialized:
+    ```C++
+    enum Animal
+    {
+        unknown = 0, // default value (0)
+        cat,
+        dog,
+    };
+    ```
+
+
+
+program-defined types are typically defined in header files.
+types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
+
+
 
 Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
    that needs to see the full definition of the identifier. This ensures that all inline definitions for an identifier are "identical".

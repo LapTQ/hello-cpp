@@ -509,8 +509,56 @@
     auto max(T x, U y) -> std::common_type_t<T, U>;
     ```
 
+## Program-defined types
 
+* 2 categories of compound type:
+    * enumerated types:
+        * unscoped enumerations
+        * scoped enumerations
+    * class types
+* **Unscoped enumerations**:
+    * implicitly constexpr.
+    * Its enumerators are in the same scope as the enumeration itself => an enumerator name can’t be used in multiple enumerations within the same scope.
+    * Unscoped enumerations will **implicitly** convert to integral values. By default, the first enumerator is given the integral value 0, but you can explicitly define the value.
+
+        ```C++
+        enum Animal
+        {
+            cat = -3,    // values can be negative
+            dog,         // -2
+            horse = 5,
+            giraffe = 5, // shares same value as horse
+            chicken,     // 6
+        };
+        ```
+    * Integers will **not implicitly** convert to an enumeration:
+
+        ```C++
+        Animal a1 { -3 };                       // error: 2 is not an enumerator of Animal
+        Animal a2 { static_cast<Animal>(-3) };  // okay
+        ```
+    * If an enumeration is **zero-initialized**, the enumeration will be given value 0, even if there is no corresponding enumerator with that value:
+
+        ```C++
+        Animal a {}; // a is initialized to 0
+        ```
+    * Most compilers will use `int` as the underlying type for an enumeration. But you explicitly specify a different one:
         
+        ```C++
+        enum Foo : std::int8_t
+        {
+            goo,
+            boo,
+        };
+        ```
+
+
+// Note that this is a full definition, not a forward declaration
+struct Fraction
+{
+	int numerator {};
+	int denominator {};
+};
 
 
 

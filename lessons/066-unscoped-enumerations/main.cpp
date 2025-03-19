@@ -25,6 +25,14 @@ enum Color
 };
 // defined in global scope, so its enumerators are in the global scope
 
+void func1()
+{
+    Color apple { red };
+    Color shirt { Color::green }; // okay, using with scope resolution operator, but not necessary
+    std::cout << std::boolalpha << (apple == red) << '\n'; // true
+}
+
+
 /* Avoiding enumerator naming collisions
 
 Solution 1: Use a prefix for each enumerator name
@@ -58,6 +66,12 @@ namespace State
     };
 }
 
+void func2()
+{
+    Color2::Color2 apple2 { Color2::red };
+}
+
+
 /* Unscoped enumerator integral conversions
 
 - When we define an enumeration, each enumerator is automatically associated with an integer value based on its position. 
@@ -79,6 +93,11 @@ enum Animal
     chicken,     // 6
 };
 // no enumerator with value 0 in this list
+
+void func3()
+{
+    std::cout << red << green << blue << '\n'; // 012
+}
 
 
 /* Value-initializing an enumeration
@@ -110,6 +129,12 @@ enum Animal
         ```
 */
 
+void func4()
+{
+    Animal a {}; // a is initialized to 0
+    std::cout << a << '\n'; // 0
+}
+
 
 /* Enumeration size and underlying type (base)
 
@@ -136,6 +161,15 @@ enum Foo : std::int8_t
     + using static_cast
     + (C++17) using list initialization if an unscoped enumeration has an explicitly specified base.
 */
+
+void func5()
+{
+    Animal a1 { -3 };       // error: 2 is not an enumerator of Animal
+    Animal a2 { static_cast<Animal>(-3) }; // okay
+    std::cout << (a2 == cat) << '\n'; // true
+    Foo f { 2 };
+    std::cout << (f == moo) << '\n'; // true
+}
 
 
 /* Converting an enumeration to a string
@@ -233,30 +267,19 @@ std::istream& operator>>(std::istream& in, Color& color)
 int main()
 {
     // Unscoped enumerations
-    Color apple { red };
-    Color shirt { Color::green }; // okay, using with scope resolution operator, but not necessary
-    std::cout << std::boolalpha << (apple == red) << '\n'; // true
+    func1();
 
 
     // put the enumerated type inside a namespace
-    Color2::Color2 apple2 { Color2::red };
-
-
-    // enumerators are compile-time constants, this is a constexpr conversion
-    std::cout << red << green << blue << '\n'; // 012
+    func2();
 
 
     // Value-initializing an enumeration
-    Animal a {}; // a is initialized to 0
-    std::cout << a << '\n'; // 0
+    func4();
 
 
     // Integer to unscoped enumerator conversion
-    // Animal a1 { -3 };       // error: 2 is not an enumerator of Animal
-    Animal a2 { static_cast<Animal>(-3) }; // okay
-    std::cout << (a2 == cat) << '\n'; // true
-    Foo f { 2 };
-    std::cout << (f == moo) << '\n'; // true
+    func5();
     
 
     // Converting an enumeration to a string
