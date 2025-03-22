@@ -509,13 +509,8 @@
     auto max(T x, U y) -> std::common_type_t<T, U>;
     ```
 
-## Program-defined types
+## Program-defined types: Enumerated types
 
-* 2 categories of compound type:
-    * enumerated types:
-        * unscoped enumerations
-        * scoped enumerations
-    * class types
 * **Unscoped enumerations**:
     * Implicitly constexpr.
     * Its enumerators are in the same scope as the enumeration itself => an enumerator name can’t be used in multiple enumerations within the same scope.
@@ -551,6 +546,55 @@
             boo,
         };
         ```
+* **Scoped enumerations** (`enum class`):
+    * Do not implicitly convert to integers.
+    * Enumerators are only placed into the scope region of the enumeration.
+
+
+## Program-defined types: Class types
+
+* **Aggregate**:
+    * In general programming: any type that can contain multiple data members.
+    * In C++: a bit narrower and more complicated:
+        * No user-declared constructors.
+        * No private or protected non-static data members.
+        * No virtual functions.
+* Aggregate initialization of a struct: 
+    * Using **initializer list**: 
+        * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**.
+
+            ```C++
+            Employee frank = { 1, 32, 60000.0 }; // copy-list initialization
+            Employee joe { 2, 28, 45000.0 };     // list initialization (preferred)
+
+            // assigment
+            alice = { 2, 30, 4000.0 };
+
+            Employee dummyEmployee() { return Employee { 1, 32, 60000.0 };}
+            Employee dummyEmployee2() { return { 1, 32, 60000.0 }; }  // can omit the type
+            Employee dummyEmployee3() { return { }; } // value-initialize all members
+            ```
+        * Initialization possibilities:
+            * If an aggregate is defined with no initialization list:
+                * If a default member initializer exists, the default is used.
+                * If no default member initializer exists, the member remains uninitialized (**default-initialization**).
+            * If an aggregate is defined with an initialization list:
+                * If an explicit initialization value exists, that explicit value is used.
+                * If an initializer is missing and a default member initializer exists, the default is used.
+                * If an initializer is missing and no default member initializer exists, **value-initialization** occurs.
+    * Using another struct of the same type:
+
+        ```C++
+        Foo f3 { 1, 2, 3};
+        Foo f4 = f3;    // copy initialization
+        Foo f5 { f3 };  // direct-list initialization
+        Foo f6(f3);     // direct-initialization
+        ```
+
+        They are not aggregate initialization.
+
+
+
 
 
 // Note that this is a full definition, not a forward declaration
@@ -564,6 +608,13 @@ struct Fraction
 
 
 
+Few reminders about passing temporary objects:
+- they are created and initialized at the point of definition, 
+  and are destroyed at the end of the full expression in which they are created.
+- And evaluation of a temporary object is an rvalue expression.
+- it will only bind to parameters that accept rvalues.
+  This includes pass by value and pass by const reference, 
+  and excludes pass by non-const reference and pass by address.
 
 
 

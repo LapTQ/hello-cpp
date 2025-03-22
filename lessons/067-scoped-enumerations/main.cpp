@@ -3,6 +3,23 @@
 ... and in some cases will allow you to do things that don’t make sense
 */
 
+#include <iostream>
+
+void func1()
+{
+    enum Color
+    {
+        red,
+    };
+    enum Fruit
+    {
+        banana,
+    };
+    Color color { red };
+    Fruit fruit { banana };
+    std::cout << std::boolalpha << (color == fruit) << '\n'; // true, compare as integers
+}
+
 
 /* Scoped enumerations (enum classes)
 
@@ -15,12 +32,42 @@
 - Although scoped enumerations use the class keyword, they aren’t considered to be a “class type”.
 */
 
+enum class Color2
+{
+    red,
+    blue,
+};
+
+enum class Fruit2
+{
+    banana,
+    apple,
+};
+
+void func2()
+{
+    Color2 color2 { Color2::red };
+    Fruit2 fruit2 { Fruit2::banana };
+    // std::cout << color2 << '\n'; // compile error, std::cout doesn't know how to print
+    // std::cout << (color2 == fruit2) << '\n'; // compile error, can't compare different types
+    std::cout << (color2 == Color2::red) << '\n'; // true, can compare same types
+}
+
 
 /* explicitly convert a scoped enumerator to/from an integer
 
 - using a static_cast
 - (C++17) use list initialization with integral value without a cast
 */
+
+void func3()
+{
+    Color2 color2 { Color2::red };
+
+    std::cout << static_cast<int>(color2) << '\n'; // 0, convert to integer
+    Fruit2 fruit3 {  static_cast<Fruit2>(1) }; // apple, convert from integer
+    Fruit2 fruit4 { 1 }; // apple, convert from integer (C++17)
+}
 
 
 /* Convert scoped enumeration to integer (a hack)
@@ -39,6 +86,11 @@ enum class Animals
 constexpr auto operator+(Animals a) noexcept
 {
     return static_cast<std::underlying_type_t<Animals>>(a);
+}
+
+void func4()
+{
+    std::cout << +Animals::dog << '\n'; // 1
 }
 
 
@@ -62,52 +114,24 @@ constexpr std::string_view getAnimal(Animals animal)
     }
 }
 
-#include <iostream>
 
 int main()
 {   
     // unscoped enumerations are not safe
-    enum Color
-    {
-        red,
-    };
-    enum Fruit
-    {
-        banana,
-    };
-    Color color { red };
-    Fruit fruit { banana };
-    std::cout << std::boolalpha << (color == fruit) << '\n'; // true, compare as integers
+    func1();
 
 
     // Scoped enumerations (enum classes)
-    enum class Color2
-    {
-        red,
-        blue,
-    };
-
-    enum class Fruit2
-    {
-        banana,
-        apple,
-    };
-
-    Color2 color2 { Color2::red };
-    Fruit2 fruit2 { Fruit2::banana };
-    // std::cout << color2 << '\n'; // compile error, std::cout doesn't know how to print
-    // std::cout << (color2 == fruit2) << '\n'; // compile error, can't compare different types
-    std::cout << (color2 == Color2::red) << '\n'; // true, can compare same types
+    func2();
 
 
     // explicitly convert a scoped enumerator to/from an integer
-    std::cout << static_cast<int>(color2) << '\n'; // 0, convert to integer
-    Fruit2 fruit3 {  static_cast<Fruit2>(1) }; // apple, convert from integer
-    Fruit2 fruit4 { 1 }; // apple, convert from integer (C++17)
+    func3();
 
 
     // Convert scoped enumeration to integer (a hack)
-    std::cout << +Animals::dog << '\n'; // 1
+    func4();
+
 
     return 0;
 }

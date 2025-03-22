@@ -12,11 +12,26 @@ struct Employee
     double wage {};
 };
 
+void func1()
+{
+    Employee joe {};
+    joe.age = 32; // To access a specific member variable, we use the member selection operator (operator.)
+}
 
-/* Aggregate initialization
+
+/* Aggregate
+
 
 - In general programming, an "aggregate data type" (also called an "aggregate") is 
-  any type that can contain multiple data members. 
+  any type that can contain multiple data members.
+- In C++, the definition of an aggregate is narrower and more complicated:
+    - No user-declared constructors.
+    - No private or protected non-static data members
+    - No virtual functions
+*/
+
+
+/* Aggregate initialization
 
 - To directly initialize the members of aggregates, we provide an initializer list as an initializer:
   There are 2 primary forms of aggregate initialization:
@@ -29,6 +44,14 @@ struct Employee
   each member in the struct is initialized in the order of declaration.
 */
 
+void func2()
+{
+    Employee frank = { 1, 32, 60000.0 }; // copy-list initialization using braced list
+    Employee alice { 2, 28, 45000.0 };     // list initialization using braced list (preferred)
+    // assigment
+    alice = { alice.id, 30, 4000.0 };
+}
+
 
 /* initialization possibilities
 
@@ -38,11 +61,11 @@ If an aggregate is defined with no initialization list:
 If an aggregate is defined with an initialization list:
 - If an explicit initialization value exists, that explicit value is used.
 - If an initializer is missing and a default member initializer exists, the default is used.
-- If an initializer is missing and no default member initializer exists, value initialization occurs.
+- If an initializer is missing and no default member initializer exists, value-initialization occurs.
 
 => Always provide default values for your members
 
-=> Prefer value initialization over default initialization for aggregates:
+=> Prefer value-initialization over default-initialization for aggregates:
     ```
     Fraction f1; // default initialization
     Fraction f2 {}; // value initialization, preferred
@@ -58,6 +81,12 @@ struct Employee2
     double wage { 76000.0 }; 
     double whatever;
 };
+
+void func3()
+{
+    Employee2 pat; // no initialization list => pat.whatever is not initialized
+    Employee2 bob { 2, 28 }; // bob.whatever is value-initialized { } to 0.0.
+}
 
 
 /* Const structs
@@ -87,9 +116,26 @@ struct Foo
     int c {};
 };
 
+void func4()
+{
+    Foo f1 { .a{ 1 }, .c{ 3 } };  // okay, list initialization
+    Foo f2 { .a = 1, .c = 3 };    // okay, copy initialization
+    // Foo f3{ .b{ 2 }, .a{ 1 } };   // error, order mot match
+    // assignment
+    f1 = { .a{ 1 }, .c{ 3 } }; 
+}
+
 
 /* Initializing a struct with another struct of the same type
 */
+
+void func5()
+{
+    Foo f3 { 1, 2, 3};
+    Foo f4 = f3; // copy initialization
+    Foo f5 { f3 }; // direct-list initialization
+    Foo f6(f3); // direct-initialization
+}
 
 
 /* Passing structs (by reference)
@@ -112,6 +158,12 @@ void printEmployee(const Employee& employee) // note pass by reference here
     std::cout << "Wage: " << employee.wage << '\n';
 }
 
+void func6()
+{
+    printEmployee(Employee { 14, 32, 24.15 }); // temporary objects
+    printEmployee({ 14, 32, 24.15 });  //  implicit conversion
+}
+
 
 /* Returning structs
 
@@ -132,6 +184,13 @@ Employee dummyEmployee2()
 Employee dummyEmployee3()
 {
     return { };  // value-initialize all members
+}
+
+void func7()
+{
+    printEmployee(dummyEmployee());
+    printEmployee(dummyEmployee2());
+    printEmployee(dummyEmployee3());
 }
 
 
@@ -157,57 +216,48 @@ std::string getName()
     return name;
 }
 
-
-
-int main()
+void func8()
 {
-    Employee joe {};
-    joe.age = 32; // To access a specific member variable, we use the member selection operator (operator.)
-
-
-    // Aggregate initialization
-    Employee frank = { 1, 32, 60000.0 }; // copy-list initialization using braced list
-    Employee alice { 2, 28, 45000.0 };     // list initialization using braced list (preferred)
-    // assigment
-    alice = { alice.id, 30, 4000.0 };
-
-
-    // initialization possibilities
-    Employee2 pat; // no initialization list => pat.whatever is not initialized
-    Employee2 bob { 2, 28 }; // bob.whatever is value-initialized { } to 0.0.
-
-
-    // Designated initializers (C++20)
-    Foo f1 { .a{ 1 }, .c{ 3 } };  // okay, list initialization
-    Foo f2 { .a = 1, .c = 3 };    // okay, copy initialization
-    // Foo f3{ .b{ 2 }, .a{ 1 } };   // error, order mot match
-    // assignment
-    f1 = { .a{ 1 }, .c{ 3 } }; 
-
-
-    // Initializing a struct with another struct of the same type   
-    Foo f3 { 1, 2, 3};
-    Foo f4 = f3; // copy initialization
-    Foo f5 { f3 }; // direct-list initialization
-    Foo f6(f3); // direct-initialization
-
-
-    // Passing structs (by reference)
-    printEmployee(Employee { 14, 32, 24.15 }); // temporary objects
-    printEmployee({ 14, 32, 24.15 });  //  implicit conversion
-
-
-    // Returning structs
-    printEmployee(dummyEmployee());
-    printEmployee(dummyEmployee2());
-    printEmployee(dummyEmployee3());
-
-
-    // Structs that are owners should have data members that are owners
     Owner o { getName() };  // destroyed just after initialization
     std::cout << "The owners name is " << o.name << '\n';  // ok
     Viewer v { getName() }; // destroyed just after initialization
     std::cout << "The viewers name is " << v.name << '\n'; // undefined behavior
+}
+
+
+
+int main()
+{
+    // Struct
+    func1();
+    
+
+    // Aggregate initialization
+    func2();
+
+
+    // initialization possibilities
+    func3();
+
+
+    // Designated initializers (C++20)
+    func4();
+
+
+    // Initializing a struct with another struct of the same type   
+    func5();
+
+
+    // Passing structs (by reference)
+    func6();
+
+
+    // Returning structs
+    func7();
+
+
+    // Structs that are owners should have data members that are owners
+    func8();
     
 
     return 0;

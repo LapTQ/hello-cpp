@@ -265,10 +265,11 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     This is because `std::optional` has value semantics: local objects are copied.
 
 
-## Program-defined types
+## Program-defined types: Enumerated types
 
 * ✅ It's okay to pass enumerations by value. They are small and cheap to copy.
-* ✅ For **unscoped enumerations**, 
+* ✅ Favor scoped enumerations over unscoped enumerations.
+* For **unscoped enumerations**, 
     * ✅ Put the unscoped enumerated type inside a namespace to avoid name collisions.
     * ✅ It's recommended to add an "invalid" or "unknown" enumerator with value 0 to avoid semantically invalid enumeration when it's zero-initialized:
 
@@ -280,6 +281,20 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
             dog,
         };
         ```
+    * ❌ Not safe:
+
+        ```C++
+        enum Color { red, };
+        enum Fruit { banana, };
+        Color color { red };
+        Fruit fruit { banana };
+        std::cout << std::boolalpha << (color == fruit) << '\n'; // true, compare as integers
+        ```
+
+
+## Program-defined types: Class types
+
+* ✅ When adding a new member to a struct, put it at the end to avoid breaking existing code. Because, struct initializes its members in the order they are declared.
 
 
 
