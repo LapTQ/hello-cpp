@@ -334,3 +334,68 @@ int main()
     return 0;
 }
 ```
+
+
+## Class template
+
+Reminder: A “class type” is a struct, class, or union type. Although we’ll be demonstrating “class templates” on structs for simplicity, everything here applies equally well to classes.
+
+```C++
+template <typename T, typename U>
+struct Pair
+{
+    T first{};
+    U second{};
+};
+
+
+template <typename T, typename U>
+constexpr auto max(Pair<T, U> p) 
+{
+    return (p.first < p.second ? p.second : p.first);
+}
+
+void func1()
+{
+    Pair<int, int> p1{ 5, 6 };        // instantiates Pair<int> and creates object p1
+    std::cout << p1.first << ' ' << p1.second << '\n';
+
+    Pair<double, double> p2{ 1.2, 3.4 }; // instantiates Pair<double> and creates object p2
+    std::cout << p2.first << ' ' << p2.second << '\n';
+
+    std::cout << max<int>(p1) << " is larger\n"; // explicit call to max<int>
+    std::cout << max(p2) << " is larger\n";      // call to max<double> using template argument deduction
+}
+```
+
+Type deduction guide (only needed in C++17):
+```C++
+// deduction guide for our Pair (needed in C++17 only)
+template <typename T, typename U>
+Pair(T, U) -> Pair<T, U>; // should deduce to Pair<T, U>
+
+void func3()
+{
+    Pair<int, int> p1{ 1, 2 }; // ok    
+    Pair p4{ 1, 2 };  // compile error in C++17 (okay in C++20) without deduction guide
+}
+```
+
+Type template parameters with default values:
+```C++
+
+template <typename T=int, typename U=int> // default T and U to type int
+struct Pair2
+{
+    T first{};
+    U second{};
+};
+
+template <typename T, typename U>
+Pair2(T, U) -> Pair2<T, U>;
+
+void func4()
+{
+    Pair2 p5; // use default Pair2<int, int>
+}
+```

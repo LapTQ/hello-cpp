@@ -27,6 +27,19 @@ constexpr auto max(Pair<T, U> p)
     return (p.first < p.second ? p.second : p.first);
 }
 
+void func1()
+{
+    Pair<int, int> p1{ 5, 6 };        // instantiates Pair<int> and creates object p1
+    std::cout << p1.first << ' ' << p1.second << '\n';
+
+    Pair<double, double> p2{ 1.2, 3.4 }; // instantiates Pair<double> and creates object p2
+    std::cout << p2.first << ' ' << p2.second << '\n';
+
+    std::cout << max<int>(p1) << " is larger\n"; // explicit call to max<int>
+    std::cout << max(p2) << " is larger\n";      // call to max<double> using template argument deduction
+
+}
+
 
 /* std::pair
 
@@ -42,20 +55,17 @@ void print(std::pair<T, U> p)
     std::cout << '[' << p.first << ", " << p.second << ']';
 }
 
+void func2()
+{
+    std::pair<int, double> p3{ 5, 6.7 };
+    print(p3); // [5, 6.7]
+}
+
 
 /* Template argument deduction guides
 
-- You may be surprised to find that the following program doesn’t compile in C++17:
-```
-template <typename T, typename U>
-struct Pair
-{
-    T first{};
-    U second{};
-};
-
+- You may be surprised to find that the following line doesn’t compile in C++17:
 ...
-Pair<int, int> p1{ 1, 2 }; // ok
 Pair p4{ 1, 2 };  // compile error in C++17 (okay in C++20)
 ```
 This is because in C++17, CTAD doesn’t know how to deduce the template arguments 
@@ -67,6 +77,12 @@ for aggregate class templates.
 // deduction guide for our Pair (needed in C++17 only)
 template <typename T, typename U>
 Pair(T, U) -> Pair<T, U>; // should deduce to Pair<T, U>
+
+void func3()
+{
+    Pair<int, int> p1{ 1, 2 }; // ok    
+    Pair p4{ 1, 2 };  // compile error in C++17 (okay in C++20) without deduction guide
+}
 
 
 /* Type template parameters with default values
@@ -82,30 +98,28 @@ struct Pair2
 template <typename T, typename U>
 Pair2(T, U) -> Pair2<T, U>;
 
+void func4()
+{
+    Pair2 p5; // use default Pair2<int, int>
+}
+
 
 int main()
 {
-    Pair<int, int> p1{ 5, 6 };        // instantiates Pair<int> and creates object p1
-    std::cout << p1.first << ' ' << p1.second << '\n';
-
-    Pair<double, double> p2{ 1.2, 3.4 }; // instantiates Pair<double> and creates object p2
-    std::cout << p2.first << ' ' << p2.second << '\n';
-
-    std::cout << max<int>(p1) << " is larger\n"; // explicit call to max<int>
-    std::cout << max(p2) << " is larger\n";      // call to max<double> using template argument deduction
+    func1();
 
 
     // std::pair
-    std::pair<int, double> p3{ 5, 6.7 };
-    print(p3); // [5, 6.7]
+    func2();
 
 
     // Template argument deduction guides
-    Pair p4{ 1, 2 };  // compile error in C++17 (okay in C++20) without deduction guide
+    func3();
 
 
     // Type template parameters with default values
-    Pair2 p5; // use default Pair2<int, int>
+    func4();
+
 
     return 0;
 }

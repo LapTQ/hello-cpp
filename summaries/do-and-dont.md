@@ -301,6 +301,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 program-defined types are typically defined in header files.
 types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
 
+Just like function templates, class templates are typically defined in header files.
+
 
 
 Inline functions are typically defined in "header" files, where they can be #included into the top of any code file 
