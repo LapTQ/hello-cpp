@@ -509,6 +509,7 @@
     auto max(T x, U y) -> std::common_type_t<T, U>;
     ```
 
+
 ## Program-defined types: Enumerated types
 
 * **Unscoped enumerations**:
@@ -592,9 +593,26 @@
         ```
 
         They are not aggregate initialization.
+* **Implicit object**:
+    
+    ```C++
+    CDate today { 2020, 10, 14 };
+    today.print();
+    ```
+    * when we call `today.print()`, today is the **implicit object**, and it is implicitly passed to the `print()`.
+* **Const member function**: is a member function that guarantees it will not modify the object or call any non-const member functions.
+    * Const objects may not call non-const member functions, even if the member function does not modify the object.
+    * It is possible to overload a member function to have a const 
+  and non-const version of the same function.
+* Member functions can be defined in any order. Because, when the compiler encounters a member function definition:
+    1. The member function is implicitly forward declared.
+    2. The member function definition is moved immediately after the end of the class definition.
 
 
 
+program-defined types are typically defined in header files.
+types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
+Member functions defined inside the class type definition are implicitly `inline`.
 
 
 // Note that this is a full definition, not a forward declaration

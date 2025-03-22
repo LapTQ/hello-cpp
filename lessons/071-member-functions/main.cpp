@@ -47,6 +47,16 @@ struct Person
     }
 };
 
+void func1()
+{
+    CDate today { 2020, 10, 14 };
+    today.print();  // also accessed using member selection operator (.)
+
+    Person joe{ "Joe", 29 };
+    Person kate{ "Kate", 27 };
+    joe.kisses(kate);   // print: Joe kisses Kate
+}
+
 
 /* Member variables and functions can be defined in any order
 
@@ -76,12 +86,24 @@ struct Foo
 /* Modifying the data members of const objects is disallowed
 */
 
+void func2()
+{
+    const CDate date { 2020, 10, 14 };
+    date.day += 1; // compile error
+}
+
 
 /* Const objects may not call non-const member functions
 
 - Even if the member function doesn’t modify the object, the compiler
   won’t allow it to be called on a const object unless it is declared const.
 */
+
+void func3()
+{
+    const CDate date2 { 2020, 10, 14 };
+    date2.print(); // compile error
+}
 
 
 /* Const member functions
@@ -106,6 +128,12 @@ struct Date2
     }
 };
 
+void func4()
+{
+    const Date2 date3 { 2020, 10, 14 };
+    date3.print(); // okay
+}
+
 
 /* (Rare) Member function const and non-const overloading
 
@@ -128,39 +156,36 @@ struct Something
     }
 };
 
-
-int main()
+void func5()
 {
-    // Member functions
-    CDate today { 2020, 10, 14 };
-    today.print();  // also accessed using member selection operator (.)
-
-    Person joe{ "Joe", 29 };
-    Person kate{ "Kate", 27 };
-    joe.kisses(kate);   // print: Joe kisses Kate
-
-
-    // Modifying the data members of const objects is disallowed
-    const CDate date { 2020, 10, 14 };
-    date.day += 1; // compile error
-
-
-    // Const objects may not call non-const member functions
-    const CDate date2 { 2020, 10, 14 };
-    date2.print(); // compile error
-
-
-    // Const member functions
-    const Date2 date3 { 2020, 10, 14 };
-    date3.print(); // okay
-
-
-    // (Rare) Member function const and non-const overloading
     Something s1{};
     s1.print(); // calls print()
 
     const Something s2{};
     s2.print(); // calls print() const
+}
+
+
+int main()
+{
+    // Member functions
+    func1();
+
+
+    // Modifying the data members of const objects is disallowed
+    func2();
+
+
+    // Const objects may not call non-const member functions
+    func3();
+
+
+    // Const member functions
+    func4();
+
+
+    // (Rare) Member function const and non-const overloading
+    func5();
 
 
     return 0;

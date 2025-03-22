@@ -399,3 +399,52 @@ void func4()
     Pair2 p5; // use default Pair2<int, int>
 }
 ```
+
+
+## Const member function
+
+```C++
+struct Date2
+{
+    int year {};
+    int month {};
+    int day {};
+
+    void print() const // const member function
+    {
+        std::cout << year << '/' << month << '/' << day << '\n';
+    }
+};
+
+void func4()
+{
+    const Date2 date3 { 2020, 10, 14 };
+    date3.print(); // okay
+}
+```
+
+It is possible to overload a member function to have a const and non-const version of the same function. This works because the const qualifier is considered part of the 
+  function’s signature.
+```C++
+struct Something
+{
+    void print()
+    {
+        std::cout << "non-const\n";
+    }
+
+    void print() const
+    {
+        std::cout << "const\n";
+    }
+};
+
+void func5()
+{
+    Something s1{};
+    s1.print(); // calls print()
+
+    const Something s2{};
+    s2.print(); // calls print() const
+}
+```
