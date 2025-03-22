@@ -41,6 +41,16 @@ class CDate // now a class instead of a struct
   => our CDate class does not qualify as an aggregate because it has private members.
 */
 
+void func1()
+{
+    CDate today { 2020, 10, 14 }; // compile error: can no longer use aggregate initialization
+                                  // because CDate does not qualify as an aggregate
+
+    // private members can not be accessed by the public
+    today.m_day = 16; // compile error: the m_day member is private
+    today.print();    // compile error: the print() member function is private
+}
+
 
 /* Naming your private member variables
 
@@ -77,6 +87,12 @@ private: // here's our private access specifier
     int m_day { 10 };
 };
 
+void func2()
+{
+    CDate2 today2 {};   // using default member initialization
+    today2.print(); // okay, main() allowed to access public members
+}
+
 
 /* (Often misunderstood) C++ access levels work on a per-class basis, not per-object
 
@@ -104,29 +120,29 @@ public:
     }
 };
 
-
-int main()
+void func3()
 {
-    CDate today { 2020, 10, 14 }; // compile error: can no longer use aggregate initialization
-                                  // because CDate does not qualify as an aggregate
-
-    // private members can not be accessed by the public
-    today.m_day = 16; // compile error: the m_day member is private
-    today.print();    // compile error: the print() member function is private
-
-
-    // Setting access levels via access specifiers
-    CDate2 today2 {};   // using default member initialization
-    today2.print(); // okay, main() allowed to access public members
-
-
-    // C++ access levels work on a per-class basis, not per-object
     Person joe;
     joe.setName("Joe");
     Person kate;
     kate.setName("Kate");
 
     joe.kisses(kate);
+}
+
+
+int main()
+{
+    func1();
+
+
+    // Setting access levels via access specifiers
+    func2();
+
+
+    // C++ access levels work on a per-class basis, not per-object
+    func3();
+
 
     return 0;
 }

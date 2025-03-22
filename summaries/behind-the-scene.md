@@ -560,7 +560,7 @@
         * No user-declared constructors.
         * No private or protected non-static data members.
         * No virtual functions.
-* Aggregate initialization of a struct: 
+* Aggregate initialization: 
     * Using **initializer list**: 
         * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**.
 
@@ -583,16 +583,33 @@
                 * If an explicit initialization value exists, that explicit value is used.
                 * If an initializer is missing and a default member initializer exists, the default is used.
                 * If an initializer is missing and no default member initializer exists, **value-initialization** occurs.
-    * Using another struct of the same type:
+    * You cannot use aggregate initialization for a non-aggregate type.
 
         ```C++
-        Foo f3 { 1, 2, 3};
-        Foo f4 = f3;    // copy initialization
-        Foo f5 { f3 };  // direct-list initialization
-        Foo f6(f3);     // direct-initialization
+        class CDate // now a class instead of a struct
+        {
+            int m_year {};     // private by default
+            int m_month {};    // private by default
+        };
+
+        void func1()
+        {
+            CDate today { 2020, 10 }; // compile error: can no longer use aggregate initialization. CDate does not qualify as an aggregate because it has private members.
+
+            CDate today2 {};   // okay, using default member initialization
+        }
         ```
 
-        They are not aggregate initialization.
+* Initialization using another struct of the same type:
+
+    ```C++
+    Foo f3 { 1, 2, 3};
+    Foo f4 = f3;    // copy initialization
+    Foo f5 { f3 };  // direct-list initialization
+    Foo f6(f3);     // direct-initialization
+    ```
+
+    They are not aggregate initialization.
 * **Implicit object**:
     
     ```C++
@@ -607,6 +624,10 @@
 * Member functions can be defined in any order. Because, when the compiler encounters a member function definition:
     1. The member function is implicitly forward declared.
     2. The member function definition is moved immediately after the end of the class definition.
+* Access levels:
+    * By default, members of a struct are `public`.
+    * By default, members of a class are `private`.
+    * ⚠️ C++ access levels work on a per-class basis, not per-object.
 
 
 
