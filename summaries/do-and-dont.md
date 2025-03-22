@@ -268,15 +268,18 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Program-defined types
 
 * ✅ It's okay to pass enumerations by value. They are small and cheap to copy.
-* ✅ For **unscoped enumerations**, it's recommended to add an "invalid" or "unknown" enumerator with value 0 to avoid semantically invalid enumeration when it's zero-initialized:
-    ```C++
-    enum Animal
-    {
-        unknown = 0, // default value (0)
-        cat,
-        dog,
-    };
-    ```
+* ✅ For **unscoped enumerations**, 
+    * ✅ Put the unscoped enumerated type inside a namespace to avoid name collisions.
+    * ✅ It's recommended to add an "invalid" or "unknown" enumerator with value 0 to avoid semantically invalid enumeration when it's zero-initialized:
+
+        ```C++
+        enum Animal
+        {
+            unknown = 0, // default value (0)
+            cat,
+            dog,
+        };
+        ```
 
 
 

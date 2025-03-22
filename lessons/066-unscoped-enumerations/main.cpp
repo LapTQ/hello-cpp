@@ -15,6 +15,8 @@
 - enumerations are small and inexpensive to copy, it is fine to pass (and return) them by value.
 */
 
+#include <iostream>
+
 enum Color
 {
     red,
@@ -196,11 +198,16 @@ constexpr std::string_view getColorName(Color color)
 }
 
 // Solution 2: Overloading the << operator
-#include <iostream>
 std::ostream& operator<<(std::ostream& out, Color color)
 {
     out << getColorName(color);
     return out;                 // operator<< conventionally returns its left operand
+}
+
+void func6()
+{
+    std::cout << getColorName(red) << '\n'; // solution 1, red
+    std::cout << red << '\n'; // solution 2, red
 }
 
 
@@ -227,6 +234,7 @@ constexpr std::optional<Color> getColorFromString(std::string_view sv)
 #include <cctype>    // for std::tolower
 #include <iterator>  // for std::back_inserter
 #include <string>
+#include <limits>
 std::string toASCIILowerCase(std::string_view sv)
 {
     std::string lower{};
@@ -260,8 +268,33 @@ std::istream& operator>>(std::istream& in, Color& color)
     return in;
 }
 
+void func7()
+{
+    std::string colorName {};
+    
+    // solution 2
+    std::cout << "Enter a color name: ";
+    std::cin >> colorName;
+    std::optional<Color> color { getColorFromString(toASCIILowerCase(colorName)) };
+    if (color.has_value())
+        std::cout << *color << '\n';
+    else
+        std::cout << "Unknown color\n";
+    
 
-#include <limits>
+    // solution 3: Overload the >> operator
+    std::cout << "Enter a color name: ";
+    Color color2 {};
+    std::cin >> color2;
+    if (std::cin)
+        std::cout << color2 << '\n';
+    else
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Unknown color\n";
+    }
+}
 
 
 int main()
@@ -283,31 +316,12 @@ int main()
     
 
     // Converting an enumeration to a string
-    std::cout << getColorName(apple) << '\n'; // solution 1, red
-    std::cout << apple << '\n'; // solution 2, red
+    func6();
 
 
     // Getting an enumeration from a string
-    std::string colorName {};
-    // solution 2
-    std::cout << "Enter a color name: ";
-    std::cin >> colorName;
-    std::optional<Color> color { getColorFromString(toASCIILowerCase(colorName)) };
-    if (color.has_value())
-        std::cout << *color << '\n';
-    else
-        std::cout << "Unknown color\n";
-    // solution 3: Overload the >> operator
-    std::cout << "Enter a color name: ";
-    std::cin >> apple;
-    if (std::cin)
-        std::cout << apple << '\n';
-    else
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Unknown color\n";
-    }
+    func7();
+    
 
     return 0;
 }

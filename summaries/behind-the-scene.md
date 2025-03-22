@@ -517,7 +517,7 @@
         * scoped enumerations
     * class types
 * **Unscoped enumerations**:
-    * implicitly constexpr.
+    * Implicitly constexpr.
     * Its enumerators are in the same scope as the enumeration itself => an enumerator name can’t be used in multiple enumerations within the same scope.
     * Unscoped enumerations will **implicitly** convert to integral values. By default, the first enumerator is given the integral value 0, but you can explicitly define the value.
 
