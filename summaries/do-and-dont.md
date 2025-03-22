@@ -296,6 +296,10 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 * ✅ When adding a new member variable to a struct, put it at the end to avoid breaking existing code. Because, struct initializes its members in the order they are declared.
 * ✅ Always provide default values for your members (inside the class type definition).
+* Getter:
+    * ✅ Make getter `const`, so they can be called on both const and non-const objects.
+    * ✅ Getters should return *by value* or by *const lvalue reference*.
+* ❌ Don't use `( )` for initialization
 
 
 

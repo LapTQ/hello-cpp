@@ -560,13 +560,13 @@
         * No user-declared constructors.
         * No private or protected non-static data members.
         * No virtual functions.
-* Aggregate initialization: 
-    * Using **initializer list**: 
+* Aggregate initialization 
+    * using **initializer list**: 
         * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**.
 
             ```C++
-            Employee frank = { 1, 32, 60000.0 }; // copy-list initialization
-            Employee joe { 2, 28, 45000.0 };     // list initialization (preferred)
+            Employee frank = { 1, 32, 60000.0 }; // initialization list, (copy-list initialization)
+            Employee joe { 2, 28, 45000.0 };     // initialization list (list initialization (preferred))
 
             // assigment
             alice = { 2, 30, 4000.0 };
@@ -583,33 +583,87 @@
                 * If an explicit initialization value exists, that explicit value is used.
                 * If an initializer is missing and a default member initializer exists, the default is used.
                 * If an initializer is missing and no default member initializer exists, **value-initialization** occurs.
-    * You cannot use aggregate initialization for a non-aggregate type.
+        * You cannot use aggregate initialization for a non-aggregate type.
+
+            ```C++
+            class CDate // now a class instead of a struct
+            {
+                int m_year {};     // private by default
+                int m_month {};    // private by default
+            };
+
+            void func1()
+            {
+                CDate today { 2020, 10 }; // compile error: this is not aggregate initialization (CDate does not qualify as an aggregate because it has private members) and CDate does not have a constructor to handle.
+
+                CDate today2 {};   // okay, calling implicit default constructor
+            }
+            ```
+    * Using another struct of the same type:
 
         ```C++
-        class CDate // now a class instead of a struct
-        {
-            int m_year {};     // private by default
-            int m_month {};    // private by default
-        };
-
-        void func1()
-        {
-            CDate today { 2020, 10 }; // compile error: can no longer use aggregate initialization. CDate does not qualify as an aggregate because it has private members.
-
-            CDate today2 {};   // okay, using default member initialization
-        }
+        Foo f3 { 1, 2, 3};
+        Foo f4 = f3;    // copy initialization
+        Foo f5 { f3 };  // direct-list initialization
+        Foo f6(f3);     // direct-initialization
         ```
 
-* Initialization using another struct of the same type:
+        They are not aggregate initialization.
+* **Constructors**:
+    * Constructors do not create the objects. The compiler sets up the memory allocation for the object prior to the constructor call.
+    * **Default constructor**: a constructor that accepts no arguments.
 
-    ```C++
-    Foo f3 { 1, 2, 3};
-    Foo f4 = f3;    // copy initialization
-    Foo f5 { f3 };  // direct-list initialization
-    Foo f6(f3);     // direct-initialization
-    ```
+        ```C++
+        class Foo6
+        {
+        public:
+            Foo6() // default constructor
+            {
+                std::cout << "Foo default constructed\n";
+            }
+        };
+        ```
+    * **Implicit default constructor**: If a non-aggregate class type object has no user-declared constructors,  the compiler will generate a public default constructor (with no member initializer list, no statements in the body of the constructor).
+    * ⚠️ Both **value-initialization** and **default-initialization** will call default constructor.
 
-    They are not aggregate initialization.
+        ```C++
+        Foo6 foo6{}; // value-initialization, call default constructor
+        Foo6 foo6; // default-initialization, also call default constructor
+        ```
+    * Delegating constructors: Steps:
+        1. Initialization is delegated to another constructor:
+            1. The member initializer list of the delegated constructor initializes the members.
+            1. The body of the delegated constructor is executed.
+        2. The body of the delegating constructor is executed.
+* Non-aggregate initialization:
+    * Using **member initializer list**: ⚠️ Attention: the members are always initialized in the order in which they are defined inside the class, not from left to right in the list.
+
+        ```C++
+        class Foo3
+        {
+        private:
+            int m_x {};
+            int m_y {};
+
+        public:
+            Foo3(int x, int y)
+                : m_y { std::max(x, y) }, m_x { m_y } // issue on this line
+            {
+            }
+
+            void print() const { std::cout << "Foo(" << m_x << ", " << m_y << ")\n"; }
+        };
+
+        void func2()
+        {
+            Foo3 foo3{ 6, 7 };  // member initialization list
+            foo3.print();       // Foo(6, 7)
+        }
+        ```
+    * Initialization possibilities:
+        * If a member is listed in the member initializer list, that initialization value is used.
+        * Otherwise, if the member has a default member initializer, that initialization value is used.
+        * Otherwise, the member is default-initialized.
 * **Implicit object**:
     
     ```C++
@@ -628,6 +682,8 @@
     * By default, members of a struct are `public`.
     * By default, members of a class are `private`.
     * ⚠️ C++ access levels work on a per-class basis, not per-object.
+
+
 
 
 

@@ -36,6 +36,12 @@ public:
     }
 };
 
+void func1()
+{
+    Foo foo{ 6, 7 }; // calls Foo(int, int) constructor
+    foo.print();    // Foo(0, 0)
+}
+
 
 /* Member initialization via a member initialization list
 */
@@ -60,6 +66,12 @@ public:
         std::cout << "Foo(" << m_x << ", " << m_y << ")\n";
     }
 };
+
+void func2()
+{
+    Foo2 foo2{ 6, 7 }; 
+    foo2.print();    // Foo(6, 7)
+}
 
 
 /* Member initialization order
@@ -91,19 +103,25 @@ public:
     }
 };
 
+void func3()
+{
+    Foo3 foo3{ 6, 7 };
+    foo3.print();    // Foo(0, 7) on my machine
+}
+
 
 /* Member initializer list vs default member initializers
 
 - If a member is listed in the member initializer list, that initialization value is used
 - Otherwise, if the member has a default member initializer, that initialization value is used
-- Otherwise, the member is default initialized (which for fundamental types, means it is left uninitialized).
+- Otherwise, the member is default-initialized (which for fundamental types, means it is left uninitialized).
 */
 
 class Foo4
 {
 private:
-    int m_x {};    // default member initializer (will be ignored)
-    int m_y { 2 }; // default member initializer (will be used)
+    int m_x {};    // default member initializer
+    int m_y { 2 }; // default member initializer
     int m_z;      // no initializer
 
 public:
@@ -118,6 +136,12 @@ public:
         std::cout << "Foo(" << m_x << ", " << m_y << ", " << m_z << ")\n";
     }
 };
+
+void func4()
+{
+    Foo4 foo4{ 6 };
+    foo4.print();    // Foo(6, 2, 0)
+}
 
 
 /* Assignment inside constructors body
@@ -160,12 +184,24 @@ public:
     }
 };
 
+void func5()
+{
+    Foo6 foo6{}; // No initialization values, calls Foo's default constructor
+}
+
+
 /* Value initialization vs default initialization for class types
 
 - Both will call the default constructor. However, value initialization is safer.
   Since it’s difficult to tell whether a class type is an aggregate or non-aggregate.
   => just use value initialization for everything and not worry about it.
 */
+
+void func6()
+{
+    Foo6 foo7; // default initialization, calls Foo() default constructor
+    Foo6 foo8{}; // value initialization, calls Foo() default constructor, preferred
+}
 
 
 /* Overloaded constructors
@@ -206,6 +242,11 @@ public:
     }
 };
 
+void func7()
+{
+    Foo7 foo9{}; // calls Foo7() default constructor
+}
+
 
 /* Delegating constructors
 
@@ -228,57 +269,58 @@ private:
     int m_id { 0 };
 
 public:
-    Employee(std::string_view name)
+Employee(std::string_view name)
         : Employee{ name, 0 } // delegate initialization to Employee(std::string_view, int) constructor
     {
     }
-
+    
     Employee(std::string_view name, int id)
-        : m_name{ name }, m_id { id }
+    : m_name{ name }, m_id { id }
     {
         std::cout << "Employee " << m_name << " created\n";
     }
 };
 
+void func8()
+{
+    Employee e1{ "James" };
+    Employee e2{ "Dave", 42 };
+}
+
 
 int main()
 {
     // Constructor
-    Foo foo{ 6, 7 }; // calls Foo(int, int) constructor
-    foo.print();    // Foo(0, 0)
+    func1();
 
 
     // Member initialization via a member initialization list
-    Foo2 foo2{ 6, 7 }; 
-    foo2.print();    // Foo(6, 7)
+    func2();
 
 
     // Member initialization order
-    Foo3 foo3{ 6, 7 };
-    foo3.print();    // Foo(0, 7) on my machine
+    func3();
 
 
     // Member initializer list vs default member initializers
-    Foo4 foo4{ 6 };
-    foo4.print();    // Foo(6, 2, 0)
+    func4();
 
 
     // Default constructor
-    Foo6 foo6{}; // No initialization values, calls Foo's default constructor
+    func5();
 
 
     // Value initialization vs default initialization for class types
-    Foo6 foo7; // default initialization, calls Foo() default constructor
-    Foo6 foo8{}; // value initialization, calls Foo() default constructor, preferred
+    func6();
 
 
     // Explicitly defaulted default constructor
-    Foo7 foo9{}; // calls Foo7() default constructor
+    func7();
 
 
     // Delegating constructors
-    Employee e1{ "James" };
-    Employee e2{ "Dave", 42 };
+    func8();
+
 
     return 0;
 }
@@ -289,7 +331,7 @@ int main()
   and only comes into effect after the constructor ends.
 */
 
-/* Fon't use ( ) for initialization
+/* Don't use ( ) for initialization
 
 See: https://www.learncpp.com/cpp-tutorial/temporary-class-objects/#:~:text=Creating%20temporary%20objects%20via%20direct%20initialization
 */

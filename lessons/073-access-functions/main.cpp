@@ -24,6 +24,14 @@ public:
     void setYear(int year) { m_year = year; }     // setter for year
 };
 
+void func1()
+{
+    Date d{};
+    d.setYear(2021);
+    std::cout << "The year is: " << d.getYear() << '\n';
+}
+
+
 /* - Getters should return by value or by const lvalue reference
 
 - But attention: The return type should match the data member’s type.
@@ -48,6 +56,14 @@ public:
     const auto& getName2() const { return m_name; } //  getter returns by const reference, using auto to ensure that no conversions occur
 };
 
+void func2()
+{
+    Employee joe{}; // joe exists until end of function
+	joe.setName("Joe");
+	std::cout << joe.getName(); // returns joe.m_name by reference
+    std::cout << joe.getName2(); // returns joe.m_name by reference
+}
+
 
 /* Do not return non-const references to private data members
 
@@ -57,16 +73,11 @@ public:
 
 int main()
 {
-    Date d{};
-    d.setYear(2021);
-    std::cout << "The year is: " << d.getYear() << '\n';
+    func1();
 
 
     // Getters should return by value or by const lvalue reference
-    Employee joe{}; // joe exists until end of function
-	joe.setName("Joe");
-	std::cout << joe.getName(); // returns joe.m_name by reference
-    std::cout << joe.getName2(); // returns joe.m_name by reference
+    func2();
 
     return 0;
 }
