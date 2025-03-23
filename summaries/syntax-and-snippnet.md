@@ -548,3 +548,45 @@ void func3()
     print2(static_cast<Dollars2>(5)); // okay, explicit conversion
 }
 ```
+
+Constexpr constructors:
+```C++
+class Pair2 // Pair is no longer an aggregate
+{
+private:
+    int m_x {};
+    int m_y {};
+
+public:
+    Pair2(int x, int y): m_x { x }, m_y { y } {}
+};
+
+class Pair3
+{
+private:
+    int m_x {};
+    int m_y {};
+
+public:
+    constexpr Pair3(int x, int y): m_x { x }, m_y { y } {} // now constexpr
+};
+
+void func2()
+{
+    constexpr Pair2 p2 { 5, 6 };       // compile error: p2 is not a literal type
+    constexpr Pair3 p3 { 5, 6 };       // okay, p3 is a literal type
+}
+```
+
+
+## Constexpr functions that return const references (or pointers)
+
+Let's see a member function:
+```C++
+constexpr const int* const getXPtr() const { return &m_x; }
+```
+
+That’s a lot of const-ing!
+* The constexpr indicates that the member function can be evaluated at compile-time. 
+* The 1st and 2nd const indicates a const pointer to const.
+* The 3rd const means the member-function itself is const so it can be called on const objects.

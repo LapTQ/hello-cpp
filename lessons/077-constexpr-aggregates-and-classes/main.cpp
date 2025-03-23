@@ -14,6 +14,15 @@ struct Pair // Pair is an aggregate
     }
 };
 
+void func1()
+{
+    constexpr Pair p { 5, 6 };        // now constexpr
+    std::cout << p.greater() << '\n'; // p.greater() evaluates at runtime or compile-time
+
+    constexpr int g { p.greater() };  // p.greater() must evaluate at compile-time
+    std::cout << g << '\n';
+}
+
 
 /* Constexpr class objects and constexpr constructors
 
@@ -53,8 +62,14 @@ public:
     }
 };
 
+void func2()
+{
+    constexpr Pair2 p2 { 5, 6 };       // compile error: p2 is not a literal type
+    constexpr Pair3 p3 { 5, 6 };       // okay, p3 is a literal type
+}
 
-/* Constexpr member functions are no longer implicitly const since C++14)
+
+/* Constexpr member functions are no longer implicitly const since C++14
 
 => Constexpr non-const member functions can change data members.
 */
@@ -63,16 +78,12 @@ public:
 int main()
 {
     // Constexpr aggregates and Constexpr member functions
-    constexpr Pair p { 5, 6 };        // now constexpr
-    std::cout << p.greater() << '\n'; // p.greater() evaluates at runtime or compile-time
-
-    constexpr int g { p.greater() };  // p.greater() must evaluate at compile-time
-    std::cout << g << '\n';
+    func1();
 
 
     // Constexpr class objects and constexpr constructors
-    constexpr Pair2 p2 { 5, 6 };       // compile error: p2 is not a literal type
-    constexpr Pair3 p3 { 5, 6 };       // okay, p3 is a literal type
+    func2();
+
 
     return 0;
 }

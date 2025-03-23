@@ -74,6 +74,7 @@
 * **Constexpr variable**:
     * must be initialized with a constant expression.
     * are implicitly `const`.
+    * can be initialized with a non-`const` value.
 * **Constexpr functions**:
     * is a function that **can** be called in a constant expression (i.e., non-`constexpr` functions cannot be called in a constant expression).
     * The return value of a non-constexpr function is not a constant expression.
