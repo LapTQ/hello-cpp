@@ -448,3 +448,74 @@ void func5()
     s2.print(); // calls print() const
 }
 ```
+
+
+## Constructors
+
+Deligating constructors:
+```C++
+class Employee
+{
+private:
+    std::string m_name { "???" };
+    int m_id { 0 };
+
+public:
+Employee(std::string_view name)
+        : Employee{ name, 0 } // delegate initialization to Employee(std::string_view, int) constructor
+    {
+    }
+    
+    Employee(std::string_view name, int id)
+    : m_name{ name }, m_id { id }
+    {
+        std::cout << "Employee " << m_name << " created\n";
+    }
+};
+
+void func8()
+{
+    Employee e1{ "James" };
+    Employee e2{ "Dave", 42 };
+}
+```
+
+Using `= default` to generate a default copy constructor
+```C++
+class Fraction3
+{
+private:
+    int m_numerator{ 0 };
+    int m_denominator{ 1 };
+
+public:
+    // Default constructor
+    Fraction3(int numerator=0, int denominator=1)
+        : m_numerator{numerator}, m_denominator{denominator}
+    {
+    }
+
+    // Explicitly request default copy constructor
+    Fraction3(const Fraction3& fraction) = default;
+};
+```
+
+Using `= delete` to prevent copy constructor
+```C++
+class Fraction4
+{
+private:
+    int m_numerator{ 0 };
+    int m_denominator{ 1 };
+
+public:
+    // Default constructor
+    Fraction4(int numerator=0, int denominator=1)
+        : m_numerator{numerator}, m_denominator{denominator}
+    {
+    }
+
+    // Prevent copy constructor
+    Fraction4(const Fraction4& fraction) = delete;
+};
+```

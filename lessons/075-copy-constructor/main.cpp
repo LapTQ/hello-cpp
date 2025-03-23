@@ -31,12 +31,19 @@ public:
     }
 };
 
+void func1()
+{
+    Fraction f { 5, 3 };
+    Fraction fCopy { f }; // What constructor is used here? => implicit copy constructor
+}
+
 
 /* Defining your own copy constructor
 
 - A copy constructor should NOT do anything other than copy an object.
   This is because the compiler may optimize the copy constructor out in certain cases
   => your extra code may not be executed.
+- The copy constructor’s parameter must be a reference.
 
 => Prefer the implicit copy constructor.
 */
@@ -78,6 +85,13 @@ void printFraction(Fraction2 f) // f is pass by value
     f.print();
 }
 
+void func2()
+{
+    Fraction2 f2 { 5, 3 };
+    printFraction(f2); // f is copied into the function parameter using copy constructor
+
+}
+
 
 /* Return by value and the copy constructor
 */
@@ -86,6 +100,12 @@ Fraction2 generateFraction(int n, int d)
 {
     Fraction2 f{ n, d };
     return f;
+}
+
+void func3()
+{
+    Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
+                                                  // but you may see only one/no copy constructor call because of copy elision
 }
 
 
@@ -145,18 +165,16 @@ public:
 int main()
 {
     // Copy constructor
-    Fraction f { 5, 3 };
-    Fraction fCopy { f }; // What constructor is used here? => implicit copy constructor
+    func1();
 
 
     // Pass by value will implicitly invoking the copy constructor
-    Fraction2 f2 { 5, 3 };
-    printFraction(f2); // f is copied into the function parameter using copy constructor
+    func2();
 
 
     // Return by value and the copy constructor
-    Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
-                                                  // but you may see only one/no copy constructor call because of copy elision
+    func3();
+
 
     return 0;
 }

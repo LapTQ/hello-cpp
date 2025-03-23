@@ -633,7 +633,7 @@
     * Delegating constructors: Steps:
         1. Initialization is delegated to another constructor:
             1. The member initializer list of the delegated constructor initializes the members.
-            1. The body of the delegated constructor is executed.
+            2. The body of the delegated constructor is executed.
         2. The body of the delegating constructor is executed.
 * Non-aggregate initialization:
     * Using **member initializer list**: ⚠️ Attention: the members are always initialized in the order in which they are defined inside the class, not from left to right in the list.
@@ -682,8 +682,91 @@
     * By default, members of a struct are `public`.
     * By default, members of a class are `private`.
     * ⚠️ C++ access levels work on a per-class basis, not per-object.
+* **Copy constructor**:
+    * It's a constructor that is used to initialize an object with an existing object of the same type. The copy constructor’s parameter must be a **reference**.
+
+        ```C++
+        class Fraction2
+        {
+        private:
+            int m_numerator{ 0 };
+            int m_denominator{ 1 };
+
+        public:
+            // Default constructor
+            Fraction2(int numerator=0, int denominator=1)
+                : m_numerator{numerator}, m_denominator{denominator}
+            {
+            }
+
+            // Copy constructor
+            Fraction2(const Fraction2& fraction)
+                : m_numerator{ fraction.m_numerator }
+                , m_denominator{ fraction.m_denominator }
+            {
+            }
+        };
+        ```
+    * **Implicit copy constructor**: 
+        * If you do not provide a copy constructor for your classes, C++ will create a public implicit copy constructor. 
+        * By default, the implicit copy constructor will do memberwise initialization.
+
+            ```C++
+            class Fraction
+            {
+            private:
+                int m_numerator{ 0 };
+                int m_denominator{ 1 };
+
+            public:
+                // Default constructor
+                Fraction(int numerator=0, int denominator=1)
+                    : m_numerator{numerator}, m_denominator{denominator}
+                {
+                }
+            };
+
+            void func1()
+            {
+                Fraction f { 5, 3 };
+                Fraction fCopy { f }; // => implicit copy constructor
+            }
+            ```
+    * **Pass by value**, **return by value**, **initialization** of the same class type will implicitly invoke the copy constructor:
+
+        ```C++
+        void printFraction(Fraction2 f) // f is pass by value
+        {
+        }
+
+        void func2()
+        {
+            Fraction2 f2 { 5, 3 };
+            printFraction(f2); // f is copied using copy constructor
+
+        }
+        ```
+
+        ```C++
+        Fraction2 generateFraction(int n, int d)
+        {
+            return Fraction2{ n, d };
+        }
+
+        void func3()
+        {
+            Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
+        }
+        ```
+    * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
 
 
+
+
+
+
+Pass by value will implicitly invoking the copy constructor
+Returning by value will implicitly invoking the copy constructor
 
 
 
