@@ -300,6 +300,15 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ✅ Make getter `const`, so they can be called on both const and non-const objects.
     * ✅ Getters should return *by value* or by *const lvalue reference*.
 * ❌ Don't use `( )` for initialization
+* ✅ You can do method chaining by returning `this`: `calc.add(5).sub(3).mult(4);`
+* ✅ YOu can reset a class back to default state by using `this` and default constructor:
+
+    ```C++
+    void reset()
+    {
+        *this = {}; // value-initialize a new object and overwrite the implicit object
+    }
+```
 
 
 

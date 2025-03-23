@@ -672,6 +672,13 @@
     today.print();
     ```
     * when we call `today.print()`, today is the **implicit object**, and it is implicitly passed to the `print()`.
+    * Inside every member function, `this` is a const pointer that holds the address of the current implicit object.
+        
+        ```C++
+        void print() const { std::cout << m_id; }       // implicit use of this
+        void print() const { std::cout << this->m_id; } // explicit use of this
+        ```
+    * In Java and C#, `this` is implemented as a reference instead of a pointer.
 * **Const member function**: is a member function that guarantees it will not modify the object or call any non-const member functions.
     * Const objects may not call non-const member functions, even if the member function does not modify the object.
     * It is possible to overload a member function to have a const 
