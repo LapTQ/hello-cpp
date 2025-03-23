@@ -519,3 +519,32 @@ public:
     Fraction4(const Fraction4& fraction) = delete;
 };
 ```
+
+Using `explicit` to prevent implicit conversions:
+```C++
+class Dollars2
+{
+private:
+    int m_dollars{};
+
+public:
+    explicit Dollars2(int d) // now explicit
+        : m_dollars{ d }
+    {
+    }
+
+    int getDollars() const { return m_dollars; }
+};
+
+void print2(Dollars2 d)
+{
+    std::cout << "$" << d.getDollars();
+}
+
+void func3()
+{
+    print(5); // prints $5
+    print2(5); // compile error: cannot convert int to Dollars2
+    print2(static_cast<Dollars2>(5)); // okay, explicit conversion
+}
+```

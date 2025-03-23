@@ -693,7 +693,6 @@
             int m_denominator{ 1 };
 
         public:
-            // Default constructor
             Fraction2(int numerator=0, int denominator=1)
                 : m_numerator{numerator}, m_denominator{denominator}
             {

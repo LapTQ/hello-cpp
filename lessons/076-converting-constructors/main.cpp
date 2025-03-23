@@ -27,6 +27,14 @@ void printFoo(Foo f) // has a Foo parameter
     std::cout << f.getX() << '\n';
 }
 
+void func1()
+{
+    printFoo(5); // we're supplying an int argument => conversion from `5` to `Foo { 5 }`
+    // In C++17 onward, the copy is mandatorily elided. 
+    // Parameter f is copy initialized with value 5, and no call to the copy constructor is required.
+
+}
+
 
 /* Only one user-defined conversion may be applied
 
@@ -56,6 +64,17 @@ public:
 void printEmployee(Employee e)
 {
     std::cout << e.getName() << '\n';
+}
+
+void func2()
+{
+    printEmployee("Joe");   // compile error: requires 2 user-defined conversions
+
+    using namespace std::literals;
+    printEmployee( "Joe"sv);    // okay, only 1 user-defined conversion from std::string_view to Employee
+
+    printEmployee(Employee{ "Joe" }); // okay, only 1 user-defined conversion from C-style string literal to std::string_view
+
 }
 
 
@@ -113,28 +132,27 @@ void print2(Dollars2 d)
 // Note that static_cast returns an object that is direct-initialized,
 // so it will consider explicit constructors while performing the conversion
 
+void func3()
+{
+    print(5); // prints $5
+    print2(5); // compile error: cannot convert int to Dollars2
+    print2(static_cast<Dollars2>(5)); // okay, explicit conversion
+}
+
 
 int main()
 {
     // User-defined conversions
-    printFoo(5); // we're supplying an int argument => conversion from `5` to `Foo { 5 }`
-    // In C++17 onward, the copy is mandatorily elided. 
-    // Parameter f is copy initialized with value 5, and no call to the copy constructor is required.
+    func1();
 
 
     // Only one user-defined conversion may be applied
-    printEmployee("Joe");   // compile error: requires 2 user-defined conversions
-
-    using namespace std::literals;
-    printEmployee( "Joe"sv);    // okay, only 1 user-defined conversion from std::string_view to Employee
-
-    printEmployee(Employee{ "Joe" }); // okay, only 1 user-defined conversion from C-style string literal to std::string_view
+    func2();
 
 
     // When converting constructors go wrong and the explicit keyword
-    print(5); 
-    print2(5); // compile error: cannot convert int to Dollars2
-    print2(static_cast<Dollars2>(5)); // okay, explicit conversion
+    func3();
+
 
     return 0;
 }

@@ -307,6 +307,13 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 
 
+Is there any reason to use = default copy constructor? Yes, for two reasons:
+1. It's generally better to be explicit than implicit.
+2. Implicit behavior can change (e.g. if you add a move constructor or move assignment, the implicit copy constructor will no longer be generated, but an = default copy constructor still will be generated).
+
+
+
+
 program-defined types are typically defined in header files.
 types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
 
