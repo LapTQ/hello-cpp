@@ -308,7 +308,15 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     {
         *this = {}; // value-initialize a new object and overwrite the implicit object
     }
-```
+    ```
+
+
+## Class definitions and header files
+
+* ✅ For non-template classes:
+    * Define the class in a header file.
+    * Define the member functions (including constructor) in a separate .cpp file.
+* For template classes:
 
 
 

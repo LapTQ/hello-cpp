@@ -233,6 +233,8 @@
 * The linker will then de-duplicate the definitions.
 * `constexpr` functions are implicitly inline. Because, the compiler needs its definition in every translation unit that uses it to be able to evaluate it at compile time.
 * `constexpr` variables are not implicitly inline.
+* Member functions defined inside the class definition are implicitly inline.
+* Member functions defined outside the class definition are not implicitly inline.
 
 
 ## Exit
@@ -766,6 +768,7 @@
         }
         ```
     * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
+
 
 
 
