@@ -627,6 +627,16 @@
         };
         ```
     * **Implicit default constructor**: If a non-aggregate class type object has no user-declared constructors,  the compiler will generate a public default constructor (with no member initializer list, no statements in the body of the constructor).
+    * If all of the parameters in a constructor have default arguments, the constructor is a default constructor.
+        ```C++
+        class Foo6
+        {
+        public:
+            Foo6(int x=0, int y=0) // default constructor
+            {
+            }
+        };
+        ```
     * ⚠️ Both **value-initialization** and **default-initialization** will call default constructor.
 
         ```C++
@@ -775,8 +785,6 @@
 
 
 
-Pass by value will implicitly invoking the copy constructor
-Returning by value will implicitly invoking the copy constructor
 
 
 

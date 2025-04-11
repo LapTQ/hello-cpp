@@ -226,6 +226,11 @@ void func6()
   to the implicitly generated default constructor.
 */
 
+
+/* If all of the parameters in a constructor have default arguments, the constructor is a default constructor
+*/
+
+
 class Foo7
 {
 private:
