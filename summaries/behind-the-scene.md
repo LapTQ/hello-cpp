@@ -256,11 +256,11 @@
 
 * When assertion fails, the program will terminate via `std::abort()`.
 * C++ comes with a built-in macro `NDEBUG`: if it's defined, the assert macro gets disabled.
-* A `static_assert` is checked at compile-time rather than at runtime => the condition must be a constant expression.
 
     ```C++
     #undef NDEBUG // enable asserts (must be placed before any #includes)
     ```
+* A `static_assert` is checked at compile-time rather than at runtime => the condition must be a constant expression.
 
 
 ## Implicit type conversions
