@@ -206,7 +206,7 @@
     ```
 
 
-## Function overhead and inline expansion
+## Function overhead and inline expansion (historical view)
 
 * For example,
 
@@ -224,7 +224,7 @@
 * Historically, compilers were not very good at determining whether it should apply inline expansion, so the `inline` keyword was introduced. However, modern C++ compilers are better than human in most cases, so it will likely ignore the `inline` keyword for this purpose.
 
 
-## Inline functions and variables
+## Inline functions and variables (modern view)
 
 * The `inline` keyword is now used to suppress the ODR violation: an inline function is one that is allowed to be *defined* in multiple translation units.
 * Requirements of `inline` function:
