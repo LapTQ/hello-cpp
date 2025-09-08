@@ -152,7 +152,7 @@
 * If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
 * Multiple namespace blocks and nested namespaces are allowed.
 * **Unnamed namespace**: All content declared in an unnamed namespace is treated as part of the parent namespace.
-* **Inlide namespace**: (Much like an unnamed namespace) All content declared in an inline namespace is treated as part of the parent namespace. The difference is that the inline namespace can be versioned.
+* **Inline namespace**: (Much like an unnamed namespace) All content declared in an inline namespace is treated as part of the parent namespace. The difference is that the inline namespace can be versioned.
 
 
 ## Storage duration
