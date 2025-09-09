@@ -430,6 +430,14 @@
        	```
         This is an example of case when reference is not identical to the object it is bound to.
 * Assign a reference to a non-reference variable will **copy** the value.
+  	```C++
+   int x { 5 };
+    int& ref { x };
+    int y { ref }; // y is now a copy of x
+    std::cout << &x << '\n';    // 0x7ffc70904a60
+    std::cout << &ref << '\n';  // 0x7ffc70904a60 (same as x)
+    std::cout << &y << '\n';    // 0x7ffc70904a64 (different from x)
+   ```
 * Binding a reference is always cheap.
 * A **pointer** is an **object** that holds a memory address as its value.
 * The address-of operator (`&`) does not return a literal. Instead, it returns a pointer, whose type is derived from the argument.
