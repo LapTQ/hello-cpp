@@ -259,6 +259,11 @@ int y3 { 6 };  // modifiable lvalue
 const int& ref_y3 { y3 };
 ```
 
+An lvalue reference to const can be initialized with an rvalue:
+```C++
+const int& ref_rvalue { 5 }; // okay
+```
+
 ## Pointers
 
 ```C++
