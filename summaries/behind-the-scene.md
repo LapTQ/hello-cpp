@@ -411,6 +411,9 @@
     * All references **must** be initialized. 
     * Once initialized, references **can’t be reseated** (changed to refer to another object)
     * ⚠️ An **lvalue reference to const** can be initialized with an rvalue. C++ has a special rule: When a **const lvalue reference** is **directly** bound to a **temporary** object, the lifetime of the temporary object is extended to match the lifetime of the reference.
+  		```C++
+    	const int& ref_rvalue { 5 }; // okay, lvalue reference to const can be initialized with an rvalue
+    	```
     * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
 
         This is an example of case when reference is not identical to the object it is bound to.
