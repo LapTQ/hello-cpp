@@ -415,7 +415,19 @@
     	const int& ref_rvalue { 5 }; // okay, lvalue reference to const can be initialized with an rvalue
     	```
     * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
-
+      	```C++
+       	const double& r1 { 5 };
+	    std::cout << r1 << '\n'; // prints 5
+       
+	    char c { 'a' };
+	    const int& r2 { c };     
+	    std::cout << r2 << '\n'; // prints 97
+       
+	    short s { 6 };
+	    const int& r3 { s };
+	    s--;          // modification not reflected in r3, because r3 is bound to a temporary copy
+	    std::cout << s << r3 << '\n'; // 56
+       	```
         This is an example of case when reference is not identical to the object it is bound to.
 * Assign a reference to a non-reference variable will **copy** the value.
 * Binding a reference is always cheap.
