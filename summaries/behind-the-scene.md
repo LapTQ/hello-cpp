@@ -389,7 +389,7 @@
     int z { x + 1 }; // x + 1 is an rvalue
     int t{ return5() }; // return5() is an rvalue
     ```
-* **Lvalue-to-rvalue conversion**: assignment operations expect the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
+* **Lvalue-to-rvalue conversion**: assignment operations `=` expects the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
 * Unlike the other **literals** (which are rvalues), a C-style string **literal** is an lvalue because C-style strings decay to a pointer.
 
 
