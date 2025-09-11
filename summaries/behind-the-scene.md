@@ -559,7 +559,7 @@
         Animal a1 { -3 };                       // error: 2 is not an enumerator of Animal
         Animal a2 { static_cast<Animal>(-3) };  // okay
         ```
-    * If an enumeration is **zero-initialized**, the enumeration will be given value 0, even if there is no corresponding enumerator with that value:
+    * ⚠️ If an enumeration is **zero-initialized**, the enumeration will be given value 0, even if there is no corresponding enumerator with that value:
 
         ```C++
         Animal a {}; // a is initialized to 0
