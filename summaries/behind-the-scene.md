@@ -644,12 +644,13 @@
         };
         
         Foo f3 { 1, 2, 3};
+
+        // The followings are not aggregate initialization:
         Foo f4 = f3;    // copy initialization
         Foo f5 { f3 };  // direct-list initialization
         Foo f6(f3);     // direct-initialization
         ```
 
-        They are not aggregate initialization.
 * **Constructors**:
     * Constructors do not create the objects. The compiler sets up the memory allocation for the object prior to the constructor call.
     * **Default constructor**: a constructor that accepts no arguments.
