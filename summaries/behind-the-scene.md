@@ -588,9 +588,17 @@
         * No virtual functions.
 * Aggregate initialization 
     * using **initializer list**: 
-        * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**.
-
+        * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**
+	
             ```C++
+            truct Employee
+            {
+                // data members (or member variables)
+                int id {};
+                int age {};
+                double wage {};
+            };
+
             Employee frank = { 1, 32, 60000.0 }; // initialization list, (copy-list initialization)
             Employee joe { 2, 28, 45000.0 };     // initialization list (list initialization (preferred))
 
