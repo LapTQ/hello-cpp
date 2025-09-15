@@ -600,7 +600,7 @@
             };
 
             Employee frank = { 1, 32, 60000.0 }; // initialization list, (copy-list initialization)
-            Employee joe { 2, 28, 45000.0 };     // initialization list (list initialization (preferred))
+            Employee alice { 2, 28, 45000.0 };     // initialization list (list initialization (preferred))
 
             // assigment
             alice = { 2, 30, 4000.0 };
