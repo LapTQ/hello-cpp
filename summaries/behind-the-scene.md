@@ -636,6 +636,13 @@
     * Using another struct of the same type:
 
         ```C++
+        struct Foo
+        {
+            int a {};
+            int b {};
+            int c {};
+        };
+        
         Foo f3 { 1, 2, 3};
         Foo f4 = f3;    // copy initialization
         Foo f5 { f3 };  // direct-list initialization
