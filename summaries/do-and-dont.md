@@ -170,7 +170,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         3. Create a header file and forward declare the global constants.
         4. `#include` the header file wherever you need.
 
-        * 👍 Changeing the constant only require recompiling the .cpp file.
+        * 👍 Changing the constant only require recompiling the .cpp file.
         * 👎️ Because forward declarations can’t be constexpr, the constant cannot be used in constant expression outside of the .cpp file which defines the constant.
     * ✅ Solution3: Global constants as inline variables:
         1. Create a header file and define a namespace in it.
@@ -301,7 +301,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ✅ Getters should return *by value* or by *const lvalue reference*.
 * ❌ Don't use `( )` for initialization
 * ✅ You can do method chaining by returning `this`: `calc.add(5).sub(3).mult(4);`
-* ✅ YOu can reset a class back to default state by using `this` and default constructor:
+* ✅ You can reset a class back to default state by using `this` and default constructor:
 
     ```C++
     void reset()
@@ -314,9 +314,61 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Class definitions and header files
 
 * ✅ For non-template classes:
-    * Define the class in a header file.
-    * Define the member functions (including constructor) in a separate .cpp file.
+    * put your class definitions in a header file with the same name as the class, and
+    * define non-trivial member functions outside of the class and in a .cpp file with the same name as the class, and
+    * define trivial member functions (such as access functions, constructors with empty bodies, etc…) inside the class definition.
+
+    For example:
+
+    Day.h:
+    ```C++
+    #ifndef DAY_H
+    #define DAY_H
+
+    class Day
+    {
+    private:
+        int m_day{};
+
+    public:
+        Day(int day);
+        void print() const;
+    };
+
+    #endif
+    ```
+
+    Day.cpp:
+    ```C++
+    #include "Day.h"
+
+    Day::Day(int day) // constructor definition
+        : m_day{ day }
+    {
+        // ...
+    }
+
+    void Day::print() const // print function definition
+    {
+        std::cout << "Day(" << m_day << ")\n";
+    };
+    ```
+    
+    Note that that .cpp file also needs to be compiled into any project that uses the header file so that the linker can connect calls to the member functions to their definitions.
 * For template classes:
+
+
+
+
+Just like function templates, class templates are typically defined in header files.
+
+A program-defined type used in multiple code files should be defined in a header file with the same name as the program-defined type and then #included into each code file as needed.
+
+Unlike functions, which only need a forward declaration to be used,
+  header files usually contain the full definition of a class. 
+  This is because the compiler needs to understand how members are declared 
+  in order to ensure they are used properly, and it needs to be able to calculate 
+  how large objects of that type are in order to instantiate them.
 
 
 
@@ -331,10 +383,6 @@ Is there any reason to use = default copy constructor? Yes, for two reasons:
 
 
 
-program-defined types are typically defined in header files.
-types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
-
-Just like function templates, class templates are typically defined in header files.
 
 
 

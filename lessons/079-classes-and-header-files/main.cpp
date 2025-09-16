@@ -11,12 +11,28 @@
 
 - Unlike functions, which only need a forward declaration to be used,
   header files usually contain the full definition of a class.
+- This is because the compiler needs to understand how members are declared 
+  in order to ensure they are used properly, and it needs to be able to calculate 
+  how large objects of that type are in order to instantiate them.
 
 - Member functions defined inside the class definition are implicitly inline.
   => exempt from the ODR.
 - Member functions defined outside the class definition are not implicitly inline.
   => must be explicitly marked as inline if you want to define them in a header file.
-  => why such functions are usually defined in a .cpp file.
+
+- Most often, prefer to:
+  + put your class definitions in a header file with the same name as the class, and
+  + define non-trivial member functions outside of the class and in a source file with the same name as the class, and
+  + define trivial member functions (such as access functions, constructors with empty bodies, etc…) inside the class definition.
+  Note that that .cpp file also needs to be compiled into any project that uses the header file 
+  so that the linker can connect calls to the member functions to their definitions.
+*/
+
+/* Doesn’t defining a class in a header file violate the one-definition rule if the header is #included more than once?
+
+- Including a class definition more than once into a single translation unit is still violates ODR (=> still need header guards).
+- But including class definitions into multiple translation units does not violate ODR (because types are exempt from the part of the ODR).
+
 */
 
 

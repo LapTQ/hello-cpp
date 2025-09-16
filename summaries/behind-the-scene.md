@@ -45,6 +45,9 @@
 ## One-Definition Rule (ODR)
 
 * A variable or function identifier can only have one definition (not declaration).
+* But types (including program-defined types) are exempt from the part of the ODR. For example:
+    * Including a given type definitions into multiple translation units does not violate ODR, but
+    * Including a given type definition more than once into a single translation unit is still violates ODR (=> still need header guards).
 
 
 ## Fundamental data types
@@ -233,8 +236,8 @@
 * The linker will then de-duplicate the definitions.
 * `constexpr` functions are implicitly inline. Because, the compiler needs its definition in every translation unit that uses it to be able to evaluate it at compile time.
 * `constexpr` variables are not implicitly inline.
-* Member functions defined inside the class definition are implicitly inline.
-* Member functions defined outside the class definition are not implicitly inline.
+* Member functions defined **inside** the class definition are **implicitly** inline.
+* Member functions defined **outside** the class definition are **not implicitly** inline.
 
 
 ## Exit
@@ -737,6 +740,14 @@
 * Member functions can be defined in any order. Because, when the compiler encounters a member function definition:
     1. The member function is implicitly forward declared.
     2. The member function definition is moved immediately after the end of the class definition.
+* Note that this is a full definition, not a forward declaration:
+    ```C++
+    struct Fraction
+    {
+        int numerator {};
+        int denominator {};
+    };
+    ```
 * Access levels:
     * By default, members of a struct are `public`.
     * By default, members of a class are `private`.
@@ -827,17 +838,6 @@
 
 
 
-program-defined types are typically defined in header files.
-types are partially exempt from the one-definition rule: a given type is allowed to be defined in multiple code files.
-Member functions defined inside the class type definition are implicitly `inline`.
-
-
-// Note that this is a full definition, not a forward declaration
-struct Fraction
-{
-	int numerator {};
-	int denominator {};
-};
 
 
 
