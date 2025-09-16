@@ -311,8 +311,9 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     ```
 
 
-## Class definitions and header files
+## Program-defined types and header files
 
+* ✅ A program-defined type used in multiple code files should be defined in a header file with the same name as the program-defined type and then `#included` into each code file as needed.
 * ✅ For non-template classes:
     * put your class definitions in a header file with the same name as the class, and
     * define non-trivial member functions outside of the class and in a .cpp file with the same name as the class, and
@@ -320,7 +321,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
     For example:
 
-    Day.h:
+    `Day.h`:
     ```C++
     #ifndef DAY_H
     #define DAY_H
@@ -338,7 +339,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     #endif
     ```
 
-    Day.cpp:
+    `Day.cpp`:
     ```C++
     #include "Day.h"
 
@@ -362,13 +363,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 Just like function templates, class templates are typically defined in header files.
 
-A program-defined type used in multiple code files should be defined in a header file with the same name as the program-defined type and then #included into each code file as needed.
 
-Unlike functions, which only need a forward declaration to be used,
-  header files usually contain the full definition of a class. 
-  This is because the compiler needs to understand how members are declared 
-  in order to ensure they are used properly, and it needs to be able to calculate 
-  how large objects of that type are in order to instantiate them.
+
 
 
 

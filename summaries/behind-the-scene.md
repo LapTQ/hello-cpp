@@ -740,14 +740,6 @@
 * Member functions can be defined in any order. Because, when the compiler encounters a member function definition:
     1. The member function is implicitly forward declared.
     2. The member function definition is moved immediately after the end of the class definition.
-* Note that this is a full definition, not a forward declaration:
-    ```C++
-    struct Fraction
-    {
-        int numerator {};
-        int denominator {};
-    };
-    ```
 * Access levels:
     * By default, members of a struct are `public`.
     * By default, members of a class are `private`.
@@ -830,11 +822,17 @@
     * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
 
 
+## Program-defined types and header files
 
-
-
-
-
+* Note that this is a full definition, not a forward declaration:
+    ```C++
+    struct Fraction
+    {
+        int numerator {};
+        int denominator {};
+    };
+    ```
+* Unlike functions, which only need a forward declaration to be used, header files usually contain the full definition of a class. This is because the compiler needs to understand how members are declared in order to ensure they are used properly, and it needs to be able to calculate how large objects of that type are in order to instantiate them.
 
 
 
