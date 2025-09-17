@@ -840,7 +840,51 @@
     => the compiler will not instantiate it in the .cpp file to be linked with the call from the main.cpp file. More details [here](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes)
  
 
+## Nested types
 
+- A nested class does not have access to the `this` pointer of the outer (containing) class. But can access any private members of the outer class that are in scope:
+
+    ```C++
+    #include <string>
+    #include <string_view>
+
+    class Employee2
+    {
+    public:
+        using IDType = int;     // Nested typedefs and type aliases
+
+        class Printer   // Nested types
+        {
+        public:
+            void print(const Employee2& e) const
+            {
+                // Printer can't access Employee's `this` pointer
+                // but we can access private members e.m_name and e.m_id that are in scope
+                std::cout << e.m_name << " has id: " << e.m_id << '\n';
+            }
+        };
+
+    private:
+        std::string m_name{};
+        IDType m_id{};
+        double m_wage{};
+
+    public:
+        Employee2(std::string_view name, IDType id, double wage)
+            : m_name{ name }
+            , m_id{ id }
+            , m_wage{ wage }
+        {
+        }
+    };
+
+    void func3()
+    {
+        const Employee2 john2{ "John", 1, 45000 };
+        const Employee2::Printer p{}; // instantiate an object of the inner class
+        p.print(john2);
+    }
+    ```
 
 
 

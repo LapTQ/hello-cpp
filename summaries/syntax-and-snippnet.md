@@ -595,3 +595,49 @@ That’s a lot of const-ing!
 * The constexpr indicates that the member function can be evaluated at compile-time. 
 * The 1st and 2nd const indicates a const pointer to const.
 * The 3rd const means the member-function itself is const so it can be called on const objects.
+
+
+## Nested types (member types)
+
+```C++
+class Fruit
+{
+public:
+	// Nested type
+	enum Type
+	{
+		apple,
+		banana,
+		cherry
+	};
+
+private:
+	Type m_type {};
+	int m_percentageEaten { 0 };
+
+public:
+	Fruit(Type type) :
+		m_type { type }
+	{
+	}
+
+	// ...
+
+	bool isCherry() { return m_type == cherry; }  // access without scope resolution operator ::
+};
+```
+
+Nested types can be typedefs or type aliases:
+```C++
+class Employee
+{
+public:
+    using IDType = int;
+
+private:
+    std::string m_name{};
+    IDType m_id{};
+    double m_wage{};
+
+// ...
+}

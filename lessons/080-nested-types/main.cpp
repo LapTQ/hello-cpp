@@ -33,6 +33,11 @@ public:
 	bool isCherry() { return m_type == cherry; }  // access without scope resolution operator ::
 };
 
+void func1()
+{
+    Fruit apple { Fruit::apple };   // outside the class, need ::
+}
+
 
 /* Nested typedefs and type aliases
 
@@ -60,6 +65,12 @@ public:
     const std::string& getName() { return m_name; }
     IDType getId() { return m_id; } // can use unqualified name within class
 };
+
+void func2()
+{
+    Employee john { "John", 1, 45000 };
+    Employee::IDType id { john.getId() };
+}
 
 
 /* Nested classes
@@ -101,22 +112,21 @@ public:
     }
 };
 
-
-int main()
+void func3()
 {
-    // Nested types
-	Fruit apple { Fruit::apple };   // outside the class, need ::
-
-
-    // Nested typedefs and type aliases
-    Employee john { "John", 1, 45000 };
-    Employee::IDType id { john.getId() };
-
-
-    // Nested classes
     const Employee2 john2{ "John", 1, 45000 };
     const Employee2::Printer p{}; // instantiate an object of the inner class
     p.print(john2);
+}
+
+
+int main()
+{
+	func1();
+
+    func2();
+    
+    func3();
 
 	return 0;
 }
