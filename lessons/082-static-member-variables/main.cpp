@@ -1,10 +1,8 @@
 /*  Static member variables
 
 - "static member variables" are shared by all objects of the class.
-- static member s_value exists independently of any class objects.
-*/
-
-/* Static members are global variables that live inside the scope region of the class.
+- static member exists independently of any class objects.
+- Static members are global variables that live inside the scope region of the class.
 */
 
 
@@ -24,6 +22,12 @@ public:
 
 int Something::s_value{ 1 }; // define and initialize
 // If no initializer is provided, static member variables are zero-initialized by default
+
+void func1()
+{
+    // static member s_value exists independently of any class objects
+    Something::s_value = 2;
+}
 
 
 /* Defining static member variables and header files
@@ -51,27 +55,15 @@ class Whatever
 {
 public:
     static const int s_value{ 4 }; // okay, constant integral type or const enum
-};
-
-class Whatever2
-{
-public:
-    static inline int s_value{ 4 }; // okay, inline
-};
-
-class Whatever3
-{
-public:
-    static constexpr int s_value{ 4 }; // okay, constexpr members are implicitly inline
+    static inline int s_value2{ 4 }; // okay, inline
+    static constexpr int s_value3{ 4 }; // okay, constexpr members are implicitly inline
 };
 
 
 int main()
 {
-    // static member s_value exists independently of any class objects
-    Something::s_value = 2;
-
-
+    func1();
+    
     return 0;
 }
 

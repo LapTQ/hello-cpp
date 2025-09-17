@@ -392,8 +392,13 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         
         👎️ Requires more files.
 
-
-
+* Static member variables:
+    * If the class is defined in a header file:
+        * ✅ define the static member variables in the associated .cpp file, or
+        * ✅ define it as `inline` and place it below the class definition in the header file.
+    * If the class is defined in a .cpp file:
+        * ✅ define it below the class definition in the .cpp file.
+    * 👍 Make your static members variables inline or constexpr so they can be initialized inside the class definition.
 
     
         

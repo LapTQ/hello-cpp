@@ -238,6 +238,7 @@
 * `constexpr` variables are not implicitly inline.
 * Member functions defined **inside** the class definition are **implicitly** inline.
 * Member functions defined **outside** the class definition are **not implicitly** inline.
+* constexpr members variables of a class are **implicitly** inline.
 
 
 ## Exit
@@ -893,6 +894,43 @@
     * The destructor has no return type.
 * ⚠️ `std::exit()` can be used to terminate your program immediately. But it does not clean up local variables => no destructors will be called. Be wary if you’re relying on your destructors to do necessary cleanup work (closing a file, releasing memory, writing to a log file, etc.).
 
+
+
+## Static members
+
+* Static member variables:
+    * are shared by all objects of the class.
+    * exists independently of any class objects.
+    * are global variables that live inside the scope region of the class.
+* ⚠️ You **must explicitly** define (and optionally initialize) the static member **outside** of the class, in the **global scope**.
+    ```C++
+    class Something
+    {
+    public:
+        static int s_value; // declare
+    };
+
+    int Something::s_value{ 1 }; // define and initialize
+
+    void func1()
+    {
+        Something::s_value = 2;
+    }
+    ```
+
+    2 exceptions:
+    * when the static member variables is a constant integral type or const enum, or
+    * when the static member variables is inline. (Note: constexpr members variables are implicitly inline)
+    ```C++
+    class Whatever
+    {
+    public:
+        static const int s_value1{ 4 }; // okay, constant integral type or const enum
+        static inline int s_value2{ 4 }; // okay, inline
+        static constexpr int s_value3{ 4 }; // okay, constexpr members are implicitly inline
+    };
+    ```
+* If no initializer is provided, static member variables are zero-initialized by default
 
 
 
