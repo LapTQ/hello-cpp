@@ -884,6 +884,14 @@
     }
     ```
 
+## Destructor
+
+* Destructor: a special member function that is called automatically when an 
+  object of a non-aggregate class type is destroyed.
+    * The destructor must have the same name as the class, preceded by a tilde (`~`).
+    * The destructor can not take arguments.
+    * The destructor has no return type.
+* ⚠️ `std::exit()` can be used to terminate your program immediately. But it does not clean up local variables => no destructors will be called. Be wary if you’re relying on your destructors to do necessary cleanup work (closing a file, releasing memory, writing to a log file, etc.).
 
 
 
