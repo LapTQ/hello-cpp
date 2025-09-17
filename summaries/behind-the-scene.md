@@ -833,6 +833,12 @@
     };
     ```
 * Unlike functions, which only need a forward declaration to be used, header files usually contain the full definition of a class. This is because the compiler needs to understand how members are declared in order to ensure they are used properly, and it needs to be able to calculate how large objects of that type are in order to instantiate them.
+* With non-template classes, the common procedure is to put the class definition in a header file, and the member function definitions in a similarly named .cpp file. However, with templates, this does not work, we’ll get a linker error. Briefly, the reason is that:
+    1. remember that C++ compiles files individually, and
+    2. the compiler will only instantiate a class template if the class template is used (i.e., the compiler must see both the full class template definition (not just a declaration) and the specific template type(s) needed).
+
+    => the compiler will not instantiate it in the .cpp file to be linked with the call from the main.cpp file. More details [here](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes)
+ 
 
 
 

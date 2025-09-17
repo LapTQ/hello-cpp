@@ -357,6 +357,16 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     
     Note that that .cpp file also needs to be compiled into any project that uses the header file so that the linker can connect calls to the member functions to their definitions.
 * For template classes:
+    * ❌ Simply putting the class definition in a header file, and the member function definitions in a similarly named .cpp file will not work.
+    * ✅ Solution 1: Put the entire template class in a header file.
+
+        👎️ Increase your compile and link times.
+    * ✅ Solution 2: Move the contents of .cpp to a new file named .inl, and include the .inl file at the end of the header file (inside the header guard).
+
+        👎️ Same result as solution 1.
+
+        👍 Keep things a little more organized.
+        
 
 
 
