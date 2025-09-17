@@ -867,13 +867,11 @@
     private:
         std::string m_name{};
         IDType m_id{};
-        double m_wage{};
 
     public:
-        Employee2(std::string_view name, IDType id, double wage)
+        Employee2(std::string_view name, IDType id)
             : m_name{ name }
             , m_id{ id }
-            , m_wage{ wage }
         {
         }
     };
