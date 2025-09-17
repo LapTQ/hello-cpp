@@ -104,7 +104,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Comparing floating point values
 
 * ❌ It's very dangerous to compare floating point values directly using relational operators (<, >, <=, >=, ==, !=).
-    * 👍 One exception: compare a floating point **literal** with a **variable of the same type** that has been initialized with a **literal of the same type**.
+    
+    👍 One exception: compare a floating point **literal** with a **variable of the same type** that has been initialized with a **literal of the same type**.
 * ❌ It's generally not safe to compare floating point values of **different** types.
 
 
@@ -161,25 +162,30 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         2. Put the global constants inside the namespace, make it `constexpr`.
         3. `#include` the header file wherever you need.
 
-        * 👍 Simple
-        * 👎️ Changing in the header file will require recompiling all files that include it.
-        * 👎️ Each translation unit get its own copy of the constants => use more memory.
+        👍 Simple
+        
+        👎️ Changing in the header file will require recompiling all files that include it.
+        
+        👎️ Each translation unit get its own copy of the constants => use more memory.
     * 👍 Solution 2: Global constants as external variables
         1. Create a .cpp file and define a namespace in it.
         2. Put the global constants inside the namespace, make it `extern constexpr`.
         3. Create a header file and forward declare the global constants.
         4. `#include` the header file wherever you need.
 
-        * 👍 Changing the constant only require recompiling the .cpp file.
-        * 👎️ Because forward declarations can’t be constexpr, the constant cannot be used in constant expression outside of the .cpp file which defines the constant.
+        👍 Changing the constant only require recompiling the .cpp file.
+        
+        👎️ Because forward declarations can’t be constexpr, the constant cannot be used in constant expression outside of the .cpp file which defines the constant.
     * ✅ Solution3: Global constants as inline variables:
         1. Create a header file and define a namespace in it.
         2. Put the global constants inside the namespace, make it `inline constexpr`.
         3. `#include` the header file wherever you need.
 
-        * 👍 The constants will only be instantiated once and shared across all code files (linker will de-duplicate definition).
-        * 👍 Can be used in constant expressions in any translation unit.
-        * 👎️ Changing in the headeer file will require recompiling all files that include it.
+        👍 The constants will only be instantiated once and shared across all code files (linker will de-duplicate definition).
+        
+        👍 Can be used in constant expressions in any translation unit.
+        
+        👎️ Changing in the headeer file will require recompiling all files that include it.
 
 
 ## Assertion
@@ -366,6 +372,30 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         👎️ Same result as solution 1.
 
         👍 Keep things a little more organized.
+    * ✅ Solution 3: Use an explicit instantiation file. For example: `Array.h`, `Array.cpp`, and `templates.cpp`:
+
+        `templates.cpp`:
+        ```C++
+        // Ensure the full Array template definition can be seen
+        #include "Array.h"
+        #include "Array.cpp" // we're breaking best practices here, but only in this one place
+
+        // #include other .h and .cpp template definitions you need here
+
+        template class Array<int>; // Explicitly instantiate template Array<int>
+        template class Array<double>; // Explicitly instantiate template Array<double>
+        ```
+
+        The `template class` command causes the compiler to explicitly instantiate the template class.
+
+        👍 More efficient.
+        
+        👎️ Requires more files.
+
+
+
+
+    
         
 
 
