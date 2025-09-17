@@ -930,7 +930,11 @@
         static constexpr int s_value3{ 4 }; // okay, constexpr members are implicitly inline
     };
     ```
-* If no initializer is provided, static member variables are zero-initialized by default
+* If no initializer is provided, static member variables are zero-initialized by default.
+* Static member function
+    * can be useful when we need to access a **private** static member variable.
+    * cannot directly access other non-static members.
+    * have no `this` pointer.
 
 
 

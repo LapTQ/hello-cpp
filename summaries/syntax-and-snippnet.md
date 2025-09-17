@@ -677,3 +677,21 @@ int main()
     return 0;
 } // simple1 dies here
 ```
+
+## Static member functions
+
+Static member functions can also be defined outside of the class declaration. This works the same way as for normal member functions.
+
+```C++
+class IDGenerator
+{
+private:
+    static inline int s_nextID { 1 };
+
+public:
+     static int getNextID(); // Here's the declaration for a static function
+};
+
+// Here's the definition of the static function outside of the class.  Note we don't use the static keyword here.
+int IDGenerator::getNextID() { return s_nextID++; }
+``

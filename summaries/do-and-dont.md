@@ -399,6 +399,17 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * If the class is defined in a .cpp file:
         * ✅ define it below the class definition in the .cpp file.
     * 👍 Make your static members variables inline or constexpr so they can be initialized inside the class definition.
+    * ✅ To access a **private** static member variable, you can create a static member function.
+        ```C++
+        class Something
+        {
+        private:
+            static inline int s_value { 1 };
+
+        public:
+            static int getValue() { return s_value; } // static member function
+        };
+        ```
 
     
         
