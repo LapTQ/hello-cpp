@@ -23,6 +23,13 @@ void func1()
     + Initializes the elements to the values in the initializer list (in sequential order).
 */
 
+void func2()
+{
+  // List constructor
+  std::vector<int> primes{ 2, 3, 5, 7 };          // vector containing 4 int elements with values 2, 3, 5, and 7
+	std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; // vector containing 5 char elements with values 'a', 'e', 'i', 'o', and 'u'.  Uses CTAD (C++17) to deduce element type char (preferred).
+}
+
 
 /* Constructing a std::vector of a specific length
 
@@ -37,11 +44,32 @@ std::vector<int> data( 10 ); // vector containing 10 int elements, value-initial
     + If the initializer list is non-empty, a matching list constructor is preferred over other matching constructors.
 */
 
+void func3()
+{
+  std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
+  std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
+  std::vector<int> v3{ 10 };    // { 10 } interpreted as initializer list, matches list constructor
+  std::vector<int> v4 = { 10 }; // copy, { 10 } interpreted as initializer list, matches list constructor
+  std::vector<int> v5({ 10 });  // same as v4, but it's copy construction, not direct initialization
+  std::vector<int> v6 {};       // {} is empty initializer list, matches default constructor
+  std::vector<int> v7 = {};     // {} is empty initializer list, matches default constructor
+}
+
 
 /* Const and constexpr std::vector
 
 - cannot be made constexpr.
 */
+
+
+/* Accessing array elements using the subscript operator (operator[])
+*/
+void func4()
+{
+  std::vector<int> primes{ 2, 3, 5, 7 }; 
+
+  std::cout << primes[0] << '\n'; // 2
+}
 
 
 /* subscript problem
@@ -79,6 +107,21 @@ std::vector<int> data( 10 ); // vector containing 10 int elements, value-initial
    (usually std::ptrdiff_t).
 */
 
+void func5()
+{
+  std::vector<int> primes{ 2, 3, 5, 7 };
+  
+  // get the length of a std::vector
+  std::cout << "The length of primes is: " << primes.size() << '\n'; // using .size() member function, returns length as type `size_type` (alias for `std::size_t`)
+  std::cout << "The length of primes is: " << std::size(primes) << '\n'; // (C++17) using std::size() function
+  int length { static_cast<int>(primes.size()) }; // static_cast to avoid signed/unsigned conversion warning or error
+  
+  std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
+  int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
+
+  std::size_t length3 { primes.size() }; // okay, no conversion required
+}
+
 
 /* Accessing array elements
 
@@ -98,37 +141,8 @@ std::vector<int> data( 10 ); // vector containing 10 int elements, value-initial
 
 int main()
 {
-	func1();
 
-
-  // list constructor
-	std::vector<int> primes{ 2, 3, 5, 7 };          // vector containing 4 int elements with values 2, 3, 5, and 7
-	std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; // vector containing 5 char elements with values 'a', 'e', 'i', 'o', and 'u'.  Uses CTAD (C++17) to deduce element type char (preferred).
-
-
-  // Constructing a std::vector of a specific length
-  std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
-  std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
-  std::vector<int> v3{ 10 };    // { 10 } interpreted as initializer list, matches list constructor
-  std::vector<int> v4 = { 10 }; // copy, { 10 } interpreted as initializer list, matches list constructor
-  std::vector<int> v5({ 10 });  // same as v4, but it's copy construction, not direct initialization
-  std::vector<int> v6 {};       // {} is empty initializer list, matches default constructor
-  std::vector<int> v7 = {};     // {} is empty initializer list, matches default constructor
-
-
-  // Accessing array elements using the subscript operator (operator[])
-  std::cout << primes[0] << '\n'; // 2
-
-
-  // get the length of a std::vector
-  std::cout << "The length of primes is: " << primes.size() << '\n'; // using .size() member function, returns length as type `size_type` (alias for `std::size_t`)
-  std::cout << "The length of primes is: " << std::size(primes) << '\n'; // (C++17) using std::size() function
-  int length { static_cast<int>(primes.size()) }; // static_cast to avoid signed/unsigned conversion warning or error
   
-  std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
-  int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
-
-  std::size_t length3 { primes.size() }; // okay, no conversion required
 
 
   // Accessing array elements

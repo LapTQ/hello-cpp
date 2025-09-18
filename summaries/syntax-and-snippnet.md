@@ -839,3 +839,21 @@ void Display2::displayStorage(const Storage2& storage)
 // Value initialization
 std::vector<int> empty{}; // vector containing 0 int elements, default constructor
 ```
+
+Constructing a std::vector of a specific length:
+    * use direct initialization (braced initialization), instead of list initialization (with initializer list)
+```C++
+std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
+std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
+std::vector<int> v3{ 10 };    // { 10 } interpreted as initializer list, matches list constructor
+std::vector<int> v4 = { 10 }; // copy, { 10 } interpreted as initializer list, matches list constructor
+std::vector<int> v5({ 10 });  // same as v4, but it's copy construction, not direct initialization
+std::vector<int> v6 {};       // {} is empty initializer list, matches default constructor
+std::vector<int> v7 = {};     // {} is empty initializer list, matches default constructor
+```
+
+Accessing array elements using the subscript operator (operator[]):
+```C++
+std::vector<int> primes{ 2, 3, 5, 7 }; 
+std::cout << primes[0] << '\n'; // 2
+```

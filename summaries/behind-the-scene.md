@@ -720,6 +720,22 @@
         * If a member is listed in the member initializer list, that initialization value is used.
         * Otherwise, if the member has a default member initializer, that initialization value is used.
         * Otherwise, the member is default-initialized.
+* List constructor:
+    * Containers (such as `std::vector`) typically have a special constructor called a **list constructor** that allows us to construct an instance of the container using an **initializer list**.
+        ```C++
+        std::vector<int> primes{ 2, 3, 5, 7 };
+        ```
+    * It does three things:
+        * Ensures the container has enough storage to hold all the initialization values (if needed).
+        * Sets the length of the container to the number of elements in the initializer list (if needed).
+        * Initializes the elements to the values in the initializer list (in sequential order).
+
+        ```C++
+        std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; //  Uses CTAD (C++17) to deduce element type char (preferred).
+        ```
+    * C++ has a special rule:
+        * If the initializer list is empty, the default constructor is preferred over the list constructor.
+        * If the initializer list is non-empty, a matching list constructor is preferred over other constructors.
 * **Implicit object**:
     
     ```C++
@@ -969,7 +985,7 @@
 * Friend member functions: instead of making an entire class a friend, you can make a single member function a friend.
 
 
-## Arrays
+## Containers and arrays
 
 * Array: 
     * a container data type that stores a sequence of values contiguously (in an adjacent memory location, with no gaps).
@@ -979,6 +995,10 @@
         * `std::array`: introduced in C++11 as a direct replacement for C-style arrays. More limited than `std::vector`, but can also be more efficient, especially for smaller arrays.
 * `std::vector`
     * is a template class.
+    * cannot be made constexpr.
+* Length and subscript problem:
+    * ⚠️ when the container classes in the C++ standard library was being designed, the **length** and **subscripts** were decided to be **unsigned**. However, in retrospect, this is a wrong choice. Previously, we discussed the reasons why we prefer to use signed values to hold quantities.
+
 
 
 
