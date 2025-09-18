@@ -33,6 +33,13 @@ void print(const Accumulator& accumulator)
     std::cout << accumulator.m_value;
 }
 
+void func1()
+{
+    Accumulator acc{};
+    acc.add(5);
+    print(acc);
+}
+
 
 /* A friend non-member function defined inside a class is treated as a non-member function
 
@@ -168,9 +175,7 @@ void Display2::displayStorage(const Storage2& storage)
 int main()
 {
     // friend non-member functions
-    Accumulator acc{};
-    acc.add(5);
-    print(acc);
+    func1();
 
     return 0;
 }

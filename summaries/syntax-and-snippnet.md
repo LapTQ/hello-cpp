@@ -678,6 +678,7 @@ int main()
 } // simple1 dies here
 ```
 
+
 ## Static member functions
 
 Static member functions can also be defined outside of the class declaration. This works the same way as for normal member functions.
@@ -694,4 +695,140 @@ public:
 
 // Here's the definition of the static function outside of the class.  Note we don't use the static keyword here.
 int IDGenerator::getNextID() { return s_nextID++; }
-``
+```
+
+
+## Friend
+
+Friend non-member functions:
+```C++
+class Accumulator
+{
+private:
+    int m_value { 0 };
+
+public:
+    void add(int value) { m_value += value; }
+
+    // friend declaration
+    friend void print(const Accumulator& accumulator);
+};
+
+// friend definition outside of the class
+void print(const Accumulator& accumulator)
+{
+    // it can access the private members of Accumulator
+    std::cout << accumulator.m_value;
+}
+
+
+class Accumulator2
+{
+private:
+    int m_value { 0 };
+
+public:
+    void add(int value) { m_value += value; }
+
+    // friend function defined inside the class
+    // is treated as a non-member function... that's why I have to choose a name different from print
+    friend void print2(const Accumulator2& accumulator)
+    {
+        std::cout << accumulator.m_value;
+    }
+};
+```
+
+Multiple friends:
+```C++
+class Humidity; // forward declaration of Humidity
+
+class Temperature
+{
+private:
+    int m_temp { 0 };
+public:
+    explicit Temperature(int temp) : m_temp { temp } { }
+
+    friend void printWeather(const Temperature& temperature, const Humidity& humidity); // forward declaration needed for this line
+};
+
+class Humidity
+{
+private:
+    int m_humidity { 0 };
+public:
+    explicit Humidity(int humidity) : m_humidity { humidity } {  }
+
+    friend void printWeather(const Temperature& temperature, const Humidity& humidity);
+};
+
+void printWeather(const Temperature& temperature, const Humidity& humidity)
+{
+    std::cout << "The temperature is " << temperature.m_temp <<
+       " and the humidity is " << humidity.m_humidity << '\n';
+}
+```
+
+Friend classes:
+```C++
+class Storage
+{
+private:
+    int m_nValue {};
+public:
+    Storage(int nValue)
+       : m_nValue { nValue }
+    { }
+
+    // Make the Display class a friend of Storage
+    friend class Display;
+};
+
+class Display
+{
+
+public:
+    // Because Display is a friend of Storage, Display members can access the private members of Storage
+    void displayStorage(const Storage& storage)
+    {
+        std::cout << storage.m_nValue << '\n';
+    }
+};
+```
+
+Friend member functions:
+* Instead of making an entire class a friend, you can make a single member function a friend.
+* However, the process might be more complicated than you think:
+    * Storage needs to seen the full definition of class Display => define Display before Storage.
+    * Storage needs to be forward declaration before use in Display => forward declare Storage before Display.
+    * Friend member functions needs to see the full definition of Storage to access its private members => define displayStorage outside of Display and after Storage.
+```C++
+class Storage2; // forward declaration for class Storage
+
+class Display2
+{
+public:
+	void displayStorage(const Storage2& storage);
+};
+
+class Storage2 // full definition of Storage class
+{
+private:
+	int m_nValue {};
+public:
+	Storage2(int nValue, double dValue)
+		: m_nValue { nValue }
+	{
+	}
+
+	friend void Display2::displayStorage(const Storage2& storage);
+};
+
+// Requires seeing the full definition of class Storage (as we access Storage members)
+void Display2::displayStorage(const Storage2& storage)
+{
+    std::cout << storage.m_nValue << '\n';
+}
+```
+

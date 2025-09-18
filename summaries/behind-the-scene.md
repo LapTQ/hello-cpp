@@ -937,6 +937,39 @@
     * have no `this` pointer.
 
 
+## Friend
+
+* A ***friend*** is a class or function (member or non-member) that has been granted full access to the private and protected members of another class.
+* Friend non-member function:
+    * ⚠️ A friend non-member function defined inside a class is treated as a non-member function.
+* Friend classes:
+    * class A is a friend of class B does not mean class B is also a friend of class A.
+    * Nor is friendship inherited. If class A makes B a friend, classes derived from B are not friends of A.
+    * A friend class declaration acts as a forward declaration for the class being friended. This means we do not need to forward declare the class being friended before friending it:
+
+        ```C++
+        class Storage
+        {
+        private:
+            int m_nValue {};
+        public:
+            Storage(int nValue)
+            : m_nValue { nValue }
+            { }
+
+            // Make the Display class a friend of Storage
+            friend class Display;
+        };
+
+        class Display
+        {
+            // ...
+        };
+        ```
+* Friend member functions: instead of making an entire class a friend, you can make a single member function a friend.
+
+
+
 
 
 Few reminders about passing temporary objects:
