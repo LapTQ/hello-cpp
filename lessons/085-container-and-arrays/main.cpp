@@ -14,8 +14,8 @@
 
 /* 
 Terminology:
-- We will use `container classes` when we’re talking about something that applies to most or all the standard library containers classes.
-- We will use array when we’re talking about something that generally applies to all array types, even ones implemented in other programming languages.
+- We will use "container classes" when we’re talking about something that applies to most or all the standard library containers classes.
+- We will use "array" when we’re talking about something that generally applies to all array types, even ones implemented in other programming languages.
 */
 
 

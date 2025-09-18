@@ -969,6 +969,17 @@
 * Friend member functions: instead of making an entire class a friend, you can make a single member function a friend.
 
 
+## Arrays
+
+* Array: 
+    * a container data type that stores a sequence of values contiguously (in an adjacent memory location, with no gaps).
+    * 3 primary C++ array types:
+        * ⚠️ (C-style) arrays, behave strangely and they are dangerous.
+        * `std::vector`, most flexible.
+        * `std::array`: introduced in C++11 as a direct replacement for C-style arrays. More limited than `std::vector`, but can also be more efficient, especially for smaller arrays.
+
+
+
 
 
 
