@@ -977,6 +977,8 @@
         * ⚠️ (C-style) arrays, behave strangely and they are dangerous.
         * `std::vector`, most flexible.
         * `std::array`: introduced in C++11 as a direct replacement for C-style arrays. More limited than `std::vector`, but can also be more efficient, especially for smaller arrays.
+* `std::vector`
+    * is a template class.
 
 
 

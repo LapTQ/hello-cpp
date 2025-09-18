@@ -832,3 +832,10 @@ void Display2::displayStorage(const Storage2& storage)
 }
 ```
 
+## `std::vector`
+
+`std::vector` is defined in the `<vector>` header as a class template:
+```C++
+// Value initialization
+std::vector<int> empty{}; // vector containing 0 int elements, default constructor
+```

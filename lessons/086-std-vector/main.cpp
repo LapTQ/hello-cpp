@@ -1,6 +1,16 @@
+#include <iostream>
+#include <vector>
+
+
 /*
 - std::vector is defined in the <vector> header as a class template.
 */
+
+void func1()
+{
+  // Value initialization
+	std::vector<int> empty{}; // vector containing 0 int elements, default constructor
+}
 
 
 /* list constructor
@@ -85,56 +95,53 @@ std::vector<int> data( 10 ); // vector containing 10 int elements, value-initial
   Since C-style arrays allow indexing with both signed and unsigned types, we don’t run into any sign conversion issues.
 */
 
-#include <iostream>
-#include <vector>
 
 int main()
 {
-	// Value initialization
-	std::vector<int> empty{}; // vector containing 0 int elements, default constructor
+	func1();
 
 
-    // list constructor
+  // list constructor
 	std::vector<int> primes{ 2, 3, 5, 7 };          // vector containing 4 int elements with values 2, 3, 5, and 7
 	std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; // vector containing 5 char elements with values 'a', 'e', 'i', 'o', and 'u'.  Uses CTAD (C++17) to deduce element type char (preferred).
 
 
-    // Constructing a std::vector of a specific length
-    std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
-    std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
-    std::vector<int> v3{ 10 };    // { 10 } interpreted as initializer list, matches list constructor
-    std::vector<int> v4 = { 10 }; // copy, { 10 } interpreted as initializer list, matches list constructor
-    std::vector<int> v5({ 10 });  // same as v4, but it's copy construction, not direct initialization
-    std::vector<int> v6 {};       // {} is empty initializer list, matches default constructor
-    std::vector<int> v7 = {};     // {} is empty initializer list, matches default constructor
+  // Constructing a std::vector of a specific length
+  std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
+  std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
+  std::vector<int> v3{ 10 };    // { 10 } interpreted as initializer list, matches list constructor
+  std::vector<int> v4 = { 10 }; // copy, { 10 } interpreted as initializer list, matches list constructor
+  std::vector<int> v5({ 10 });  // same as v4, but it's copy construction, not direct initialization
+  std::vector<int> v6 {};       // {} is empty initializer list, matches default constructor
+  std::vector<int> v7 = {};     // {} is empty initializer list, matches default constructor
 
 
-    // Accessing array elements using the subscript operator (operator[])
-    std::cout << primes[0] << '\n'; // 2
+  // Accessing array elements using the subscript operator (operator[])
+  std::cout << primes[0] << '\n'; // 2
 
 
-    // get the length of a std::vector
-    std::cout << "The length of primes is: " << primes.size() << '\n'; // using .size() member function, returns length as type `size_type` (alias for `std::size_t`)
-    std::cout << "The length of primes is: " << std::size(primes) << '\n'; // (C++17) using std::size() function
-    int length { static_cast<int>(primes.size()) }; // static_cast to avoid signed/unsigned conversion warning or error
-    
-    std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
-    int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
+  // get the length of a std::vector
+  std::cout << "The length of primes is: " << primes.size() << '\n'; // using .size() member function, returns length as type `size_type` (alias for `std::size_t`)
+  std::cout << "The length of primes is: " << std::size(primes) << '\n'; // (C++17) using std::size() function
+  int length { static_cast<int>(primes.size()) }; // static_cast to avoid signed/unsigned conversion warning or error
+  
+  std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
+  int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
 
-    std::size_t length3 { primes.size() }; // okay, no conversion required
+  std::size_t length3 { primes.size() }; // okay, no conversion required
 
 
-    // Accessing array elements
-    std::cout << primes[9]; // undefined behavior
-    std::cout << primes.at(9); // throws exception
+  // Accessing array elements
+  std::cout << primes[9]; // undefined behavior
+  std::cout << primes.at(9); // throws exception
 
-    constexpr int index { 3 };         // constexpr
-    std::cout << primes[index] << '\n'; // okay, constexpr index implicitly converted to std::size_t, not a narrowing conversion
-    std::size_t index2 { 3 };           // non-constexpr of type std::size_t
-    std::cout << primes[index2] << '\n'; // okay, no conversion required
-    int index3 { 3 };                   // non-constexpr signed value
-    std::cout << primes[index3] << '\n'; // possible warning: index implicitly converted to std::size_t, narrowing conversion
-    std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
+  constexpr int index { 3 };         // constexpr
+  std::cout << primes[index] << '\n'; // okay, constexpr index implicitly converted to std::size_t, not a narrowing conversion
+  std::size_t index2 { 3 };           // non-constexpr of type std::size_t
+  std::cout << primes[index2] << '\n'; // okay, no conversion required
+  int index3 { 3 };                   // non-constexpr signed value
+  std::cout << primes[index3] << '\n'; // possible warning: index implicitly converted to std::size_t, narrowing conversion
+  std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
 
 
 	return 0;
