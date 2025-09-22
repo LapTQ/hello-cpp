@@ -841,7 +841,7 @@ std::vector<int> empty{}; // vector containing 0 int elements, default construct
 ```
 
 Constructing a std::vector of a specific length:
-    * use direct initialization (braced initialization), instead of list initialization (with initializer list)
+* use direct initialization (braced initialization), instead of list initialization (with initializer list)
 ```C++
 std::vector<int> v1 = 10;     // copy initialization, but compile error because 10 won't match explicit constructor
 std::vector<int> v2(10);      // 10 not an initializer list => won't match list constructor, so it matches `explicit std::vector<T>(std::size_t)` constructor
@@ -856,4 +856,21 @@ Accessing array elements using the subscript operator (operator[]):
 ```C++
 std::vector<int> primes{ 2, 3, 5, 7 }; 
 std::cout << primes[0] << '\n'; // 2
+```
+
+To get the length of a `std::vector`:
+* use the `.size()` member function or the `std::size()` function (C++17).
+* C++20 in introduces the `std::ssize()` non-member function, which returns the length as a large "signed" integral type (usually std::ptrdiff_t).
+```C++
+std::vector<int> primes{ 2, 3, 5, 7 };
+  
+// get the length of a std::vector
+std::cout << "The length of primes is: " << primes.size() << '\n'; // using .size() member function, returns length as type `size_type` (alias for `std::size_t`)
+std::cout << "The length of primes is: " << std::size(primes) << '\n'; // (C++17) using std::size() function
+int length { static_cast<int>(primes.size()) }; // static_cast to avoid signed/unsigned conversion warning or error
+
+std::cout << "length: " << std::ssize(primes); // C++20, returns the length as a large "signed" integral type
+int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return value to int
+
+std::size_t length3 { primes.size() }; // okay, no conversion required
 ```

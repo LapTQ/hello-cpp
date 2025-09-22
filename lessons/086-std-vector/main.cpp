@@ -138,14 +138,10 @@ void func5()
   Since C-style arrays allow indexing with both signed and unsigned types, we don’t run into any sign conversion issues.
 */
 
-
-int main()
+void func6()
 {
+  std::vector<int> primes{ 2, 3, 5, 7 };
 
-  
-
-
-  // Accessing array elements
   std::cout << primes[9]; // undefined behavior
   std::cout << primes.at(9); // throws exception
 
@@ -156,8 +152,11 @@ int main()
   int index3 { 3 };                   // non-constexpr signed value
   std::cout << primes[index3] << '\n'; // possible warning: index implicitly converted to std::size_t, narrowing conversion
   std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
+}
 
 
+int main()
+{
 	return 0;
 }
 

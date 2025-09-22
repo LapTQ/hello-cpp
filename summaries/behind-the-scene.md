@@ -993,11 +993,44 @@
         * ⚠️ (C-style) arrays, behave strangely and they are dangerous.
         * `std::vector`, most flexible.
         * `std::array`: introduced in C++11 as a direct replacement for C-style arrays. More limited than `std::vector`, but can also be more efficient, especially for smaller arrays.
+* Length and subscript problem:
+    * ⚠️ when the container classes in the C++ standard library was being designed, the **length** and **subscripts** were decided to be **unsigned**. However, in retrospect, this is a wrong choice. Previously, we discussed the reasons why we prefer to use signed values to hold quantities.
 * `std::vector`
     * is a template class.
     * cannot be made constexpr.
-* Length and subscript problem:
-    * ⚠️ when the container classes in the C++ standard library was being designed, the **length** and **subscripts** were decided to be **unsigned**. However, in retrospect, this is a wrong choice. Previously, we discussed the reasons why we prefer to use signed values to hold quantities.
+    * ⚠️ The length and indices of `std::vector` have type `size_type`. `size_type` is almost always an alias for `std::size_t`. `std::size_t` is a typedef for some large unsigned integral type, usually `unsigned long` or `unsigned long long`.
+    * Accessing array elements:
+        * ⚠️ using operator[] does no bounds checking.
+        * 👍 using the `.at()` member function does runtime bounds checking, but slower than operator[].
+            ```C++
+            std::vector<int> primes{ 2, 3, 5, 7 };
+
+            std::cout << primes[9]; // undefined behavior
+            std::cout << primes.at(9); // throws exception
+            ```
+        * 👍 Indexing with a constexpr signed int is not a narrowing conversion.
+            ```C++
+            constexpr int index { 3 };         // constexpr
+            std::cout << primes[index] << '\n'; // okay, constexpr index implicitly converted to std::size_t, not a narrowing conversion
+            ```
+        * 👍 Indexing with a non-constexpr std::size_t value is not a narrowing conversion
+            ```C++
+            std::size_t index2 { 3 };           // non-constexpr of type std::size_t
+            std::cout << primes[index2] << '\n'; // okay, no conversion required
+        * ⚠️ Indexing with a non-constexpr signed value is a narrowing conversion.
+            ```C++
+            int index3 { 3 };                   // non-constexpr signed value
+            std::cout << primes[index3] << '\n'; // possible warning: index implicitly converted to std::size_t, narrowing conversion
+            ```
+        * 👍 Indexing the result of the `.data()` member function with signed values is not a narrowing conversion.
+
+            Under the hood, `std::vector` holds its elements in a C-style array. The `.data()` member function returns a pointer to this underlying C-style array. Since C-style arrays allow indexing with both signed and unsigned types, we don’t run into any sign conversion issues.
+
+            ```C++
+            int index3 { 3 };                   // non-constexpr signed value
+            std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
+            ```
+
 
 
 
