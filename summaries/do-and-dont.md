@@ -260,6 +260,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ It's okay to pass a `std::string_view` by value for read-only access purpose. It's cheap. For function parameters, prefer `std::string_view` over `const std::string&` in most cases (whatever the passed argument is `std::string`, `std::string_view`, or C-style string).
 * ⚠️ When passing by reference, ensure the type of the argument matches the type of the parameter. Otherwise, it will results in an unexpected (and possibly expensive) type conversion.
 * ✅ It's okay to pass by address. Copying a pointer is always cheap.
+* ✅ It is okay to return `std::vector` and `std::string` by value, because they support move semantics and will **automatically** invoke move semantics when **returning by value**. (Such types should still be passed by const reference).
+* ✅ => For move-capable types, we prefer to pass by const reference, and return by value.
 
 
 

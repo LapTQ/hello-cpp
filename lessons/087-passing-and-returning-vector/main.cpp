@@ -8,15 +8,41 @@ void passByRef(const std::vector<int>& arr) // we must explicitly specify <int> 
     std::cout << arr[0] << '\n';
 }
 
+void func1()
+{
+    std::vector primes{ 2, 3, 5, 7, 11 };
+    passByRef(primes);
+
+    std::vector dbl{ 1.1, 2.2, 3.3 };
+    passByRef(dbl); // compile error: std::vector<double> is not convertible to std::vector<int>
+
+}
+
+
+// -----
 template <typename T>       // use a template
 void passByRef2(const std::vector<T>& arr)
 {
     std::cout << arr[0] << '\n';
 }
 
+void func2()
+{
+    std::vector dbl{ 1.1, 2.2, 3.3 };
+    passByRef2(dbl); // okay, will instantiate passByRef(const std::vector<double>&)
+}
+
+
+// -----
 void passByRef3(const auto& arr) // (C++20) can be desirable when we might want to operate on more than just a std::vector
 {
     std::cout << arr[0] << '\n';
+}
+
+void func3()
+{
+    std::vector dbl{ 1.1, 2.2, 3.3 };
+    passByRef3(dbl); // okay, will instantiate passByRef(const std::vector<double>&)
 }
 
 
@@ -69,16 +95,6 @@ void passByRef3(const auto& arr) // (C++20) can be desirable when we might want 
 
 int main()
 {
-    // passing a std::vector
-    std::vector primes{ 2, 3, 5, 7, 11 };
-    passByRef(primes);
-
-    std::vector dbl{ 1.1, 2.2, 3.3 };
-    passByRef(dbl); // compile error: std::vector<double> is not convertible to std::vector<int>
-
-    passByRef2(dbl); // okay, will instantiate passByRef(const std::vector<double>&)
-    passByRef3(dbl); // okay, will instantiate passByRef(const std::vector<double>&)
-
     return 0;
 }
 

@@ -837,6 +837,37 @@
         }
         ```
     * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
+* Copy semantics and Move semantics:
+    * **Copy semantics**:
+        * refers to how copies of objects are made.
+        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
+
+        ```C++
+        std::vector<int> generate() // return by value
+        {
+            std::vector arr1 { 1, 2, 3, 4, 5 }; // copies { 1, 2, 3, 4, 5 } into arr1
+            return arr1;
+        }
+
+        int main()
+        {
+            std::vector arr2 { generate() }; // the return value of generate() is a temporary object and will die at the end of the expression
+
+            return 0;
+        }
+        ```
+        => We've made a potentially expensive copy with copy semantics. We don’t need two sets of data to exist simultaneously.
+    * **Move semantics**:
+        * determine how the data from one object is moved (transfer ownership, usually just two or three pointer assignments) to another object.
+        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
+    * ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
+        1. The type of the object supports move semantics.
+        2. The object is being initialized with (or assigned) an rvalue (temporary) object of the same type.
+        3. The move isn’t elided.
+    * ✅ For move-capable types, move semantics is invoked **automatically** when **returning by value**.
+
+        Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
+
 
 
 ## Program-defined types and header files
