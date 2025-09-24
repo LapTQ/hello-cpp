@@ -413,7 +413,54 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         };
         ```
 
-    
+## Containers and arrays
+
+* `std::vector`
+    * ❌ Don't use unsigned integral type as index:
+        ```C++
+        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index is unsigned
+        ```
+        When we decrement index when it has value 0, it will wrap around to a large positive value.
+    * Solution 1: use signed integral type for index:
+        * ✅ For not very large array, `int` should be fine:
+            ```C++
+            int length{ static_cast<int>(arr.size()) }; // cast to int
+            for (int index{ length - 1}; index >= 0; --index) // index is signed
+            {
+                std::cout << arr[static_cast<std::size_t>(index)] << ' ';   // cast to std::size_t
+            }
+            ```
+        * ✅ For very large array, use the strangely named `std::ptrdiff_t`. This typedef is often used as the signed counterpart to `std::size_t`.
+            ```C++
+            using Index = std::ptrdiff_t;
+            auto length{ static_cast<Index>(arr.size()) }; // cast to Index
+            for (auto index{ length - 1}; index >= 0; --index) // index is signed
+            {
+                std::cout << arr[static_cast<std::size_t>(index)] << ' ';   // cast to std::size_t
+            }
+            ```
+        * ✅ (C++20) Use `std::ssize()` to get the signed size:
+            ```C++
+            auto length{ std::ssize(arr) }; // cast to Index
+            for (auto index{ length - 1 }; index >= 0; --index) // index is signed
+            {
+                std::cout << arr[static_cast<std::size_t>(index)] << ' ';   // cast to std::size_t
+            }
+            ```
+        * 👎️ Using `static_cast` every time you use the index is hard to read. Consider:
+            * Use a conversion function with a short name.
+            * Use a custom view (Similar to `std::string_view` is a view into a string) by overloading operator[].
+            
+            (See syntax-and-snippnet.md)
+    * Solution 2: Index the underlying C-style array instead. 
+        ✅ This method is the best of the indexing options.
+        ```C++
+        auto length { static_cast<Index>(arr.size()) };
+        for (auto index{ length - 1 }; index >= 0; --index) // index is signed
+        {
+            std::cout << arr.data()[index] << ' ';
+        }
+        ```
         
 
 

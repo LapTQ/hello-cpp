@@ -874,3 +874,92 @@ int length2 { static_cast<int>(std::ssize(primes)) }; // static_cast return valu
 
 std::size_t length3 { primes.size() }; // okay, no conversion required
 ```
+
+Passing a `std::vector`:
+```C++
+void passByRef(const std::vector<int>& arr) // we must explicitly specify <int> here
+{
+    // ...
+}
+
+template <typename T>       // use a template
+void passByRef2(const std::vector<T>& arr)
+{
+    // ...
+}
+
+void passByRef3(const auto& arr) // (C++20) can be desirable when we might want to operate on more than just a std::vector
+{
+    // ...
+}
+```
+
+Use signed integral type for index:
+* Use a conversion function with a short name:
+    ```C++
+    template <typename T>
+    constexpr std::size_t toUZ(T value)
+    {
+        // make sure T is an integral type
+        static_assert(std::is_integral<T>() || std::is_enum<T>());
+
+        return static_cast<std::size_t>(value);
+    }
+
+    template <typename T>
+    void printReverse5(const std::vector<T>& arr)
+    {
+        auto length { static_cast<Index>(arr.size()) };
+        for (auto index{ length - 1 }; index >= 0; --index) // index is signed
+        {
+            std::cout << arr[toUZ(index)] << ' ';
+        }
+
+        std::cout << '\n';
+    }
+* Use a custom view by overloading operator[]:
+    `SignedArrayView.h`:
+    ```C++
+    #ifndef SIGNED_ARRAY_VIEW_H
+    #define SIGNED_ARRAY_VIEW_H
+
+    #include <cstddef> // for std::size_t and std::ptrdiff_t
+
+    template <typename T>
+    class SignedArrayView // requires C++17
+    {
+    private:
+        T& m_array;
+
+    public:
+        using Index = std::ptrdiff_t;
+
+        SignedArrayView(T& array)
+            : m_array{ array } {}
+
+        // Overload operator[] to take a signed index
+        constexpr auto& operator[](Index index) { return m_array[static_cast<typename T::size_type>(index)]; }
+        constexpr const auto& operator[](Index index) const { return m_array[static_cast<typename T::size_type>(index)]; }
+        constexpr auto ssize() const { return static_cast<Index>(m_array.size()); }
+    };
+
+    #endif
+    ```
+
+    `main.cpp`:
+    ```C++
+    #include "SignedArrayView.h"
+
+    template <typename T>
+    void printReverse6(const std::vector<T>& arr)
+    {
+        SignedArrayView sarr{ arr };
+        auto length { sarr.ssize() };
+        for (auto index{ length - 1 }; index >= 0; --index) // index is signed
+        {
+            std::cout << sarr[index] << ' ';
+        }
+    }
+Notes about `typename`:
+    * Any name that depends on a type containing a template parameter is called a dependent name. Dependent names must be prefixed with the keyword `typename` in order to be used as a type.
+    * In the above example, `T` is a type with a template parameter, so nested type `T::size_type` is a dependent name, and must be prefixed with `typename` to be used as a type.

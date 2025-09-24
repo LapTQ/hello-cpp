@@ -1028,8 +1028,24 @@
     * ⚠️ when the container classes in the C++ standard library was being designed, the **length** and **subscripts** were decided to be **unsigned**. However, in retrospect, this is a wrong choice. Previously, we discussed the reasons why we prefer to use signed values to hold quantities.
 * `std::vector`
     * is a template class.
+        ```C++
+        void passByRef(const std::vector<int>& arr) // we must explicitly specify <int> here
+        {
+            // ...
+        }
+
+        template <typename T>       // use a template
+        void passByRef2(const std::vector<T>& arr)
+        {
+            // ...
+        }
+        ```
     * cannot be made constexpr.
     * ⚠️ The length and indices of `std::vector` have type `size_type`. `size_type` is almost always an alias for `std::size_t`. `std::size_t` is a typedef for some large unsigned integral type, usually `unsigned long` or `unsigned long long`.
+        ```C++
+        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index is unsigned
+        ```
+    * Under the hood, `std::vector` holds its elements in a C-style array. 👍  C-style arrays allow indexing with both signed and unsigned types.
     * Accessing array elements:
         * ⚠️ using operator[] does no bounds checking.
         * 👍 using the `.at()` member function does runtime bounds checking, but slower than operator[].
@@ -1044,7 +1060,7 @@
             constexpr int index { 3 };         // constexpr
             std::cout << primes[index] << '\n'; // okay, constexpr index implicitly converted to std::size_t, not a narrowing conversion
             ```
-        * 👍 Indexing with a non-constexpr std::size_t value is not a narrowing conversion
+        * 👍 Indexing with a non-constexpr `std::size_t` value is not a narrowing conversion
             ```C++
             std::size_t index2 { 3 };           // non-constexpr of type std::size_t
             std::cout << primes[index2] << '\n'; // okay, no conversion required
@@ -1055,7 +1071,7 @@
             ```
         * 👍 Indexing the result of the `.data()` member function with signed values is not a narrowing conversion.
 
-            Under the hood, `std::vector` holds its elements in a C-style array. The `.data()` member function returns a pointer to this underlying C-style array. Since C-style arrays allow indexing with both signed and unsigned types, we don’t run into any sign conversion issues.
+             The `.data()` member function returns a pointer to the underlying C-style array => we don’t run into any sign conversion issues.
 
             ```C++
             int index3 { 3 };                   // non-constexpr signed value

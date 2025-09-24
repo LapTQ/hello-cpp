@@ -63,6 +63,7 @@ void printReverse3(const std::vector<T>& arr)
     std::cout << '\n';
 }
 
+// C++20
 template <typename T>
 void printReverse4(const std::vector<T>& arr)
 {
@@ -151,12 +152,6 @@ void printReverse7(const std::vector<T>& arr)
 
 int main()
 {
-    std::vector<int> arr{ 4, 6, 7, 3, 8, 2, 1, 9 };
-
-    // printReverse(arr);
-    printReverse7(arr);
-    
-
     return 0;
 }
 
