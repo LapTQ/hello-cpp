@@ -1077,7 +1077,36 @@
             int index3 { 3 };                   // non-constexpr signed value
             std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
             ```
-
+* Range-based for loop:
+    * Traversal without having to do explicit indexing => simpler, safer.
+        ```C++
+        template <typename T>
+        void print(const std::vector<T>& arr)
+        {
+            for (auto num : arr) // iterate and copy each value into `num`
+            {
+                // ...
+            }
+        }
+        ```
+    * Work with a wide variety of array types, including non-decayed C-style arrays, std::array, std::vector, linked list, trees, and maps.
+    * The loop variable should have the same type as the array elements => prefer using `auto`
+    * ⚠️ Elements are copied to the loop variable 
+        * Expensive for some types => ✅ can use reference to avoid such copy.
+        * Cannot change the values in the array => ✅ can use non-const reference.
+        ```C++
+        for (const auto& num : arr) // if non-const, the reference can change the values in the array
+        {
+            // ...
+        }
+        ```
+    * Loops in reverse (C++20):
+        ```C++
+        #include <ranges> // C++20
+        for (const auto& num : std::views::reverse(arr))
+        {
+            // ...
+        }   
 
 
 

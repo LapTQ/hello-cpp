@@ -21,6 +21,12 @@ void print(const std::vector<T>& arr)
     std::cout << '\n';
 }
 
+void func1()
+{
+    std::vector fibonacci { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+    print(fibonacci);
+}
+
 
 /* Avoid element copies using references
 
@@ -37,6 +43,12 @@ void print2(const std::vector<T>& arr)
     }
 
     std::cout << '\n';
+}
+
+void func2()
+{
+    std::vector fibonacci { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+    print2(fibonacci);
 }
 
 
@@ -56,21 +68,15 @@ void print3(const std::vector<T>& arr)
     std::cout << '\n';
 }
 
+void func3()
+{
+    std::vector fibonacci { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+    print3(fibonacci);
+}
+
 
 int main()
 {
-    // range-based for loop
-    std::vector fibonacci { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
-    print(fibonacci);
-
-
-    // Avoid element copies using references
-    print2(fibonacci);
-
-
-    // Range-based for loops in reverse (C++20)
-    print3(fibonacci);
-
     return 0;
 }
 

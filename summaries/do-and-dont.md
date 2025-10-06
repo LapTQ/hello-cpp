@@ -461,9 +461,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
             std::cout << arr.data()[index] << ' ';
         }
         ```
+    * ✅ Consider using range-based for loop to traverse a container instead of explicit indexing.
         
-
-
 
 
 Just like function templates, class templates are typically defined in header files.
