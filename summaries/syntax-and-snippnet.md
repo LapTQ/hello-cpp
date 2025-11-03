@@ -1015,3 +1015,12 @@ void func3()
 
 }
 ```
+
+Resizing a vector:
+```C++
+std::vector<int> arr{};
+arr.push_back(1);  // push on top of the stack
+arr.push_back(2);
+arr.pop_back();    // pop from the top of the stack
+arr.back();        // get the top of the stack, doesn't remove it
+```

@@ -1121,6 +1121,47 @@
         * The capacity and length of the std::vector are set to the new values.
 
         => ⚠️ Reallocation is an expensive process.
+    * ⚠️ Resizing a vector changes both capacity and length:
+        ```C++
+        std::vector<int> arr2(3); // vector containing 3, the length is also being set to 3
+        arr2.push_back(4);        // push on top of the stack
+        for (auto i : arr2)
+            std::cout << i << ' ';  // [0 0 0 4] instead of [4 0 0]
+
+        std::vector arr3{1, 2, 3};
+        arr3.resize(5);  // also changes the length
+        arr3.push_back(4);
+        for (auto i : arr3)
+            std::cout << i << ' ';  // [1 2 3 0 0 4]
+        ```
+    * 👍 `reserve()` member function changes the capacity (but not the length):
+        ```C++
+        std::vector<int> arr4{};
+        arr4.reserve(5);  // reserve 5 elements
+        arr4.push_back(1);
+        for (auto i : arr4)
+            std::cout << i << ' ';  // [1]
+        ```
+    * `push_back()` vs `emplace_back()`:
+        * Both push element to end of vector.
+        * When we already have an object to be push, `push_back` and `emplace_back` are similar in efficiency.
+        * However, in cases where we are creating a temporary object, `emplace_back` is more efficient:
+        ```C++
+        class Foo
+        {
+        public:
+            Foo(int x, std::string b) {}
+        };
+
+
+        void func4()
+        {
+            std::vector<Foo> arr5;
+            arr5.push_back({ 1, "a" }); // creates a temporary object, and then copies it into the vector
+            arr5.emplace_back(1, "a");          // forwards the arguments so the object can be created directly in the vector (no copy made)
+        }
+        ```
+
 
 
 
