@@ -39,6 +39,13 @@ void resizeSmaller() {
     std::cout << '\n';
 }
 
+void func1()
+{
+    // Resize a std::vector at runtime
+    resizeBigger<int>();   // 0 1 2 0 0
+    resizeSmaller<int>();  // 0 1 2
+}
+
 /* length vs capacity of a std::vector
 
 - capacity is how many elements the std::vector has allocated storage for
@@ -50,6 +57,14 @@ void resizeSmaller() {
   considered to be in active use. They can be used later without overflowing the vector.
 */
 
+void func2()
+{
+    // Capacity of a std::vector
+    std::vector<int> v{ 1, 2, 3, 4, 5 };
+    v.resize(3);
+    std::cout << "The length is: " << v.size() << '\n';     // 3
+    std::cout << "The capacity is: " << v.capacity() << '\n'; // 5
+}
 
 /* Shrinking a std::vector
 
@@ -58,26 +73,18 @@ void resizeSmaller() {
   Note that This request is non-binding, meaning the implementation is free to ignore it.
 */
 
-
-int main()
-{
-    // Resize a std::vector at runtime
-    resizeBigger<int>();   // 0 1 2 0 0
-    resizeSmaller<int>();  // 0 1 2
-
-
-    // Capacity of a std::vector
+void func3()
+{ 
     std::vector<int> v{ 1, 2, 3, 4, 5 };
-    v.resize(3);
-    std::cout << "The length is: " << v.size() << '\n';     // 3
-    std::cout << "The capacity is: " << v.capacity() << '\n'; // 5
-
-
-    // Shrinking a std::vector
     v.shrink_to_fit();
     std::cout << "The length is: " << v.size() << '\n';     // 3
     std::cout << "The capacity is: " << v.capacity() << '\n'; // 3
 
+}
+
+
+int main()
+{
     return 0;
 }
 

@@ -963,3 +963,55 @@ Use signed integral type for index:
 Notes about `typename`:
     * Any name that depends on a type containing a template parameter is called a dependent name. Dependent names must be prefixed with the keyword `typename` in order to be used as a type.
     * In the above example, `T` is a type with a template parameter, so nested type `T::size_type` is a dependent name, and must be prefixed with `typename` to be used as a type.
+
+Resizing a `std::vector` at runtime:
+```C++
+#include <iostream>
+#include <vector>
+
+template <typename T>
+void resizeBigger() {
+    std::vector v{ 0, 1, 2 }; // create vector with 3 elements
+    std::cout << "The length is: " << v.size() << '\n';
+
+    v.resize(5);              // resize to 5 elements
+    std::cout << "The length is: " << v.size() << '\n';
+
+    for (auto i : v)
+        std::cout << i << ' ';
+
+    std::cout << '\n';
+}
+
+template <typename T>
+void resizeSmaller() {
+    std::vector v{ 0, 1, 2, 3, 4 };
+    std::cout << "The length is: " << v.size() << '\n';
+
+    v.resize(3);
+    std::cout << "The length is: " << v.size() << '\n';
+
+    for (auto i : v)
+        std::cout << i << ' ';
+
+    std::cout << '\n';
+}
+
+void func1()
+{
+    // Resize a std::vector at runtime
+    resizeBigger<int>();   // 0 1 2 0 0
+    resizeSmaller<int>();  // 0 1 2
+}
+```
+`std::vector` has a member function called `shrink_to_fit()` that requests that the vector shrink its capacity to match its length. Note that This request is non-binding, meaning the implementation is free to ignore it.
+```C++
+void func3()
+{ 
+    std::vector<int> v{ 1, 2, 3, 4, 5 };
+    v.shrink_to_fit();
+    std::cout << "The length is: " << v.size() << '\n';     // 3
+    std::cout << "The capacity is: " << v.capacity() << '\n'; // 3
+
+}
+```

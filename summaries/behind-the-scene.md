@@ -1106,13 +1106,26 @@
         for (const auto& num : std::views::reverse(arr))
         {
             // ...
-        }   
+        }
+        ```
+* Fixed-size arrays vs dynamic arrays:
+    * `std::array` and C-style arrays are fixed-size array types.
+    * `std::vector` is a dynamic array.
+    * **Length** vs **capacity**:
+        * **capacity** is how many elements the std::vector has allocated storage for.
+        * **length** is how many elements are currently being used.
+        * A std::vector with a capacity of 5 has allocated space for 5 elements. If the vector contains 2 elements in active use, the length (size) of the vector is 2. The 3 remaining elements have memory allocated for them, but they are not considered to be in active use. They can be used later without overflowing the vector. (See syntax-and-snippnet for a demo).
+    * Reallocation process:
+        * When `std::vector` acquires new memory with capacity for the desired number of elements, these elements are **value-initialized**.
+        * The elements in the old memory are copied (or moved, if possible) into the new memory. The old memory is then returned to the system.
+        * The capacity and length of the std::vector are set to the new values.
+
+        => ⚠️ Reallocation is an expensive process.
 
 
 
 
-
-
+---
 
 Few reminders about passing temporary objects:
 - they are created and initialized at the point of definition, 
