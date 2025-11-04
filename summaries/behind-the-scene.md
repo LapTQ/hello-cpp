@@ -435,13 +435,13 @@
         This is an example of case when reference is not identical to the object it is bound to.
 * Assign a reference to a non-reference variable will **copy** the value.
   	```C++
-   int x { 5 };
+    int x { 5 };
     int& ref { x };
     int y { ref }; // y is now a copy of x
     std::cout << &x << '\n';    // 0x7ffc70904a60
     std::cout << &ref << '\n';  // 0x7ffc70904a60 (same as x)
     std::cout << &y << '\n';    // 0x7ffc70904a64 (different from x)
-   ```
+    ```
 * Binding a reference is always cheap.
 * A **pointer** is an **object** that holds a memory address as its value.
 * The address-of operator (`&`) does not return a literal. Instead, it returns a pointer, whose type is derived from the argument.
@@ -1199,13 +1199,77 @@
         // CTAD (C++17)
         constexpr std::array arr12 { 1, 2, 3}; // type is deduced to std::array<int, 3>
         ```
+    * ⚠️ Aggregate initialization syntax works for `std::array`:
+        ```C++
+        struct House
+        {
+            int number{};
+            int stories{};
+            int roomsPerStory{};
+        };
+
+        void func1()
+        {
+            // work
+            std::array<House, 3> houses{};
+            houses[0] = { 13, 1, 7 };
+            houses[1] = { 14, 2, 5 };
+            houses[2] = { 15, 2, 4 };
+
+            // work
+            constexpr std::array houses2 { // CTAD to deduce <House, 3>
+                House{ 13, 1, 7 },
+                House{ 14, 2, 5 },
+                House{ 15, 2, 4 }
+            };
+
+            // ⚠️ doesn't work
+            constexpr std::array<House, 3> houses3 { 
+                { 13, 1, 7 },
+                { 14, 2, 5 },
+                { 15, 2, 4 }
+            };
+
+            // works
+            constexpr std::array<House, 3> houses4 {
+                { // extra set of braces 
+                    { 13, 4, 30 }, 
+                    { 14, 3, 10 }, 
+                    { 15, 3, 40 }, 
+                }
+            };
+        }
+        ```
+        A `std::array` is defined as a "struct" like this:
+        ```C++
+        template<typename T, std::size_t N>
+        struct array
+        {
+            T implementation_defined_name[N];
+        }
+        ```
+        where `implementation_defined_name` is a C-style array with N elements of type T.
+
+        => ⚠️ in the 3rd example, `{ 13, 1, 7 }` is used to initialize `implementation_defined_name`. Then the compiler will discover that we’ve provided two more initialization values (`{ 14, 2, 7 }` and `{ 15, 2, 5 }`) which exceeds the number of members in the struct.
+    * Brace elision for `std::array`: 
+        
+        Given the explanation above, you may be wondering why the following single-brace syntax work?
+        ```C++
+        constexpr std::array<int, 3> arr { 1, 2, 3 }; // single braces
+        constexpr std::array<int, 3> arr { { 1, 2, 3 } }; // double braces
+        ```
+        Generally, you can omit braces when initializing a `std::array` with:
+        * scalar values, or
+        * with class types where the type is explicitly named.
+
+        👍 There is no harm in always initializing `std::array` with double braces.
     * Length and indexing of `std::array` is similar to `std::vector`. 👍 But, because the length of a `std::array` is constexpr, each of the `.size()`, `std::size()`, `.ssize()` (C++20) will return the length as a constexpr value (even when called on a non-constexpr std::array object)
         ```C++
         std::array<int, 5> arr13 { 1, 2, 3, 4, 5 }; // not constexpr
         constexpr int len13 { arr13.size() };  // ok, return value is constexpr std::size_t and can be converted to int, not a narrowing conversion
         ```
     * While 👎️ `operator[]` does no bounds checking and 👎️ `at()` member function 
-  only does runtime bounds checking (remind that function parameters can’t be constexpr), 👍 the std::get() function template does compile-time bounds checking.
+  only does runtime bounds checking (remind that function parameters can’t be constexpr), 👍 the `std::get()` function template does compile-time bounds checking.
 
         ```C++
         constexpr std::array<int, 5> arr14 { 1, 2, 3, 4, 5 };
@@ -1225,9 +1289,31 @@
             // ...
         }
         ```
-    * ⚠️ Returning a `std::array`: Unlike `std::vector`, `std::array` is not move-capable, so **returning it by value** will make a copy => COnsider using an out parameter or use `std::vector` instead.
-        
+    * ⚠️ Returning a `std::array`: Unlike `std::vector`, `std::array` is not move-capable, so **returning it by value** will make a copy => Consider using an out parameter or use `std::vector` instead.
+* Arrays of references:
+    * ⚠️ You **cannot** make an array of references. Because, the elements of an array must be assignable, while references can’t be reseated.
+        ```C++
+        int x { 1 };
+        int y { 2 };
+        std::array<int&, 2> refarr { x, y }; // compile error
 
+        int& ref1 { x };
+        int& ref2 { y };
+        std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
+        valarr[0] = 10;
+        std::cout << valarr[0] << " " << x << '\n'; // 10 1
+        ```
+    * 👍 `std::reference_wrapper` behaves like a modifiable lvalue reference to T:
+        ```C++
+        std::array<std::reference_wrapper<int>, 2> arr { x, y };
+        arr[0].get() = 10;
+        std::cout << arr[0] << " " << x << '\n'; // 10 10
+        ```
+
+        Notes about `std::reference_wrapper`:
+        * `Operator=` will "reseat" a `std::reference_wrapper`.
+        * `std::reference_wrapper<T>` will implicitly convert to `T&`.
+        * `get()` member function can be used to get a `T&`.
 
 
 

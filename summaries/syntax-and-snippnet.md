@@ -1024,3 +1024,7 @@ arr.push_back(2);
 arr.pop_back();    // pop from the top of the stack
 arr.back();        // get the top of the stack, doesn't remove it
 ```
+
+## Arrays of class types
+
+We’ll use structs to illustrate our points in this lesson. The material applies equally well to classes.

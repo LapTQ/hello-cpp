@@ -13,18 +13,36 @@ struct House
     int roomsPerStory{};
 };
 
+void func1()
+{
+    std::array<House, 3> houses{};
+    houses[0] = { 13, 1, 7 };
+    houses[1] = { 14, 2, 5 };
+    houses[2] = { 15, 2, 4 };
 
-/* Why the inialization
-```
+    constexpr std::array houses2 { // use CTAD to deduce template arguments <House, 3>
+        House{ 13, 1, 7 },
+        House{ 14, 2, 5 },
+        House{ 15, 2, 4 }
+    };
+}
+
+
+/* Why doesn't the following inialization work?
+*/
+
+void func2()
+{   
+    // doesn't work
     constexpr std::array<House, 3> houses3 { 
-        { 13, 1, 7 }, // initialize for C-style array member implementation_defined_name
+        { 13, 1, 7 },
         { 14, 2, 5 },
         { 15, 2, 4 }
     };
-```
-doesn't work?
+}
 
-A std::array is defined as a struct like this:
+/*
+A std::array is defined as a "struct" like this:
 ```
 template<typename T, std::size_t N>
 struct array
@@ -40,6 +58,18 @@ which exceeds the number of members in the struct.
 
 The correct way to initialize the above is to add an extra set of braces.
 */
+
+void func3()
+{
+    // works
+    constexpr std::array<House, 3> houses4 {
+        { // extra set of braces 
+            { 13, 4, 30 }, 
+            { 14, 3, 10 }, 
+            { 15, 3, 40 }, 
+        }
+    };
+}
 
 
 /* Brace elision for aggregates
@@ -68,6 +98,15 @@ struct Student
 	std::string_view name{};
 };
 
+void func4()
+{
+    constexpr std::array students{ // single braces
+        Student{0, "Alex"}, 
+        Student{ 1, "Joe" }, 
+        Student{ 2, "Bob" } 
+    };
+}
+
 
 /* Arrays of references via std::reference_wrapper
 
@@ -87,6 +126,23 @@ Notes about std::reference_wrapper:
 
 #include <functional> // for std::reference_wrapper
 
+void func5()
+{
+    int x { 1 };
+    int y { 2 };
+    std::array<int&, 2> refarr { x, y }; // compile error: cannot define array of references
+
+    int& ref1 { x };
+    int& ref2 { y };
+    std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
+    valarr[0] = 10;
+    std::cout << valarr[0] << " " << x << '\n'; // 10 1
+
+    std::array<std::reference_wrapper<int>, 2> arr { x, y };
+    arr[0].get() = 10;
+    std::cout << arr[0] << " " << x << '\n'; // 10 10
+}
+
 
 /* std::ref and std::cref
 
@@ -95,61 +151,10 @@ Notes about std::reference_wrapper:
   std::reference_wrapper and const std::reference_wrapper wrapped objects.
 */
 
-
-int main()
+void func6()
 {
-    // the elements of a std::array can be any object type.
-    std::array<House, 3> houses{};
-    houses[0] = { 13, 1, 7 };
-    houses[1] = { 14, 2, 5 };
-    houses[2] = { 15, 2, 4 };
-
-    constexpr std::array houses2 { // use CTAD to deduce template arguments <House, 3>
-        House{ 13, 1, 7 },
-        House{ 14, 2, 5 },
-        House{ 15, 2, 4 }
-    };
-
-    // doesn't work
-    constexpr std::array<House, 3> houses3 { 
-        { 13, 1, 7 }, // initialize for C-style array member implementation_defined_name
-        { 14, 2, 5 },
-        { 15, 2, 4 }
-    };
-
-    // but this works
-    constexpr std::array<House, 3> houses4 {
-        { // extra set of braces 
-            { 13, 4, 30 }, 
-            { 14, 3, 10 }, 
-            { 15, 3, 40 }, 
-        }
-    };
-
-
-    // Brace elision for aggregates
-    constexpr std::array students{ // single braces
-        Student{0, "Alex"}, 
-        Student{ 1, "Joe" }, 
-        Student{ 2, "Bob" } 
-    };
-
-
-    // Arrays of references via std::reference_wrapper
     int x { 1 };
-    int y { 2 };
-    std::array<int&, 2> refarr { x, y }; // compile error: cannot define array of references
 
-    int& ref1 { x };
-    int& ref2 { y };
-    std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
-
-    std::array<std::reference_wrapper<int>, 2> arr { x, y };
-    arr[0].get() = 10;
-    std::cout << arr[0] << " " << x << '\n'; // 10 10
-
-
-    // std::ref and std::cref
     // C++11, long
     std::reference_wrapper<int> ref3 { x };
     auto ref4 { std::reference_wrapper<int>{ x }};
@@ -161,7 +166,11 @@ int main()
     // C++17, using CTAD
     std::reference_wrapper ref5 { x };
     auto ref6 { std::reference_wrapper{ x }};
+}
 
+
+int main()
+{
     return 0;
 }
 
