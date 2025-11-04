@@ -1171,6 +1171,63 @@
             arr5.emplace_back(1, "a");          // forwards the arguments so the object can be created directly in the vector (no copy made)
         }
         ```
+* `std::array`:
+    * When to use `std::array` over `std::vector`:
+        * `std::vector` is slightly less performant than `std::array`.
+        * (Main reason) `std::vector` only supports constexpr in very limited contexts.
+
+            👎️ => Define `std::array` as constexpr whenever possible. If your `std::array` is not constexpr, consider using a `std::vector` instead.
+    * the length of a `std::array` **must** be a constant expression.
+        ```C++
+        std::vector<int> b(7);    // a std::vector of 7 ints (for comparison)
+
+        std::array<int, 7> arr2 {};  // using literal constant
+
+        constexpr int len3 { 7 };
+        std::array<int, len3> arr3 {};  // using constexpr variable
+        ```
+    * is an aggregate => to initialize it, we provide an initializer list.
+        ```C++
+        std::array<int, 5> arr5 { 1, 2, 3, 4, 5 };  // list initialization
+        std::array<int, 5> arr6 = { 1, 2, 3, 4, 5 }; // copy-list initialization
+
+        std::array<int, 5> arr7; // member default initialization (in most case left uninitialized)    
+        std::array<int, 5> arr8 {}; // member value initialization (zero-initialized)
+
+        std::array<int, 5> arr9 { 1, 2 }; // [1 2 0 0 0]
+
+        // CTAD (C++17)
+        constexpr std::array arr12 { 1, 2, 3}; // type is deduced to std::array<int, 3>
+        ```
+    * Length and indexing of `std::array` is similar to `std::vector`. 👍 But, because the length of a `std::array` is constexpr, each of the `.size()`, `std::size()`, `.ssize()` (C++20) will return the length as a constexpr value (even when called on a non-constexpr std::array object)
+        ```C++
+        std::array<int, 5> arr13 { 1, 2, 3, 4, 5 }; // not constexpr
+        constexpr int len13 { arr13.size() };  // ok, return value is constexpr std::size_t and can be converted to int, not a narrowing conversion
+        ```
+    * While 👎️ `operator[]` does no bounds checking and 👎️ `at()` member function 
+  only does runtime bounds checking (remind that function parameters can’t be constexpr), 👍 the std::get() function template does compile-time bounds checking.
+
+        ```C++
+        constexpr std::array<int, 5> arr14 { 1, 2, 3, 4, 5 };
+        std::cout << std::get<2>(arr14) << '\n';  // 3
+        std::cout << std::get<10>(arr14) << '\n';  // compile-time error
+        ```
+    * ⚠️ Pass `std::array` by (const) reference: the type of the non-type template parameter for std::array should be `std::size_t`, not `int`. 
+        ```C++
+        void passByRef(const std::array<int, 5>& arr) // we must explicitly specify <int, 5> here
+        {
+            // ...
+        }
+
+        template <typename T, std::size_t N>
+        void passByRef2(const std::array<T, N>& arr)
+        {
+            // ...
+        }
+        ```
+    * ⚠️ Returning a `std::array`: Unlike `std::vector`, `std::array` is not move-capable, so **returning it by value** will make a copy => COnsider using an out parameter or use `std::vector` instead.
+        
+
 
 
 
