@@ -1108,6 +1108,17 @@
             // ...
         }
         ```
+    * `std::vector<bool>`:
+        * ⚠️ It's not a real container and can breaks generic code. The C++ standard explicitlycalls out vector<bool> as a special container where each bool uses only one bit of space rather than one byte as a normal bool would.
+            * 👎️ => you can't take the address of a bit within a byte.
+            * 👎️ => things such as operator[] can't return a bool&.
+            * 👎️ => you can't assign its address to a bool* like you could with the other "normal" container.
+            ```C++
+            std::vector<bool> v_bool = {true, false, true};
+            bool& ref = v_bool[0];  // error
+            bool* ptr = &v_bool[0]; // error
+            ```
+        * Performance depends heavily on how well the implementation is optimized. Some implementations can be slower than alternatives.
 * Fixed-size arrays vs dynamic arrays:
     * `std::array` and C-style arrays are fixed-size array types.
     * `std::vector` is a dynamic array.
@@ -1152,7 +1163,6 @@
         public:
             Foo(int x, std::string b) {}
         };
-
 
         void func4()
         {

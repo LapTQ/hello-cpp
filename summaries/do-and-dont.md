@@ -462,6 +462,14 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         }
         ```
     * ✅ Consider using range-based for loop to traverse a container instead of explicit indexing.
+    * ❌ Don't use `std::vector<bool>`.
+        
+        👍 Use `std::vector<char>` instead.
+        ```C++
+        std::vector<char> v = {true, false, true};
+        char& ref = v[0];     // ✅ Works!
+        char* ptr = &v[0];    // ✅ Works!
+        ```
         
 
 
