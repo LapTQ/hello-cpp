@@ -1314,6 +1314,43 @@
         * `Operator=` will "reseat" a `std::reference_wrapper`.
         * `std::reference_wrapper<T>` will implicitly convert to `T&`.
         * `get()` member function can be used to get a `T&`.
+* C-style array:
+    * Syntax: use square brackets (`[]`) to declare a C-style array:
+        ```C++
+        int arr[5]; // define an array of 5 int values
+        ```
+    * The length of a C-style array **must** be a constant expression of type `std::size_t` (Just like `std::array`).
+    * CTAD doesn’t work with C-style array, so we must explicitly specified element's type.
+        ```C++
+        auto arr7[5] { 1, 2, 3, 4, 5 }; // compile error
+        ```
+    * C-style arrays are aggregates (Just like `std::array`) => they can be initialized using aggregate initialization.
+    * When we initialize a C-style array with an initializer list, we can omit the length:
+        ```C++
+        int arr8[] { 1, 2, 3, 4, 5 }; // the length is deduced
+        ```
+    * Getting the length of a C-style array:
+        * (C++17) can use `std::size()` or `std::ssize()`.
+        * ⚠️ Prior to C++17, there was no standard library function to get the length of a C-style array => we can use this function instead:
+            ```C++
+            template <typename T, std::size_t N>
+            constexpr std::size_t length(const T(&)[N]) noexcept
+            {
+                return N;
+            }
+
+            int arr[5];
+            std::cout << length(arr) << '\n'; // prior to C++17
+            std::cout << std::size(arr) << '\n'; // C++17, returns unsigned integral
+            std::cout << std::ssize(arr) << '\n'; // C++20, returns signed integral
+            ```
+    * C-style arrays don’t support assignment:
+        ```C++
+        int arr9[3] { 1, 2, 3 };
+        arr9[0] = 4; // ok
+        arr9 = { 4, 5, 6 }; // compile error
+        ```
+
 
 
 

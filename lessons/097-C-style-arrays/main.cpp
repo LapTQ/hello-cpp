@@ -5,10 +5,16 @@
   integral value of type std::size_t.
 - The length of a C-style array must be at least 1.
 
-- The array length of a c-style array "must" be a constant expression (Just like std::array).
+- The array length of a c-style array "must" be a constant expression of type std::size_t (Just like std::array).
 - Unlike the standard library container classes (which use unsigned indices of type std::size_t only), 
   the index of a C-style array can be a value of any integral type (signed or unsigned) or an unscoped enumeration.
 */
+
+void func1()
+{
+    int arr[5]; // define an array of 5 int values
+    arr[1] = 7; // use subscript operator to index array element 1
+}
 
 
 /* Aggregate initialization of C-style arrays
@@ -17,9 +23,29 @@
   CTAD doesn’t work because C-style arrays aren’t class templates.
 */
 
+void func2()
+{
+    int arr1[5]; // member default initialization are left uninitialized
+    int arr2[5] {}; // member value initialization (zero-initialized) (preferred)
 
-/* When we initialize a C-style array with an initializer list, we can omit the length (in the array definition) 
+    int arr3[5] { 1, 2, 3, 4, 5 }; // list initialization (preferred)
+    int arr4[5] = { 1, 2, 3, 4, 5 }; // copy-list initialization
+
+    int arr5[5] { 1, 2, 3, 4, 5, 6 }; // error: too many initializers for 'int [5]'
+    int arr6[5] { 1, 2 }; // [1 2 0 0 0] (the rest are value-initialized)
+
+    auto arr7[5] { 1, 2, 3, 4, 5 }; // compile error: can't use type deduction on C-style 
+}
+
+
+/* When we initialize a C-style array with an initializer list, 
+we can omit the length (in the array definition) 
 */
+
+void func3()
+{
+    int arr8[] { 1, 2, 3, 4, 5 }; // the length is deduced
+}
 
 
 /* C-style arrays can be const or constexpr
@@ -33,6 +59,7 @@
   So we can use this function instead:
 */
 
+#include <iostream>
 #include <cstddef> // for std::size_t
 
 template <typename T, std::size_t N>
@@ -41,46 +68,28 @@ constexpr std::size_t length(const T(&)[N]) noexcept
 	return N;
 }
 
+void func4()
+{
+    int arr[5];
+    std::cout << length(arr) << '\n'; // prior to C++17
+    std::cout << std::size(arr) << '\n'; // C++17, returns unsigned integral
+    std::cout << std::ssize(arr) << '\n'; // C++20, returns signed integral
+}
+
 
 /* C-style arrays don’t support assignment
 */
 
-#include <iostream>
-
-int main()
+void func5()
 {
-    int arr[5]; // define an array of 5 int values
-    arr[1] = 7; // use subscript operator to index array element 1
-
-
-    // Aggregate initialization of C-style arrays
-    int arr1[5]; // member default initialization are left uninitialized
-    int arr2[5] {}; // member value initialization (zero-initialized) (preferred)
-
-    int arr3[5] { 1, 2, 3, 4, 5 }; // list initialization (preferred)
-    int arr4[5] = { 1, 2, 3, 4, 5 }; // copy-list initialization
-
-    int arr5[5] { 1, 2, 3, 4, 5, 6 }; // error: too many initializers for 'int [5]'
-    int arr6[5] { 1, 2 }; // [1 2 0 0 0] (the rest are value-initialized)
-
-    auto arr7[5] { 1, 2, 3, 4, 5 }; // compile error: can't use type deduction on C-style 
-
-
-    // When we initialize a C-style array with an initializer list, we can omit the length (in the array definition)
-    int arr8[] { 1, 2, 3, 4, 5 }; // the length is deduced
-
-
-    // Getting the length of a C-style array
-    std::cout << length(arr) << '\n'; // prior to C++17
-    std::cout << std::size(arr) << '\n'; // C++17, returns unsigned integral
-    std::cout << std::ssize(arr) << '\n'; // C++20, returns signed integral
-
-
-    // C-style arrays don’t support assignment
     int arr9[3] { 1, 2, 3 };
     arr9[0] = 4; // ok
     arr9 = { 4, 5, 6 }; // compile error
+}
 
+
+int main()
+{
     return 0;
 }
 

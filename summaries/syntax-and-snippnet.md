@@ -1028,3 +1028,17 @@ arr.back();        // get the top of the stack, doesn't remove it
 ## Arrays of class types
 
 We’ll use structs to illustrate our points in this lesson. The material applies equally well to classes.
+
+## C-style arrays
+
+Aggregate initialization of C-style arrays:
+```C++
+int arr1[5]; // member default initialization are left uninitialized
+int arr2[5] {}; // member value initialization (zero-initialized) (preferred)
+
+int arr3[5] { 1, 2, 3, 4, 5 }; // list initialization (preferred)
+int arr4[5] = { 1, 2, 3, 4, 5 }; // copy-list initialization
+
+int arr5[5] { 1, 2, 3, 4, 5, 6 }; // error: too many initializers for 'int [5]'
+int arr6[5] { 1, 2 }; // [1 2 0 0 0] (the rest are value-initialized)
+```
