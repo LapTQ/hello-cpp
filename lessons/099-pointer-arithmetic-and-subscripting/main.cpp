@@ -5,10 +5,27 @@ Given some pointer `ptr` that is an `int*`, and assume int is 4 bytes:
 - ptr - 1 will return the address that is 4 bytes before ptr.
 - ptr[n] is the syntax equivalent to the expression `*((ptr) + (n))`
     => this is why C-style array allow signed integer to be used as index. For example: ptr[-1].
-=> we can use pointer arithmetic to traverse an array.
+
 */
 
 #include <iostream>
+
+void func1()
+{
+    int x {};
+    const int* ptr{ &x }; // assume 4 byte ints
+
+    std::cout << ptr << ' ' << (ptr + 1) << ' ' << (ptr + 2) << '\n';
+    std::cout << ptr << ' ' << (ptr - 1) << ' ' << (ptr - 2) << '\n';
+
+    ptr++;
+    std::cout << ptr << '\n';
+}
+
+
+/*
+=> we can use pointer arithmetic to traverse an array.
+*/
 
 void printArray(const int* begin, const int* end)
 {
@@ -20,6 +37,15 @@ void printArray(const int* begin, const int* end)
 	std::cout << '\n';
 }
 
+void func2()
+{
+    constexpr int arr[]{ 9, 7, 5, 3, 1 };
+
+	const int* begin{ arr };                // begin points to start element
+	const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
+
+	printArray(begin, end);
+}
 
 /* Range-based for loops over C-style arrays are implemented using pointer arithmetic
 */
@@ -27,24 +53,6 @@ void printArray(const int* begin, const int* end)
 
 int main()
 {
-    int x {};
-    const int* ptr{ &x }; // assume 4 byte ints
-
-    std::cout << ptr << ' ' << (ptr + 1) << ' ' << (ptr + 2) << '\n';
-    std::cout << ptr << ' ' << (ptr - 1) << ' ' << (ptr - 2) << '\n';
-
-    ptr++;
-    std::cout << ptr << '\n';
-
-
-    // we can use pointer arithmetic to traverse an array
-    constexpr int arr[]{ 9, 7, 5, 3, 1 };
-
-	const int* begin{ arr };                // begin points to start element
-	const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
-
-	printArray(begin, end);
-
     return 0;
 }
 

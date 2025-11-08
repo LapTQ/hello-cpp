@@ -395,6 +395,13 @@
     ```
 * **Lvalue-to-rvalue conversion**: assignment operations `=` expects the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
 * Unlike the other **literals** (which are rvalues), a C-style string **literal** is an lvalue because C-style strings decay to a pointer.
+* Pointer arithmetic:
+    * Given some pointer `ptr` that is an `int*`, and assume `int` is 4 bytes:
+        * `ptr + 1` will return the address that is 4 bytes after `ptr`.
+        * `ptr - 1` will return the address that is 4 bytes before `ptr`.
+        * `ptr[n]` is the syntax equivalent to the expression `*((ptr) + (n))`
+        
+        => this is why C-style array allow signed integer to be used as index. For example: `ptr[-1]`.
 
 
 ## References and Pointers
@@ -1045,7 +1052,7 @@
         ```C++
         for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index is unsigned
         ```
-    * Under the hood, `std::vector` holds its elements in a C-style array. 👍  C-style arrays allow indexing with both signed and unsigned types.
+    * Under the hood, `std::vector` holds its elements in a C-style array. 👍  C-style arrays allow indexing with both signed and unsigned types (see: *Pointer arithmetic*).
     * Accessing array elements:
         * ⚠️ using operator[] does no bounds checking.
         * 👍 using the `.at()` member function does runtime bounds checking, but slower than operator[].
@@ -1405,6 +1412,26 @@
                 * mark the end of the array using a special element.
                     * 👎️ need special handling for the terminating element.
                     * 👎️ mismatch between the array actual length and the number of semantically valid elements.
+    * we can use *Pointer arithmetic* to traverse:
+        ```C++
+        void printArray(const int* begin, const int* end)
+        {
+            for (; begin != end; ++begin)   // iterate from begin up to (but excluding) end
+            {
+                std::cout << *begin << ' '; // dereference our loop variable to get the current element
+            }
+        }
+
+        constexpr int arr[]{ 9, 7, 5, 3, 1 };
+
+        const int* begin{ arr };                // begin points to start element
+        const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
+
+        printArray(begin, end);
+        ```
+
+        Range-based for loops over C-style arrays are implemented using pointer arithmetic.
+
 
 
 
