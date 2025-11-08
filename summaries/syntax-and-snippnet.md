@@ -180,6 +180,10 @@ auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
 std::cout << typeid(i).name() << '\n'; // show us the name of the type for i
 ```
 
+```C++
+std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n';
+```
+
 
 ## Delete function
 

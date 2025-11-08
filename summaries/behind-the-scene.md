@@ -1350,7 +1350,61 @@
         arr9[0] = 4; // ok
         arr9 = { 4, 5, 6 }; // compile error
         ```
+    * C-style array decay:
+        * In most cases, when a C-style array is used in an expression, the array will be implicitly converted into a pointer, initialized with the address of the first element (with index 0).
+            ```C++
+            int arr1[] { 1, 2, 3, 4, 5 };   // array
+            auto ptr{ arr1 }; // decayed array. Type deduction should deduce type int*
+            std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n'; // true
+            std::cout << std::boolalpha << (&arr1[0] == ptr) << '\n'; // true
 
+            ```
+        * Cases in C++ where an C-style array doesn’t decay:
+            * When used as an argument to `sizeof()` or `typeid()`.
+            * When taking the address of the array using `operator&`.
+            * When passed as a member of a class type.
+            * When passed by reference.
+        * 👍 => avoid expensive copy
+        * 👍 => a single function can accept arrays of different sizes
+            ```C++
+            void f(const int* arr) // pass by const address
+            {
+                // ...
+            }
+
+            int arr1[] { 1, 2, 3, 4, 5 };
+            f(arr1);
+            ```
+        * Syntax:
+            * 👎️ declaring the function parameter as `int* arr` makes it not obvious that `arr` is a "pointer to an array" rather than a pointer to a single integer.
+            * 👎️ declaring the function parameter as `int arr[]` is more preferred, but makes it less obvious that `arr` has decayed
+
+            ```C++
+            void f(const int arr[]) // pass by const address
+            {
+                // ...
+            }
+            ```
+        * ⚠️ Problems: Loss of length information. Consequence:
+            * `sizeof()` will return different values for arrays and decayed arrays:
+                ```C++
+                void printArraySize(int arr[])
+                {
+                    std::cout << sizeof(arr) << '\n'; // prints 4 (assuming 32-bit addresses)
+                }
+
+                int arr1[] { 1, 2, 3, 4, 5 };
+                std::cout << sizeof(arr1) << '\n'; // prints 20 (assuming 32-bit addresses)
+                ```
+            * make refactoring difficult
+            * Some work-arounds:
+                * pass the length of the array as a separate parameter.
+                    * 👎️ sign conversion issues
+                    * 👎️ cannot do compile-time validation
+                    * 👎️ only work with explicit call. If the array is passed as operand, we cannot pass in the length.
+                * mark the end of the array using a special element.
+                    * 👎️ need special handling for the terminating element.
+                    * 👎️ mismatch between the array actual length and the number of semantically valid elements.
 
 
 

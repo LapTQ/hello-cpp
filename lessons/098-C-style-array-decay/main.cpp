@@ -14,20 +14,43 @@ The designer of C came up with a clever solution that solve both challenges: arr
   converted into a pointer, initialized with the address of the first element (with index 0).
 */
 
+#include <iostream>
+#include <iomanip> // for std::boolalpha
+#include <iterator>
+
+void func1()
+{
+    int arr1[] { 1, 2, 3, 4, 5 };   // array
+    auto ptr{ arr1 }; // decayed array. Type deduction should deduce type int*
+    std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n'; // true, prove that array is decayed to pointer
+    std::cout << std::boolalpha << (&arr1[0] == ptr) << '\n'; // true, prove that ptr is pointing to the first element of arr1
+}
+
 
 /* Subscripting a C-style array actually applies operator[] to the decayed pointer
 */
+
+void func2()
+{
+    const int arr2[] { 1, 2, 3, 4, 5 };
+    std::cout << arr2[1] << '\n'; // 2
+    const int* ptr2{ arr2 };
+    std::cout << ptr2[1] << '\n'; // 2, same as arr2[1]
+}
 
 
 /* Solve the 2 challenges
 */
 
-#include <iostream>
-#include <iterator>
-
 void printElementZero(const int* arr) // pass by const address
 {
     std::cout << arr[0];
+}
+
+void func3()
+{
+    int arr1[] { 1, 2, 3, 4, 5 };
+    printElementZero(arr1); // 1
 }
 
 
@@ -48,8 +71,9 @@ void printElementZero2(const int arr[]) // pass by const address
 }
 
 
-/* The problems with array decay
+/* The problems with array decay: Loss of length information
 
+Consequence:
 - sizeof() will return different values for arrays and decayed arrays.
 - perhaps most importantly, array decay can make refactoring difficult.
 - Loss of length information.
@@ -70,32 +94,17 @@ void printArraySize(int arr[])
     std::cout << sizeof(arr) << '\n'; // prints 4 (assuming 32-bit addresses)
 }
 
-#include <iomanip> // for std::boolalpha
+void func4()
+{
+    int arr1[] { 1, 2, 3, 4, 5 };
+    printArraySize(arr1); // 4
+    std::cout << sizeof(arr1) << '\n'; // 20 (5 * 4)
+}
 
 
 int main()
 {
-    // array decay
-    int arr1[] { 1, 2, 3, 4, 5 };
-    auto ptr{ arr1 }; // evaluation cause arr1 to decay, to type deduction should deduce type int*
-    std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n'; // true, prove that array is decayed to pointer
-    std::cout << std::boolalpha << (&arr1[0] == ptr) << '\n'; // true, prove that ptr is pointing to the first element of arr1
 
-
-    // Subscripting a C-style array actually applies operator[] to the decayed pointer
-    const int arr2[] { 1, 2, 3, 4, 5 };
-    std::cout << arr2[1] << '\n'; // 2
-    const int* ptr2{ arr2 };
-    std::cout << ptr2[1] << '\n'; // 2, same as arr2[1]
-
-
-    // Solve the 2 challenges
-    printElementZero(arr1); // 1
-
-
-    // The problems with array decay
-    printArraySize(arr1); // 4
-    std::cout << sizeof(arr1) << '\n'; // 20 (5 * 4)
 }
 
 

@@ -470,7 +470,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         char& ref = v[0];     // ✅ Works!
         char* ptr = &v[0];    // ✅ Works!
         ```
-        
+* C-style array:
+    * ⚠️ Avoid using C-style array in most cases due to the loss of length information in C-style array decay.
 
 
 Just like function templates, class templates are typically defined in header files.
