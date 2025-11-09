@@ -1431,6 +1431,56 @@
         ```
 
         Range-based for loops over C-style arrays are implemented using pointer arithmetic.
+    * C-style string: 
+        * simply declare a C-style array variable of `char`:
+            ```C++
+            char str1[8]{};                    // 8 char, including hidden null-terminator character
+            const char str2[]{ "string" };     // 7 char, including hidden null-terminator character
+            ```
+        * Outputting: `std::cout` outputs characters until it encounters the null terminator. `std::cout` makes some assumptions:
+            * If you pass it a non-char **pointer**, it will simply print the contents of that pointer.
+            * If you pass it an object of type `char*` or `const char*`, it will print a string.
+            ```C++
+            const char str2[]{ "string" };
+            std::cout << str2 << '\n'; // string
+
+            int narr[]{ 9, 7, 5, 3, 1 };
+            std::cout << narr << '\n'; // 0x7ffeeb1b3b40
+
+            char c{ 'Q' };
+            std::cout << &c << '\n'; // undefined behavior
+            // intending to print the address of c. However, &c has type char*, so std::cout will try to print this as a string.
+            // But, because c is not null-terminated, we get undefined behavior.
+            ```
+        * Inputting:
+            * ⚠️ Prior to C++20, `std::cin` would extract as many charaters as possible (stopping at the first non-leading whitespace) => might overflow.
+            * In C++20, `operator>>` only work for inputing non-decayed C-style strings => extract only as many characters as length will allow
+            * *See syntax-and-snippnet for the the recommended way to read C-style strings.*
+        * ⚠️ Getting the length:
+            * `std::size()` or `std::ssize()` returns the actual length of the array, not the length of the string => use `strlen()`
+            * But `strlen()` is slow, as it has to traverse through the array to count until it hits the null terminator.
+        * C-style string symbolic constants:
+            ```C++
+            const char name[] { "Alex" };     // case 1: const C-style string initialized with C-style string literal
+            const char* const color{ "Orange" };    // case 2: const pointer to C-style string literal
+            ```
+            While producing the same results, the memory allocation for the 2 methods behave differently:
+            * Case 1:
+                * “Alex” is put into (probably read-only) memory somewhere.
+                * program allocates memory for a C-style array of length 5 and initializes it with “Alex"
+
+                => 2 copies of “Alex”.
+            * Case 2:
+                * places the string “Orange” into read-only memory somewhere.
+                * initializes the pointer with the address of the string.
+        * Type deduction:
+            ```C++
+            auto s1{ "Alex" };  // const char*
+            auto* s2{ "Alex" }; // const char*
+            auto& s3{ "Alex" }; // const char(&)[5]
+            ```
+
+
 
 
 

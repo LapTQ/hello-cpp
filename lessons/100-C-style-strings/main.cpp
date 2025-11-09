@@ -3,6 +3,15 @@
 - simply declare a C-style array variable of char
 */
 
+#include <iostream>
+#include <cstring> // for strlen()
+
+void func1()
+{
+    char str1[8]{};                    // an array of 8 char, including hidden null-terminator character
+    const char str2[]{ "string" };     // an array of 7 char, including hidden null-terminator character
+}
+
 
 /* Outputting a C-style string
 
@@ -13,6 +22,19 @@ the output streams (e.g. std::cout) make some assumptions about your intent:
 + if you pass it an object of type char* or const char*, it will assume you’re intending to print a string.
 */
 
+void func2()
+{
+    const char str2[]{ "string" };
+    std::cout << str2 << '\n'; // string
+
+    int narr[]{ 9, 7, 5, 3, 1 };
+    std::cout << narr << '\n'; // 0x7ffeeb1b3b40
+
+    char c{ 'Q' };
+    std::cout << &c << '\n'; // undefined behavior
+    // intending to print the address of c. However, &c has type char*, so std::cout will try to print this as a string.
+    // But, because c is not null-terminated, we get undefined behavior.
+}
 
 /* Inputting C-style strings
 
@@ -21,13 +43,35 @@ the output streams (e.g. std::cout) make some assumptions about your intent:
   => user's input might overflow the array.
 - In C++20, operator>> was changes so that it only work for inputing non-decayed C-style strings.
   => allow operator>> to extract only as many characters as the C-style string length will allow.
-
-See the recommended way to read C-style strings below.
 */
 
+void func3()
+{
+    char rolls[255] {}; // declare array large enough to hold 254 characters + null terminator
+    std::cout << "Enter your rolls: ";
+    std::cin >> rolls;
+    std::cout << "You entered: " << rolls << '\n';
+}
+
+// the recommended way to read C-style strings
+void func4()
+{
+    char rolls[255] {};
+    std::cout << "Enter your rolls: ";
+    std::cin.getline(rolls, std::size(rolls));
+    std::cout << "You entered: " << rolls << '\n';
+    // cin.getline() will read up to 254 characters. Any excess characters will be discarded.
+}
 
 /* C-style strings don’t support assignment
 */
+
+void func5()
+{
+    char str[]{ "string" }; // ok
+    // str = "rope";           // not ok!
+    str[1] = 'p';           // ok
+}
 
 
 /* Getting the length of an C-style string
@@ -37,6 +81,12 @@ See the recommended way to read C-style strings below.
 - However, std::strlen() is slow, as it has to traverse through the whole array, 
   counting characters until it hits the null terminator.
 */
+
+void func6()
+{
+    char str[]{ "string" };
+    std::cout << strlen(str) << '\n'; // 6
+}
 
 
 /* Avoid non-const C-style string objects 
@@ -52,7 +102,7 @@ See the recommended way to read C-style strings below.
 const char name[] { "Alex" };     // case 1: const C-style string initialized with C-style string literal
 const char* const color{ "Orange" };    // case 2: const pointer to C-style string literal
 ```
-C++ deals with the memory allocation for these slightly differently.
+While the two methods produce the same results, C++ deals with the memory allocation for these slightly differently.
 - In case 1:
     + “Alex” is put into (probably read-only) memory somewhere. 
     + program allocates memory for a C-style array of length 5.
@@ -69,55 +119,15 @@ C++ deals with the memory allocation for these slightly differently.
 /* Type deduction with const C-style strings
 */
 
-
-#include <iostream>
-#include <cstring> // for strlen()
-
-int main()
+void func7()
 {
-    // Defining C-style strings
-    char str1[8]{};                    // an array of 8 char, including hidden null-terminator character
-    const char str2[]{ "string" };     // an array of 7 char, including hidden null-terminator character
-    
-
-    // Outputting a C-style string
-    std::cout << str2 << '\n'; // string
-
-    int narr[]{ 9, 7, 5, 3, 1 };
-    std::cout << narr << '\n'; // 0x7ffeeb1b3b40
-
-    char c{ 'Q' };
-    std::cout << &c << '\n'; // undefined behavior
-
-
-    // Inputting C-style strings
-    char rolls[255] {}; // declare array large enough to hold 254 characters + null terminator
-    std::cout << "Enter your rolls: ";
-    std::cin >> rolls;
-    std::cout << "You entered: " << rolls << '\n';
-
-    // the recommended way to read C-style strings
-    std::cout << "Enter your rolls: ";
-    std::cin.getline(rolls, std::size(rolls));
-    std::cout << "You entered: " << rolls << '\n';
-    // cin.getline() will read up to 254 characters. Any excess characters will be discarded.
-
-
-    // C-style strings don’t support assignment
-    char str[]{ "string" }; // ok
-    // str = "rope";           // not ok!
-    str[1] = 'p';           // ok
-
-
-    // Getting the length of an C-style string
-    std::cout << strlen(str) << '\n'; // 6
-
-
-    // Type deduction with const C-style strings
     auto s1{ "Alex" };  // type deduced as const char*
     auto* s2{ "Alex" }; // type deduced as const char*
     auto& s3{ "Alex" }; // type deduced as const char(&)[5]
+}
 
+int main()
+{
     return 0;
 }
 

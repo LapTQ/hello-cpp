@@ -472,6 +472,9 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         ```
 * C-style array:
     * ⚠️ Avoid using C-style array in most cases due to the loss of length information in C-style array decay.
+* C-style string:
+    * ⚠️ Avoid non-const C-style string objects. ✅ use `std::string`.
+    * 👎️ Avoid C-style string symbolic constants. ✅ use `std::string_view`.
 
 
 Just like function templates, class templates are typically defined in header files.

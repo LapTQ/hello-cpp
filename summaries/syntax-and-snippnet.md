@@ -1046,3 +1046,22 @@ int arr4[5] = { 1, 2, 3, 4, 5 }; // copy-list initialization
 int arr5[5] { 1, 2, 3, 4, 5, 6 }; // error: too many initializers for 'int [5]'
 int arr6[5] { 1, 2 }; // [1 2 0 0 0] (the rest are value-initialized)
 ```
+
+## C-style string
+
+The naive way to input a C-style string:
+```C++
+char rolls[255] {}; // declare array large enough to hold 254 characters + null terminator
+std::cout << "Enter your rolls: ";
+std::cin >> rolls;
+std::cout << "You entered: " << rolls << '\n';
+```
+
+The recommended way to read C-style strings:
+```C++
+char rolls[255] {};
+std::cout << "Enter your rolls: ";
+std::cin.getline(rolls, std::size(rolls));
+std::cout << "You entered: " << rolls << '\n';
+// cin.getline() will read up to 254 characters. Any excess characters will be discarded.
+```
