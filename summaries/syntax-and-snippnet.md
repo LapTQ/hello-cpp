@@ -1065,3 +1065,7 @@ std::cin.getline(rolls, std::size(rolls));
 std::cout << "You entered: " << rolls << '\n';
 // cin.getline() will read up to 254 characters. Any excess characters will be discarded.
 ```
+
+## Standard library algorithms
+
+See code in github lesson and references.
