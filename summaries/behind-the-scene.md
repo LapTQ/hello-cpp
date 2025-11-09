@@ -1084,37 +1084,6 @@
             int index3 { 3 };                   // non-constexpr signed value
             std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
             ```
-* Range-based for loop:
-    * Traversal without having to do explicit indexing => simpler, safer.
-        ```C++
-        template <typename T>
-        void print(const std::vector<T>& arr)
-        {
-            for (auto num : arr) // iterate and copy each value into `num`
-            {
-                // ...
-            }
-        }
-        ```
-    * Work with a wide variety of array types, including non-decayed C-style arrays, std::array, std::vector, linked list, trees, and maps.
-    * The loop variable should have the same type as the array elements => prefer using `auto`
-    * ⚠️ Elements are copied to the loop variable 
-        * Expensive for some types => ✅ can use reference to avoid such copy.
-        * Cannot change the values in the array => ✅ can use non-const reference.
-        ```C++
-        for (const auto& num : arr) // if non-const, the reference can change the values in the array
-        {
-            // ...
-        }
-        ```
-    * Loops in reverse (C++20):
-        ```C++
-        #include <ranges> // C++20
-        for (const auto& num : std::views::reverse(arr))
-        {
-            // ...
-        }
-        ```
     * `std::vector<bool>`:
         * ⚠️ It's not a real container and can breaks generic code. The C++ standard explicitlycalls out vector<bool> as a special container where each bool uses only one bit of space rather than one byte as a normal bool would.
             * 👎️ => you can't take the address of a bit within a byte.
@@ -1412,25 +1381,6 @@
                 * mark the end of the array using a special element.
                     * 👎️ need special handling for the terminating element.
                     * 👎️ mismatch between the array actual length and the number of semantically valid elements.
-    * we can use *Pointer arithmetic* to traverse:
-        ```C++
-        void printArray(const int* begin, const int* end)
-        {
-            for (; begin != end; ++begin)   // iterate from begin up to (but excluding) end
-            {
-                std::cout << *begin << ' '; // dereference our loop variable to get the current element
-            }
-        }
-
-        constexpr int arr[]{ 9, 7, 5, 3, 1 };
-
-        const int* begin{ arr };                // begin points to start element
-        const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
-
-        printArray(begin, end);
-        ```
-
-        Range-based for loops over C-style arrays are implemented using pointer arithmetic.
     * C-style string: 
         * simply declare a C-style array variable of `char`:
             ```C++
@@ -1480,6 +1430,84 @@
             auto& s3{ "Alex" }; // const char(&)[5]
             ```
 * Multidimensional arrays: *see code in github lesson*.
+* Iterate through an array: Different ways:
+    * using indexes
+    * using *Pointer arithmetic*:
+        * All standard library containers offer direct support for iteration:
+            * using member functions `begin()` and `end()`
+            * or, using functions `std::begin` and `std::end`
+
+        ```C++
+        template <typename T>
+        void print(const T* begin, const T* end)
+        {
+            for (auto p{ begin }; p != end; ++p) // ++ to move to next element.
+            {
+                std::cout << *p << ' '; // Indirection to get value of current element.
+            }
+        }
+
+        std::array array{ 1, 2, 3 };
+
+        auto begin{ array.begin() };
+        auto end{ array.end() };
+        print(begin, end);
+
+        auto begin2{ std::begin(array) };
+        auto end2{ std::end(array) };
+        print(begin2, end2);
+        ```
+
+        ```C++
+        void printArray(const int* begin, const int* end)
+        {
+            for (; begin != end; ++begin)   // iterate from begin up to (but excluding) end
+            {
+                std::cout << *begin << ' '; // dereference our loop variable to get the current element
+            }
+        }
+
+        constexpr int arr[]{ 9, 7, 5, 3, 1 };
+
+        const int* begin{ arr };                // begin points to start element
+        const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
+
+        printArray(begin, end);
+        ```
+        * ⚠️ Much like pointers and references, iterators can be left “dangling” if the elements being iterated over change address or are destroyed.
+    * Range-based for-loops: They use iterators.
+        ```C++
+        template <typename T>
+        void print(const std::vector<T>& arr)
+        {
+            for (auto num : arr) // iterate and copy each value into `num`
+            {
+                // ...
+            }
+        }
+        ```
+        * Work with a wide variety of array types, including non-decayed C-style arrays, std::array, std::vector, linked list, trees, and maps.
+        * The loop variable should have the same type as the array elements => prefer using `auto`
+        * ⚠️ Elements are copied to the loop variable 
+            * Expensive for some types => ✅ can use reference to avoid such copy.
+            * Cannot change the values in the array => ✅ can use non-const reference.
+            ```C++
+            for (const auto& num : arr) // if non-const, the reference can change the values in the array
+            {
+                // ...
+            }
+            ```
+        * Loops in reverse (C++20):
+            ```C++
+            #include <ranges> // C++20
+            for (const auto& num : std::views::reverse(arr))
+            {
+                // ...
+            }
+            ```
+        * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
+
+
 
 
 

@@ -14,11 +14,12 @@ An iterator is an object designed to traverse through a container.
 - they have member functions named `begin()` and `end()` that can be used.
 - The iterator header also contains two generic functions (std::begin and std::end) that can be used.
 
-Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
+
 
 */
 
 #include <iostream>
+#include <array>
 
 template <typename T>
 void print(const T* begin, const T* end)
@@ -30,19 +31,8 @@ void print(const T* begin, const T* end)
     std::cout << '\n';
 }
 
-
-/* Iterator invalidation (dangling iterators)
-
-- Much like pointers and references, iterators can be left “dangling” 
-  if the elements being iterated over change address or are destroyed.
-*/
-
-
-#include <array>
-
-int main()
+void func1()
 {
-    // Standard library iterators
     std::array array{ 1, 2, 3 };
 
     auto begin{ array.begin() };
@@ -52,8 +42,17 @@ int main()
     auto begin2{ std::begin(array) };
     auto end2{ std::end(array) };
     print(begin2, end2);
+}
+
+/* Iterator invalidation (dangling iterators)
+
+- Much like pointers and references, iterators can be left “dangling” 
+  if the elements being iterated over change address or are destroyed.
+*/
 
 
+int main()
+{
     return 0;
 }
 
