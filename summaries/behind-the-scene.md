@@ -395,13 +395,6 @@
     ```
 * **Lvalue-to-rvalue conversion**: assignment operations `=` expects the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
 * Unlike the other **literals** (which are rvalues), a C-style string **literal** is an lvalue because C-style strings decay to a pointer.
-* Pointer arithmetic:
-    * Given some pointer `ptr` that is an `int*`, and assume `int` is 4 bytes:
-        * `ptr + 1` will return the address that is 4 bytes after `ptr`.
-        * `ptr - 1` will return the address that is 4 bytes before `ptr`.
-        * `ptr[n]` is the syntax equivalent to the expression `*((ptr) + (n))`
-        
-        => this is why C-style array allow signed integer to be used as index. For example: `ptr[-1]`.
 
 
 ## References and Pointers
@@ -465,6 +458,108 @@
     * A *const pointer** is a pointer that can’t be reseated (changed to point to another object).
     * You can have a **const pointer to a const**.
 * Actually, references are normally implemented by the compiler using pointers. Therefore, we can conclude that C++ really passes everything by value!
+* Pointer arithmetic:
+    * Given some pointer `ptr` that is an `int*`, and assume `int` is 4 bytes:
+        * `ptr + 1` will return the address that is 4 bytes after `ptr`.
+        * `ptr - 1` will return the address that is 4 bytes before `ptr`.
+        * `ptr[n]` is the syntax equivalent to the expression `*((ptr) + (n))`
+        
+        => this is why C-style array allow signed integer to be used as index. For example: `ptr[-1]`.
+* ✅ **Void pointer** (aka **generic pointer**): a special type of pointer that can be pointed at objects of any data type!
+    * must first be cast to another pointer type before the dereference.
+    ```C++
+    int nValue {};
+    double dValue { 5.5 };
+
+    void* pValue {};
+    pValue = &nValue;   // okay
+    pValue = &dValue;   // okay 
+
+    std::cout << *(static_cast<double*>(pValue)) << '\n';   // okay, must cast before dereference
+    ```
+
+
+## Function pointer
+
+* Much like variables, functions live at an assigned address in memory (making them lvalues)
+    ```C++
+    // code for foo starts at memory address 0x002717f0
+    int foo() { return 5; }
+
+    foo(); // jump to address 0x002717f0
+    ```
+* Pointers to functions (⚠️ ugly syntax):
+    ```C++
+    int goo() { return 6; }
+    int hoo(int x) { return x; }
+
+    int (*fcnPtr)();
+
+    int (*fcnPtr2)(){ &foo };       // fcnPtr2 points to function foo
+    int (*fcnPtr4)(int) { &hoo };   // fcnPtr4 points to function hoo
+
+    auto fcnPtr9 { &hoo };
+    ```
+* Type of the function pointer must match the type of the function:
+    ```C++
+    int hoo(int x) { return x; }
+
+    int (*fcnPtr3)() { &hoo }; // error
+    int (*fcnPtr4)(int) { &hoo }; // okay
+    ```
+* When a function is referred to by name (without parenthesis), C++ will implicitly convert it into a function pointer:
+    ```C++
+    int hoo(int x) { return x; }
+
+    int (*fcnPtr5)(int) { hoo }; // okay, automatically convert hoo to a function pointer
+    void* fcnPtr6 { hoo };        // error
+    ```
+* Calling a function using a function pointer: 2 ways: explicitly dereference and implicitly dereference
+    ```C++
+    int (*fcnPtr2)(){ &foo }; // fcnPtr2 points to function foo
+
+    (*fcnPtr2)(); // explicitly dereference
+    fcnPtr2();    // implicitly dereference
+    ```
+* Callback functions:
+    ```C++
+    void loo(int x, int y, bool (*fcnPtr)(int, int))
+    // void loo(int x, int y, bool fcnPtr(int, int))     equivalent, but less preferred
+    {
+        fcnPtr(x, y);
+    }
+
+    bool moo(int x, int y) { return x > y; }
+
+    loo(3, 4, &moo); // okay
+    loo(3, 4, moo);  // okay
+    ```
+* Making function pointers prettier:
+    * Type alias:
+        ```C++
+        using fcnPtrType = bool (*)(int, int);
+
+        void loo2(int x, int y, fcnPtrType fcnPtr) {}
+        ```
+    * Using `std::function`:
+        ```C++
+        void loo3(int x, int y, std::function<bool(int, int)> fcnPtr) {}
+        ```
+
+        ```C++
+        int soo() {}
+        int zoo(int x) {}
+
+        std::function<int()> fcnPtr7 { &soo }; // function pointer that return in int and takes no arguments
+        std::function fcnPtr8 { &zoo }; // okay, CTAD
+        ```
+
+        ```C++
+        using fcnPtrType2 = std::function<bool(int, int)>;  // type alias
+        ```
+        
+        Note that `std::function` only allows calling the function via implicit dereference (e.g. `fcnPtr()`), not explicit dereference (e.g. `(*fcnPtr)()`).
+
 
 
 ## Low-level const and top-level const
