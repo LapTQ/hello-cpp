@@ -1,22 +1,64 @@
 /* Multidimensional C-style arrays
 */
 
+void func1()
+{
+    int a[3][5] {
+    { 1, 2, 3, 4, 5 },     // row 0
+    { 6, 7, 8, 9, 10 },    // row 1
+    { 11, 12, 13, 14, 15 } // row 2
+    };
+
+    int b[3][5]
+    {
+    { 1, 2 },          // row 0 = 1, 2, 0, 0, 0
+    { 6, 7, 8 },       // row 1 = 6, 7, 8, 0, 0
+    { 11, 12, 13, 14 } // row 2 = 11, 12, 13, 14, 0
+    };
+
+    b[2][3] = 7;
+
+    int c[2][3][4]; // 2 x (3 x 4 array of int)
+}
+
 
 /* Multidimensional std::array
 
 - There is no standard library multidimensional array class in C++.
 */
 
+#include <iostream>
+#include <array> // for std::array
+
+void func2()
+{
+    using Array2dint34 = std::array<std::array<int, 4>, 3>; // backward of 3x4
+    Array2dint34 arr {
+        {  // note double braces
+            { 1, 2, 3, 4 },
+            { 5, 6, 7, 8 },
+            { 9, 10, 11, 12 }
+        }
+    };
+}
+
 
 /* Making two-dimensional std::array easier using an alias templates
 */
 
-#include <iostream>
-#include <array> // for std::array
-
 template <typename T, std::size_t Row, std::size_t Col>
 using Array2d = std::array<std::array<T, Col>, Row>;
 
+void func3()
+{
+    Array2d<int, 3, 4> arr2 {
+        {
+            { 1, 2, 3, 4 },
+            { 5, 6, 7, 8 },
+            { 9, 10, 11, 12 }
+        }
+    };
+}
 
 /* Getting the dimensional lengths of a two-dimensional array
 
@@ -72,57 +114,19 @@ public:
     int length() const { return static_cast<int>(Row * Col); }
 };
 
-
-int main()
+void func4()
 {
-    // Multidimensional C-style arrays
-    int a[3][5] {
-    { 1, 2, 3, 4, 5 },     // row 0
-    { 6, 7, 8, 9, 10 },    // row 1
-    { 11, 12, 13, 14, 15 } // row 2
-    };
-
-    int b[3][5]
-    {
-    { 1, 2 },          // row 0 = 1, 2, 0, 0, 0
-    { 6, 7, 8 },       // row 1 = 6, 7, 8, 0, 0
-    { 11, 12, 13, 14 } // row 2 = 11, 12, 13, 14, 0
-    };
-
-    b[2][3] = 7;
-
-    int c[2][3][4]; // 2 x (3 x 4 array of int)
-
-
-    // Multidimensional std::array
-    using Array2dint34 = std::array<std::array<int, 4>, 3>; // backward of 3x4
-    Array2dint34 arr {
-        {  // note double braces
-            { 1, 2, 3, 4 },
-            { 5, 6, 7, 8 },
-            { 9, 10, 11, 12 }
-        }
-    };
-
-
-    // Making two-dimensional std::array easier using an alias templates
-    Array2d<int, 3, 4> arr2 {
-        {
-            { 1, 2, 3, 4 },
-            { 5, 6, 7, 8 },
-            { 9, 10, 11, 12 }
-        }
-    };
-
-
-    // Flatting a two-dimensional array
     ArrayFlat2d<int, 3, 4> arrFlat {
         1, 2, 3, 4,
         5, 6, 7, 8,
         9, 10, 11, 12 
     };
     ArrayView2d<int, 3, 4> arrView { arrFlat };
+}
 
+
+int main()
+{
     return 0;
 }
 

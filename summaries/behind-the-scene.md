@@ -1479,6 +1479,7 @@
             auto* s2{ "Alex" }; // const char*
             auto& s3{ "Alex" }; // const char(&)[5]
             ```
+* Multidimensional arrays: *see code in github lesson*.
 
 
 
