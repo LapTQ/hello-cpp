@@ -476,6 +476,43 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ⚠️ Avoid non-const C-style string objects. ✅ use `std::string`.
     * 👎️ Avoid C-style string symbolic constants. ✅ use `std::string_view`.
 
+## Memory allocation
+
+* ❌ Don't forget to deallocate **dynamically allocated** memory when you're done with it.
+* Dynamic arrays:
+    * ❌ Don't use dynamically allocated array. C++ does not provide a built-in way to resize an array that has already been allocated. We'll need to allocate a new array, copy the elements, and delete the old array => Error prone, especially when the elements type is a class. 
+    * ✅ Use a `std::vector`
+* ✅ If your class object is holding any resources (e.g. dynamic memory, or a file or database handle), the destructor is a good place to clean up those resources.
+    ```C++
+    class IntArray
+    {
+    private:
+        int* m_array{};
+
+    public:
+        IntArray(int length) // constructor
+        {
+            assert(length > 0);
+
+            m_array = new int[static_cast<std::size_t>(length)]{};
+        }
+
+        ~IntArray() // destructor
+        {
+            // Dynamically delete the array we allocated earlier
+            delete[] m_array;
+        }
+    };
+
+    {
+        IntArray ar ( 10 ); // allocate 10 integers
+    } // ar is destroyed here, so the ~IntArray() destructor function is called here
+    ```
+
+
+
+
+
 
 Just like function templates, class templates are typically defined in header files.
 

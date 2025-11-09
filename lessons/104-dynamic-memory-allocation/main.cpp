@@ -26,7 +26,23 @@ Dynamic memory allocation:
 
 
 /* Dynamically allocating "single" variables
+*/
 
+void func1()
+{
+    int* ptr{ new int };    // dynamically allocate an integer and assign the address to ptr
+    int* ptr1{ new int (5) }; // dynamically allocate + direct initialization
+    int* ptr2{ new int { 6 } }; // dynamically allocate + uniform initialization
+
+    delete ptr;     // return the memory to the OS
+    ptr = nullptr;
+    delete ptr1;
+    ptr1 = nullptr;
+    delete ptr2;
+    ptr2 = nullptr;
+}
+
+/*
 - Don't forget to deallocate memory when you're done with it.
     + The OS is then free to reassign that memory to another application. 
     + We don't actually delete the `ptr` variable, 
@@ -37,6 +53,16 @@ Dynamic memory allocation:
 /* Deallocating memory may create multiple dangling pointers
 */
 
+void func2()
+{
+    int* ptr3{ new int{} };
+    int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
+    delete ptr3; // ptr3 and otherPtr are now dangling pointers.
+    ptr3 = nullptr;
+    // however, otherPtr is still a dangling pointer!
+    
+}
+
 
 /* Operator new can fail
 
@@ -46,6 +72,15 @@ Dynamic memory allocation:
     If this exception isn’t properly handled, the program will simply crash.
 - Alternatively, we can use return a null pointer by adding the constant std::nothrow:
 */
+
+#include <cstddef>
+#include <cassert>
+#include <iostream>
+
+void func3()
+{
+    int* value { new (std::nothrow) int };
+}
 
 
 /* Memory leaks
@@ -80,9 +115,27 @@ void exampleMemoryLeak2()
 - In these lessons, we’ll be dynamically allocating C-style arrays.
 */
 
+void func4()
+{
+    std::size_t length{ 10 };   // not constepxr
+    int* array{ new int[length]{} }; 
+    array[0] = 5;
+    delete[] array;
+}
+
 
 /* Initializing dynamically allocated arrays
 */
+
+void func5()
+{
+    int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
+    auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
+    int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
+    delete[] array2;
+    delete[] array3;
+    delete[] array4;
+}
 
 
 /* Resizing arrays
@@ -106,11 +159,6 @@ Solutions:
   the destructor is a good place to clean up those resources.
 */
 
-
-#include <cstddef>
-#include <cassert>
-#include <iostream>
-
 class IntArray
 {
 private:
@@ -131,56 +179,16 @@ public:
 	}
 };
 
+void func6()
+{
+    IntArray ar ( 10 ); // allocate 10 integers
+} // ar is destroyed here, so the ~IntArray() destructor function is called here
+
 
 int main()
 {
-    // Dynamically allocating "single" variables
-    int* ptr{ new int }; 
-    int* ptr1{ new int (5) }; // use direct initialization
-    int* ptr2{ new int { 6 } }; // use uniform initialization
-
-    delete ptr;     // return the memory to the OS
-    ptr = nullptr;
-    delete ptr1;
-    ptr1 = nullptr;
-    delete ptr2;
-    ptr2 = nullptr;
-
-
-    // Deallocating memory may create multiple dangling pointers
-    int* ptr3{ new int{} };
-    int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
-    delete ptr3; // ptr3 and otherPtr are now dangling pointers.
-    ptr3 = nullptr;
-    // however, otherPtr is still a dangling pointer!
-    
-
-    // Operator new can fail
-    int* value { new (std::nothrow) int };
-
-
-    // Dynamically allocating arrays
-    std::size_t length{ 10 };   // not constepxr
-    int* array{ new int[length]{} }; 
-    array[0] = 5;
-    delete[] array;
-
-
-    // Initializing dynamically allocated arrays
-    int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
-    auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
-    int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
-    delete[] array2;
-    delete[] array3;
-    delete[] array4;
-
-
-    // Destructor
-    IntArray ar ( 10 ); // allocate 10 integers
-
     return 0;
-} // ar is destroyed here, so the ~IntArray() destructor function is called here
-
+}
 
 /* References
 

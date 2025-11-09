@@ -536,6 +536,12 @@
     auto y { *x }; // int, not a pointer
     auto* z { *x }; // compile error: initializer not a pointer
     ```
+* C-style string type deduction:
+    ```C++
+    auto s1{ "Alex" };  // const char*
+    auto* s2{ "Alex" }; // const char*
+    auto& s3{ "Alex" }; // const char(&)[5]
+    ```
     
 * A function with `auto` return type needs to be fully defined before it can be called (a forward declaration is not enough). If we need a function that can be forward declared we have to be explicit about the return type:
     ```C++
@@ -941,11 +947,12 @@
 
 ## Destructor
 
-* Destructor: a special member function that is called automatically when an 
-  object of a non-aggregate class type is destroyed.
-    * The destructor must have the same name as the class, preceded by a tilde (`~`).
-    * The destructor can not take arguments.
-    * The destructor has no return type.
+* Destructor: a special member function that is called automatically when an object of a non-aggregate class type is destroyed. For example:
+    * when an object goes out of scope normally
+    * when a dynamically allocated object is explicitly deleted using the `delete` keyword
+* The destructor must have the same name as the class, preceded by a tilde (`~`).
+* The destructor can not take arguments.
+* The destructor has no return type.
 * ⚠️ `std::exit()` can be used to terminate your program immediately. But it does not clean up local variables => no destructors will be called. Be wary if you’re relying on your destructors to do necessary cleanup work (closing a file, releasing memory, writing to a log file, etc.).
 
 
@@ -1423,12 +1430,6 @@
             * Case 2:
                 * places the string “Orange” into read-only memory somewhere.
                 * initializes the pointer with the address of the string.
-        * Type deduction:
-            ```C++
-            auto s1{ "Alex" };  // const char*
-            auto* s2{ "Alex" }; // const char*
-            auto& s3{ "Alex" }; // const char(&)[5]
-            ```
 * Multidimensional arrays: *see code in github lesson*.
 * Iterate through an array: Different ways:
     * using indexes
@@ -1507,6 +1508,76 @@
             ```
         * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
 
+## Memory allocation
+
+* C++ supports three basic types of memory allocation:
+    * **Static** memory allocation: happens for static and global variables.
+        * allocated once when your program is run, and persists throughout the life of your program.
+    * **Automatic** memory allocation: happens for function parameters and local variables.
+        * allocated when the relevant block is entered, and freed when the block is exited.
+
+        Both static and automatic allocation have things in common:
+            * The size of the variable must be known at compile time.
+            * 👍 Memory allocation and deallocation happens **automatically**.
+            * most normal variables are allocated in **stack** memory (quite small).
+    * **Dynamic** memory allocation:
+        * a way to request memory from the OS when needed.
+        * ⚠️ we must dispose the allocated memory by ourselves.
+        * use **heap** memory (generally slower than stack memory).
+* Dynamic memory allocation:
+    * allocating "single" variables:
+        ```C++
+        int* ptr{ new int };    // dynamically allocate an integer and assign the address to ptr
+        delete ptr;     // return the memory to the OS
+        ptr = nullptr;
+
+        // dynamically allocate and initialize
+        int* ptr1{ new int (5) }; // direct initialization
+        int* ptr2{ new int { 6 } }; // uniform initialization
+        delete ptr1;
+        ptr1 = nullptr;
+        delete ptr2;
+        ptr2 = nullptr;
+        ```
+    * allocating arrays (demo with C-style arrays):
+        ```C++
+        std::size_t length{ 10 };   // not constepxr
+        int* array{ new int[length]{} }; 
+        delete[] array;
+
+        // dynamically allocate and initialize
+        int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
+        auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
+        int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
+        delete[] array2;
+        delete[] array3;
+        delete[] array4;
+        ```
+    * ⚠️ Deallocating memory may create multiple dangling pointers:
+        ```C++
+        int* ptr3{ new int{} };
+        int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
+        delete ptr3; // ptr3 and otherPtr are now dangling pointers.
+        ptr3 = nullptr;
+        // however, otherPtr is still a dangling pointer!
+        ```
+    * ⚠️ allocation can fail: in rare circumstances, the OS may not have any memory to grant. By default, a bad_alloc exception is thrown and the program will crash. ✅ Alternatively, we can return a null pointer by adding `std::nothrow`:
+        ```C++
+        int* value { new (std::nothrow) int };
+        ```
+    * We don't actually delete the `ptr` variable, it can be assigned a new value (e.g., nullptr) just like any other variable.
+    * ⚠️ **Memory leaks**: when your program loses the address of the memory before giving it back to the OS => The OS cannot use this memory.
+        ```C++
+        {
+            int* ptr{ new int{} };
+        } // ptr goes out of scope, we lost the address of the memory
+
+        {
+            int value = 5;
+            int* ptr{ new int{} }; // allocate memory
+            ptr = &value; // old address lost
+        }
+    * 
 
 
 
