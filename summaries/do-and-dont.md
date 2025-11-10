@@ -476,6 +476,10 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ⚠️ Avoid non-const C-style string objects. ✅ use `std::string`.
     * 👎️ Avoid C-style string symbolic constants. ✅ use `std::string_view`.
 
+## Ellipsis
+
+* ❌ Ellipsis are dangerous, don't use them
+
 ## Memory allocation
 
 * ❌ Don't forget to deallocate **dynamically allocated** memory when you're done with it.

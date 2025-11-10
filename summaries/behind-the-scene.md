@@ -1608,6 +1608,10 @@
 * `argv`: C-style array of char pointers (the length of this array is `argc`), each of which points to a C-style string.
 * To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet)
 
+## Ellipsis
+
+* 👍 Ellipsis allows us to pass a **variable** number of parameters to a function. (See code in github lesson). 
+
 ## Memory allocation
 
 * Overview of memory:
