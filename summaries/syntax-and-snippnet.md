@@ -1121,3 +1121,100 @@ int main(int argc, char* argv[])
     return 0;
 }
 ```
+
+
+## Lambdas
+
+Lambda can have no name:
+```C++
+int x{ 7 };
+int y{};
+
+y = [](int a) -> int { return a * 2; }(x);  // y = 14
+```
+
+Give lambda a name: 3 options
+```C++
+// Option 1: using auto
+void func2()
+{
+    int x{ 7 };
+    int y{};
+
+    auto doubleValue{
+        [](int a) 
+        { 
+            return a * 2; 
+        }
+    };
+    y = doubleValue(x);  // y = 14
+}
+
+// Option 2: a regular function pointer, only work for lambda with no capture
+void func3()
+{
+    int (*doubleValue2)(int) {
+        [](int a) 
+        { 
+            return a * 2; 
+        }
+    };
+}
+
+// Option 3: using std::function
+#include <functional>
+void func4()
+{
+    std::function<int(int)> doubleValue3{
+        [](int a) 
+        { 
+            return a * 2; 
+        }
+    };
+}
+```
+=> use auto
+
+Pass a lambda to a function: 4 options
+```C++
+#include <functional>
+
+// Option 1: use std::function
+void sol1(int x, const std::function<int(int)>& fcn)    // add some overhead to implicitly covert lambda to std::function
+{
+    fcn(x);
+}
+
+// Option 2: use template
+template <typename T>
+void sol2(int x, T& fcn)
+{
+    fcn(x);
+}
+
+// (C++20) Option 3: using auto
+void sol3(int x, const auto& fcn)
+{
+    fcn(x);
+}
+
+// Option 4: only work for lambda with no capture
+void sol4(int x, int (*fcn)(int))
+{
+    fcn(x);
+}
+
+void func5()
+{
+    int x{ 7 };
+    auto doubleValue{
+        [](int a) {  return a * 2; }
+    };
+
+    sol1(x, doubleValue);
+    sol2(x, doubleValue);
+    sol3(x, doubleValue);
+    sol4(x, doubleValue);
+}
+```
+=> use `std::function` (Option 1) or template (Option 2) 

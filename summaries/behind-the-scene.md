@@ -1606,7 +1606,8 @@
 
 * `argc`: the number of arguments passed to the program, always be at least 1.
 * `argv`: C-style array of char pointers (the length of this array is `argc`), each of which points to a C-style string.
-* To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet)
+* To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet).
+
 
 ## Ellipsis
 
@@ -1713,7 +1714,23 @@
         }
     
 
+## Lambdas
 
+* **Functors** are objects that contain an overloaded `operator()` that make them callable.
+* **Lambdas** are a special kind of functor.
+* Lambdas aren’t functions, which is part of how they avoid the limitation of C++ not supporting nested functions.
+* See syntax-and-snippnet.
+* Lambdas can have no name if we defined a it right where it was needed. This use is called a **function literal**:
+    ```C++
+    int x{ 7 };
+    int y{};
+    y = [](int a) -> int { return a * 2; }(x);  // y = 14
+    ```
+* (C++14) Lamdas’re allowed to use `auto` for parameters. A unique lambda will be generated for each different type that `auto` resolves to.
+* In lambda, static variables work exactly the same as regular functions.
+* (C++17) Lambdas are implicitly constexpr if:
+    1. They have no captures, or all captures must be constexpr.
+    2. Functions called by the lambda must be constexpr.
 
 
 
