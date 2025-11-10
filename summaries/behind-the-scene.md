@@ -494,11 +494,10 @@
     int hoo(int x) { return x; }
 
     int (*fcnPtr)();
-
     int (*fcnPtr2)(){ &foo };       // fcnPtr2 points to function foo
     int (*fcnPtr4)(int) { &hoo };   // fcnPtr4 points to function hoo
 
-    auto fcnPtr9 { &hoo };
+    auto fcnPtr9 { &hoo };  // int (*)(int)
     ```
 * Type of the function pointer must match the type of the function:
     ```C++
@@ -1605,6 +1604,36 @@
 
 ## Memory allocation
 
+* Overview of memory:
+    * The memory that a program uses is typically divided into areas, called ***segments***:
+        * code segment (text segment): stores compiled program
+        * bss segment (uninitialized data segment): stores zero-initialized global and static variables
+        * data segment (initialized data segment): stores initialized global and static variables
+        * heap: stores dynamically allocated variables
+        * call stack: stores function parameters, local variables, and other function-related information
+    * The call stack:
+        * When the program encounters a function call:
+            1. A **stack frame** is constructed and pushed on the stack. The stack frame consists of:
+                * The address of the instruction beyond the function call (called the **return address**) => where to return to after the called function exits.
+                * All function arguments.
+                * Memory for any local variables.
+                * Saved copies of any registers modified by the function that need to be restored when the function returns.
+            2. The CPU jumps to the function’s start point.
+            3. The instructions inside of the function begin executing.
+        * When the function terminates:
+            1. Registers are restored from the call stack
+            2. The stack frame is popped off the stack. This frees the memory for all local variables and arguments.
+            3. The return value is handled.
+            4. The CPU resumes execution at the return address.
+        * All memory allocated on the stack is known at compile time. Consequently, this memory can be accessed directly through a variable.
+        * ⚠️ Stack overflow:
+            * The stack has a limited size. E.g., default 1MB on Visual Studio, 8MB with g++/Clang for Unix.
+            * Stack overflow is generally due to allocating too many variables or nested function calls on the stack.
+            ```C++
+            int stack[10000000];
+            std::cout << "hi" << stack[0];
+            // Segmentation fault, tries to allocate a huge (likely 40MB) array on the stack
+            ```
 * C++ supports three basic types of memory allocation:
     * **Static** memory allocation: happens for static and global variables.
         * allocated once when your program is run, and persists throughout the life of your program.
