@@ -1718,8 +1718,7 @@
 
 * **Functors** are objects that contain an overloaded `operator()` that make them callable.
 * **Lambdas** are a special kind of functor.
-* Lambdas aren’t functions, which is part of how they avoid the limitation of C++ not supporting nested functions.
-* See syntax-and-snippnet.
+* ✅ Lambdas aren’t functions, which is part of how they avoid the limitation of C++ not supporting nested functions.
 * Lambdas can have no name if we defined a it right where it was needed. This use is called a **function literal**:
     ```C++
     int x{ 7 };
@@ -1731,7 +1730,7 @@
 * (C++17) Lambdas are implicitly constexpr if:
     1. They have no captures, or all captures must be constexpr.
     2. Functions called by the lambda must be constexpr.
-
+* See syntax-and-snippnet.
 
 
 
