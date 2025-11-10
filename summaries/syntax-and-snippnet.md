@@ -1069,3 +1069,55 @@ std::cout << "You entered: " << rolls << '\n';
 ## Standard library algorithms
 
 See code in github lesson and references.
+
+
+## Command line arguments
+
+* `std::stringstream` works much like `std::cin`.
+
+```C++
+#include <iostream>
+#include <sstream> // for std::stringstream
+#include <string>
+
+int main(int argc, char* argv[])
+{
+    // Command line arguments
+    std::cout << "There are " << argc << " arguments:\n";
+    for (int count{ 0 }; count < argc; ++count)
+        std::cout << count << " " << argv[count] << '\n';
+
+
+    // Dealing with numeric arguments
+    if (argc <= 1)
+	{
+		// On some operating systems, argv[0] can end up as an empty string instead of the program's name.
+		// We'll conditionalize our response on whether argv[0] is empty or not.
+		if (argv[0])
+			std::cout << "Missing argument. Usage: " << argv[0] << " <number>" << '\n';
+		else
+			std::cout << "Missing argument. Usage: <program name> <number>" << '\n';
+
+		return 1;
+	}
+
+	std::stringstream convert{}; // set up a stringstream variable named convert, initialized with the input from argv[1]
+
+	std::string mystr{};
+    convert << argv[1]; // add argv[1] to the stringstream
+	if (!(convert >> mystr)) // do the conversion
+		mystr = ""; // if conversion fails
+    
+    int myint{};
+    convert.clear(); // clear any errors
+    convert.str(""); // clear the contents of the stringstream
+    convert << argv[2];
+    if (!(convert >> myint))
+        myint = 0;
+
+    std::cout << "Got string: " << mystr << '\n';
+	std::cout << "Got integer: " << myint << '\n';
+
+    return 0;
+}
+```

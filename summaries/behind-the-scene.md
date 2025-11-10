@@ -1602,6 +1602,12 @@
             ```
         * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
 
+## Command line arguments
+
+* `argc`: the number of arguments passed to the program, always be at least 1.
+* `argv`: C-style array of char pointers (the length of this array is `argc`), each of which points to a C-style string.
+* To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet)
+
 ## Memory allocation
 
 * Overview of memory:
@@ -1701,7 +1707,7 @@
             int* ptr{ new int{} }; // allocate memory
             ptr = &value; // old address lost
         }
-    * 
+    
 
 
 
