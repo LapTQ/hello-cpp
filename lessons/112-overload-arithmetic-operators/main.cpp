@@ -44,6 +44,19 @@ Cents operator+(int value, const Cents& c1)
     return value + c1.m_cents;
 }
 
+void func1()
+{
+	Cents cents1{ 6 };
+	Cents cents2{ 8 };
+
+	Cents centsSum{ cents1 + cents2 }; // 14
+    Cents centsSum2{ cents1 + 8 }; // 14
+    Cents centsSum3{ 6 + cents2 }; // 14
+    std::cout << "I have " << centsSum.getCents() << " cents.\n";
+    std::cout << "I have " << centsSum2.getCents() << " cents.\n";
+    std::cout << "I have " << centsSum3.getCents() << " cents.\n";
+}
+
 
 /* Using normal functions 
 
@@ -54,6 +67,15 @@ Cents operator+(int value, const Cents& c1)
 Cents operator-(const Cents& c1, const Cents& c2)
 {
 	return { c1.getCents() - c2.getCents() };
+}
+
+void func2()
+{
+	Cents cents1{ 6 };
+	Cents cents2{ 8 };
+
+	Cents centsSub{ cents1 - cents2 }; // -2
+	std::cout << "I have " << centsSub.getCents() << " cents.\n";
 }
 
 
@@ -79,31 +101,16 @@ Cents3 Cents3::operator+(int value) const
 	return Cents3{ m_cents + value };
 }
 
+void func3()
+{
+	Cents3 cents3{ 6 };
+	Cents3 cents4{ cents3 + 8 }; // 14
+
+	std::cout << "I have " << cents4.getCents() << " cents.\n";
+}
 
 int main()
 {
-	Cents cents1{ 6 };
-	Cents cents2{ 8 };
-
-	// Using friend functions
-	Cents centsSum{ cents1 + cents2 }; // 14
-    Cents centsSum2{ cents1 + 8 }; // 14
-    Cents centsSum3{ 6 + cents2 }; // 14
-    std::cout << "I have " << centsSum.getCents() << " cents.\n";
-    std::cout << "I have " << centsSum2.getCents() << " cents.\n";
-    std::cout << "I have " << centsSum3.getCents() << " cents.\n";
-
-	// Using normal functions
-	Cents centsSub{ cents1 - cents2 }; // -2
-	std::cout << "I have " << centsSub.getCents() << " cents.\n";
-
-
-	// Using member functions
-	Cents3 cents3{ 6 };
-	Cents3 cents4{ cents3 + 8 }; // 14
-	std::cout << "I have " << cents4.getCents() << " cents.\n";
-
-	return 0;
 }
 
 /* 

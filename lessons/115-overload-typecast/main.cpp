@@ -36,6 +36,15 @@ void printCents(Cents cents)
     std::cout << cents.getCents() << " cents\n";
 }
 
+void func1()
+{
+    Cents cents{ 7 };
+    std::cout << static_cast<int>(cents) << " cents\n";
+
+    Dollars dollars{ 9 };
+    printCents(dollars);
+}
+
 
 /*  Explicit typecasts
 
@@ -55,21 +64,17 @@ public:
     explicit operator Cents() const { return Cents{ m_dollars * 100 }; }
 };
 
-
-int main()
+void func2()
 {
-    Cents cents{ 7 };
-    std::cout << static_cast<int>(cents) << " cents\n";
-
-    Dollars dollars{ 9 };
-    printCents(dollars);
-
-
-    // Explicit typecasts
     Dollars2 dollars2{ 9 };
     printCents(dollars2); // error: no matching function for call to 'printCents'
     printCents(static_cast<Cents>(dollars2)); // 900 cents
 
+}
+
+
+int main()
+{
     return 0;
 }
 

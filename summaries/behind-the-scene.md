@@ -776,7 +776,7 @@
             }
         };
         ```
-    * **Implicit default constructor**: If a non-aggregate class type object has no user-declared constructors,  the compiler will generate a public default constructor (with no member initializer list, no statements in the body of the constructor).
+    * **Implicit default constructor**: If a non-aggregate class type object has no user-declared constructors, the compiler will generate a public default constructor (with no member initializer list, no statements in the body of the constructor).
     * If all of the parameters in a constructor have default arguments, the constructor is a default constructor.
         ```C++
         class Foo6
@@ -1186,7 +1186,7 @@
             std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
             ```
     * `std::vector<bool>`:
-        * ⚠️ It's not a real container and can breaks generic code. The C++ standard explicitlycalls out vector<bool> as a special container where each bool uses only one bit of space rather than one byte as a normal bool would.
+        * ⚠️ It's not a real container and can breaks generic code. The C++ standard explicitly calls out `vector<bool>` as a special container where each bool uses only one bit of space rather than one byte as a normal bool would.
             * 👎️ => you can't take the address of a bit within a byte.
             * 👎️ => things such as operator[] can't return a bool&.
             * 👎️ => you can't assign its address to a bool* like you could with the other "normal" container.
@@ -1813,6 +1813,16 @@
         auto printWilly2{ print1("Willy") };
         printWilly2(); // okay
         ```
+
+
+## Overloading operators
+
+* 3 different ways:
+    1. Using friend functions
+    2. Using normal functions
+    3. Using member functions
+* Overload io operators: (See code in github lesson)
+* Overload subscript operator: (See code in github lesson)
 
 
 

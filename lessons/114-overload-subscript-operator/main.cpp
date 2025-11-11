@@ -27,6 +27,17 @@ public:
     }
 };
 
+void func1()
+{
+    IntList list{};
+    list[2] = 3; // okay: calls non-const version of operator[]
+    std::cout << list[2] << '\n';
+
+    const IntList clist{};
+    // clist[2] = 3; // compile error: clist[2] returns const reference, which we can't assign to
+    std::cout << clist[2] << '\n';
+}
+
 
 /* Removing duplicate code between const and non-const overloads
 
@@ -58,15 +69,6 @@ public:
 
 int main()
 {
-    // Overloaded operator[] for const objects
-    IntList list{};
-    list[2] = 3; // okay: calls non-const version of operator[]
-    std::cout << list[2] << '\n';
-
-    const IntList clist{};
-    // clist[2] = 3; // compile error: clist[2] returns const reference, which we can't assign to
-    std::cout << clist[2] << '\n';
-
     return 0;
 }
 

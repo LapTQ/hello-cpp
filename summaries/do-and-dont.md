@@ -517,6 +517,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 * ❌ Avoid mutable lambdas. They are hard to debug.
 
+## Overloading operators
+
+* ✅ With binary operators that don’t modify the left operand (e.g. `operator+`), the **normal** or **friend** function is typically preferred.
+* ✅ With binary operators that do modify the left operand (e.g. `operator+=`), the **member** function is typically preferred.
+* ✅ With unary operators, **member** function is typically preferred.
+
 
 
 
