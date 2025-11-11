@@ -1730,7 +1730,89 @@
 * (C++17) Lambdas are implicitly constexpr if:
     1. They have no captures, or all captures must be constexpr.
     2. Functions called by the lambda must be constexpr.
-* See syntax-and-snippnet.
+* Lambda **captures**:
+    * 👎️ Unlike nested blocks, where any identifier accessible in the outer block is accessible in the nested block. Lambdas can only access objects defined outside the lambda if:
+        * they have static (or thread local) storage duration (e.g., global variables and static locals)
+        * or, they are constexpr (explicitly or implicitly)
+        * or, they are listed in **capture clause**.
+    * ⚠️ The captured variables of a lambda are **copies** of the outer scope variables.
+        ```C++
+        int y{ 5 };
+        [y]() { } ();  // y is cloned
+        ```
+    * ⚠️ 
+        * At **compile** time, when the compiler encounters a lambda definition, it creates a custom object definition for the lambda. Each captured variable becomes a data member of the object.
+        * At runtime, when the lambda definition is encountered, the lambda object is instantiated. The members of the lambda are initialized at that point and ⚠️ persisted across multiple calls to the lambda!
+    * Captures are const by default:
+        ```C++
+        [y]() { ++y } (); // error, inside the lambda, y is const.
+        ```
+    * *Mutable* captures:
+        ```C++
+        int y{ 5 };
+
+        auto increment {[y]() mutable
+        {
+            ++y;
+            std::cout << y << '\n';
+        }};
+        increment();    // 6, y is modified inside the lambda. But it's a copy of the outer y.
+        increment();    // 7, y is persisted across multiple calls to the lambda
+
+        std::cout << y << '\n'; // 5, y is not modified outside the lambda.
+        ```
+    * Capture by reference
+        ```C++
+        int y{ 5 };
+        [&y]() { ++y; } ();
+        std::cout << y << '\n'; // 6, y is modified.
+        ```
+    * Multiple captured variables: 
+        * This can include a mix of variables captured by value or by reference
+            ```C++
+            [x, &y]() { } ();
+            ```
+        * **Default captures** capture all variables.
+            * To capture all variables by value, use `=`.
+            * To capture all variables by reference, use `&`.
+            * can be mixed with normal captures.
+
+            ```C++
+            int a{ 1 }, b{ 2 }, c{ 3 };
+            auto d{ [=]() { return a + b + c; } () };   // a, b, c are captured by value.            
+            auto e{ [&, a, b]() { return a + b + c; } () };   // a, b are captured by value, c is captured by reference.
+    * Defining new variables in the lambda-capture:
+        * The newly defined variable is the same for every call. But if a lambda is "mutable" and modifies a variable that was defined in the capture, the original value will be overridden.
+            ```C++
+            int x{ 2 };
+            int y{ 5 };
+
+            auto f { [new_var{ x * y }]() mutable { new_var++; } };
+            
+            f();    // new_var is 11
+            f();    // new_var is 12
+    * ⚠️ Dangling captured variables
+        ```C++
+        // returns a lambda
+        auto print1(const std::string& name)
+        {
+            return [&]() {          // Capture name by reference
+                std::cout << name;  // Undefined behavior
+            };
+        }
+
+        auto print2(const std::string& name)
+        {
+            return [=]() {          // Capture name by value
+                std::cout << name;
+            };
+        }
+
+        auto printWilly1{ print1("Willy") }; // the temporary string literal "Willy" dies at the end of this command
+        printWilly1(); // `name` is a dangling reference 
+        auto printWilly2{ print1("Willy") };
+        printWilly2(); // okay
+        ```
 
 
 

@@ -1125,6 +1125,14 @@ int main(int argc, char* argv[])
 
 ## Lambdas
 
+Syntax:
+```
+[ captureClause ] ( parameters ) -> returnType
+{
+    statements;
+}
+```
+
 Lambda can have no name:
 ```C++
 int x{ 7 };

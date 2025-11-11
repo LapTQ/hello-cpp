@@ -10,8 +10,24 @@
 
 /* The capture clause
 
-- Multiple variables can be captured by separating them with a comma.
+- The capture clause is used to (indirectly) give a lambda access to variables available in the surrounding scope that it normally would not have access to.
+- The captured variables of a lambda are copies of the outer scope variables, not the actual variables.
+- At compile time, when the compiler encounters a lambda definition, it creates a custom object definition for the lambda. Each captured variable becomes a data member of the object.
+  At runtime, when the lambda definition is encountered, the lambda object is instantiated, 
+  and (importantly) the members of the lambda are initialized at that point. And, they are persisted across multiple calls to the lambda!
 */
+
+#include <iostream>
+
+void func1()
+{
+    int x{ 4 };
+    int y{ 5 };
+    auto z{ [y](int x) { return x + y; } (x)};  // y is cloned, and lambda now can access this copy of y.
+    std::cout << z << '\n'; // 9
+
+
+}
 
 
 /* Captures are treated as const by default
@@ -19,15 +35,58 @@
 - When a lambda is called, operator() is invoked. By default, this operator() treats captures as const.
 */
 
+void func2()
+{
+    int y{ 5 };
+    [y]() {  ++y } (); // error, inside the lambda, y is const.
+}
+
 
 /* Mutable captures
 
 - ... to allow modifications of variables that were captured.
 */
 
+void func3()
+{
+    int y{ 5 };
+
+    auto increment {[y]() mutable
+    {
+        ++y;
+        std::cout << y << '\n';
+    }};
+    increment();    // 6, y is modified inside the lambda. But it's a copy of the outer y.
+    increment();    // 7, y is persisted across multiple calls to the lambda
+
+    std::cout << y << '\n'; // 5, y is not modified outside the lambda.
+}
+
 
 /* Capture by reference
 */
+
+void func4()
+{
+    int y{ 5 };
+
+    [&y]() { ++y; } ();
+    std::cout << y << '\n'; // 6, y is modified.
+}
+
+
+/* Multiple variables can be captured by separating them with a comma.
+
+- This can include a mix of variables captured by value or by reference:
+*/
+
+void func5()
+{
+    int x{ 5 };
+    int y{ 5 };
+
+    [x, &y]() { } ();
+}
 
 
 /* Default captures
@@ -41,6 +100,15 @@
   (the default capture has to be the first element in the capture group.)
 */
 
+void func6()
+{
+    int a{ 1 }, b{ 2 }, c{ 3 };
+    auto d{ [=]() { return a + b + c; } () };   // a, b, c are captured by value.
+    std::cout << d << '\n'; // 6
+    
+    auto e{ [&, a, b]() { return a + b + c; } () };   // a, b are captured by value, c is captured by reference.
+}
+
 
 /* Defining new variables in the lambda-capture
 
@@ -48,11 +116,28 @@
   that was defined in the capture, the original value will be overridden.
 */
 
+void func7()
+{
+    int x{ 2 };
+    int y{ 5 };
+
+    auto f {
+        [new_var{ x * y }]() mutable 
+        { 
+            new_var++;
+            std::cout << new_var << '\n'; 
+        }
+    };
+    
+    f();    // print 11
+    f();    // print 12
+}
+
 
 /* Dangling captured variables
 */
 
-#include <iostream>
+
 #include <string>
 
 // returns a lambda
@@ -66,10 +151,18 @@ auto makeWalrus(const std::string& name)
 
 auto makeWalrus2(const std::string& name)
 {
-  // Capture name by reference and return the lambda.
+  // Capture name by value and return the lambda.
   return [=]() {
     std::cout << "I am a walrus, my name is " << name << '\n';
   };
+}
+
+void func8()
+{
+    auto walrus{ makeWalrus("Willy") }; // the temporary string literal "Willy" dies at the end of this command
+    walrus(); // `name` is a dangling reference 
+    auto walrus2{ makeWalrus2("Willy") };
+    walrus2(); // okay
 }
 
 
@@ -83,47 +176,6 @@ Read: https://www.learncpp.com/cpp-tutorial/lambda-captures/#:~:text=Unintended%
 
 int main()
 {
-    // The capture clause
-    int x{ 4 };
-    int y{ 5 };
-    auto z{ [y](int x) { return x + y; } (x)};  // y is cloned, and lambda now can access this copy of y.
-    std::cout << z << '\n'; // 9
-
-
-    // Captures are treated as const by default
-    [y]() {  ++y } (); // error, inside the lambda, y is const.
-
-
-    // Mutable captures
-    [y]() mutable
-    {
-        ++y;
-        std::cout << y << '\n'; // 6, y is modified inside the lambda.
-    } ();
-    std::cout << y << '\n'; // 5, y is not modified outside the lambda.
-
-
-    // Capture by reference
-    [&y]() { ++y; } ();
-    std::cout << y << '\n'; // 6, y is modified.
-
-
-    // Default captures
-    int a{ 1 }, b{ 2 }, c{ 3 };
-    auto d{ [=]() { return a + b + c; } () };   // a, b, c are captured by value.
-    std::cout << d << '\n'; // 6
-    auto e{ [&, a, b]() { return a + b + c; } () };   // a, b are captured by value, c is captured by reference.
-
-
-    // Defining new variables in the lambda-capture
-    [new_var{ x * y }]() { std::cout << new_var << '\n'; } ();
-
-
-    // Dangling captured variables
-    auto walrus{ makeWalrus("Willy") };
-    walrus(); // Undefined behavior
-    auto walrus2{ makeWalrus2("Willy") };
-    walrus2(); // okay
 }
 
 

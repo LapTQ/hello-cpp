@@ -1,10 +1,18 @@
 #include <iostream>
-#include <array>
-#include <functional> // for std::reference_wrapper
 
 int main()
 {
+    int x{ 2 };
+    int y{ 5 };
 
-    char c{ 'Q' };
-    std::cout << c << '\n'; // undefined behavior
+    auto f {
+        [new_var{ x * y }]() mutable 
+        { 
+            new_var++;
+            std::cout << new_var << '\n'; 
+        }
+    };
+    
+    f();    // print 11
+    f();    // print 12
 }

@@ -513,7 +513,9 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     } // ar is destroyed here, so the ~IntArray() destructor function is called here
     ```
 
+## Lambda
 
+* ❌ Avoid mutable lambdas. They are hard to debug.
 
 
 
