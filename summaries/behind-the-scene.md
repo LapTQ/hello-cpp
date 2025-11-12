@@ -974,6 +974,60 @@
     * ✅ For move-capable types, move semantics is invoked **automatically** when **returning by value**.
 
         Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
+* Type conversion using converting constructor:
+    * **Implicit** conversion: in the below example, the `printFoo` function accepts a `Foo` parameter, but we're passing an `int` value. When compiler sees `printFoo(5);`, it will find a function that lets it convert an `int` to a `Foo`. That function is the `Foo(int)` constructor.
+        ```C++
+        class Foo
+        {
+        private:
+            int m_x{};
+        public:
+            Foo(int x)  // allow implicit conversion from int to Foo
+                : m_x{ x }
+            { }
+        };
+
+        void printFoo(Foo f) { }
+
+        printFoo(5); // conversion from `5` to `Foo { 5 }`
+        ```
+    * The compiler might allow **only one** implicit user-defined conversion: in the below example, `printEmployee("Joe");` will not compile because it requires two user-defined conversions: C-style string literal -> std::string_view -> Employee.
+        ```C++
+        class Employee
+        {
+        private:
+            std::string m_name{};
+
+        public:
+            Employee(std::string_view name)
+                : m_name{ name }
+            { }
+        };
+
+        void printEmployee(Employee e) { }
+
+        printEmployee("Joe");   // compile error: requires 2 user-defined conversions
+        printEmployee( "Joe"sv);    // okay, only 1 user-defined conversion from std::string_view to Employee
+        printEmployee(Employee{ "Joe" }); // okay, only 1 user-defined conversion from C-style string literal to std::string_view
+        ```
+    * To prevent such implicit conversion, we can use `explicit` keyword to tell the compiler that a constructor should not be used as a converting constructor:
+        ```C++
+        class Dollars2
+        {
+        private:
+            int m_dollars{};
+
+        public:
+            explicit Dollars2(int d) // now explicit
+                : m_dollars{ d }
+            { }
+        };
+
+        void print2(Dollars2 d) { }
+
+        print2(5); // compile error: cannot convert int to Dollars2
+        print2(static_cast<Dollars2>(5)); // okay, explicit conversion
+        ```
 
 
 
