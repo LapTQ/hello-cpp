@@ -193,11 +193,12 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Favor `static_assert` over `assert()` whenever possible.
 
 
-## Explicit type conversion
+## Type conversion
 
 * ✅ Use `static_cast` for most type conversions.
 * ❌ Do not use C-style casts: e.g., `(int) x`.
 * ❌ Do not use const cast and reinterpret cast unless you have a very good reason.
+* Overloaded typecasts and converting constructors perform similar roles. But ✅  in general, converting constructor should be preferred, as it allows the type being constructed to own the construction.
 
 
 ## Type deduction
@@ -250,6 +251,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 ## Pointers
 
 * ✅ Use `nullptr` for null pointers. ❌  Don't use `NULL` or `0`.
+* ✅ **Void pointer** (aka **generic pointer**) can be pointed at objects of any data type.
 
 
 ## Passing arguments to functions
@@ -522,6 +524,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ With binary operators that don’t modify the left operand (e.g. `operator+`), the **normal** or **friend** function is typically preferred.
 * ✅ With binary operators that do modify the left operand (e.g. `operator+=`), the **member** function is typically preferred.
 * ✅ With unary operators, **member** function is typically preferred.
+* ✅ Always add an self-assignment guard at the of your assignment `operator=` to avoid self-assignment issue.
 
 
 

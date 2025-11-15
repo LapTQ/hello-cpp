@@ -332,6 +332,8 @@
                 * If the type of the signed operand can represent all the values of the type of the unsigned operand, the type of the unsigned operand is converted to the type of the signed operand.
                 * Otherwise both operands are converted to the corresponding unsigned type of the signed operand.
             * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
+* Other conversion:
+    * See **converting constructor** below.
 
 
 ## Function overloading
@@ -1877,6 +1879,96 @@
     3. Using member functions
 * Overload io operators: (See code in github lesson)
 * Overload subscript operator: (See code in github lesson)
+* Overload typecast: (See code in github lesson)
+    * Overloaded typecasts and converting constructors perform similar roles.
+    * In general, a converting constructor should be preferred, as it allows the type being constructed to own the construction.
+    * There are a few cases where an overloaded typecast should be used instead:
+        1. When providing a conversion to a fundamental type or a type you can’t add members to (since you can’t define constructors for these types).
+        2. When avoiding circular dependencies.
+* Overload assignment operator: (See code in github lesson)
+    * Overloading `operator=` is fairly straightforward, with one specific caveat:
+        ```C++
+        class Fraction
+        {
+        private:
+            int m_num { 0 };
+            int m_den { 1 };
+        public:
+            Fraction(int num = 0, int den = 1)
+                : m_num{ num }, m_den{ den }
+            { }
+
+            // Overload assignment operator (don't use this version in real code. See Self-assignment)
+            Fraction& operator=(const Fraction& other)
+            {
+                m_num = other.m_num;
+                m_den = other.m_den;
+
+                return *this;
+            }
+        };
+
+        Fraction a{ 1, 2 };
+        Fraction b{ 3, 4 };
+
+        a = b; // uses overloaded assignment operator
+        a = a; // self-assignment
+        ```
+    * ⚠️ Self-assignment: In most cases, self-assignment has no overall impact, other than wasting time. However, it can actually be dangerous if it needs to handle dynamic memory:
+        ```C++
+        class MyArray
+        {
+        private:
+            int* m_data {};
+            int m_len {};
+
+        public:
+            MyArray(const int* data = nullptr, int len = 0 )
+                : m_len { len }
+            {
+                m_data = new int[static_cast<std::size_t>(len)];
+                std::copy_n(data, len, m_data); // copy len elements of data into m_data
+            }
+            ~MyArray()
+            {
+                delete[] m_data;
+            }
+
+            // Overloaded assignment    (don't use this version)
+            MyArray& operator= (const MyArray& str)
+            {
+                // if data exists in the current string, delete it
+                if (m_data) delete[] m_data;        // m_data will be dangling if self-assignment occurs
+
+                m_len = str.m_len;
+                m_data = nullptr;
+
+                m_data = new int[static_cast<std::size_t>(str.m_len)];
+
+                std::copy_n(str.m_data, m_len, m_data);
+
+                return *this;
+            }
+        };
+
+        MyArray alex("Alex", 5);
+        alex = alex;        // self-assignment
+        ```
+
+        ✅ Simply add a **self-assignment guard** at the start of your assignment operator:
+        ```C++
+        MyString& MyString::operator= (const MyString& str)
+        {
+            if (this == &str)
+                return *this;
+            
+            // ...
+        }
+        ```
+    * Implicit copy assignment operator:
+        * Unlike other operators, the compiler will provide an implicit `operator=` if you do not provide a user-defined one.
+        * You can prevent assignments by making it private or using the `delete` keyword.
+        * If your class has const members, the compiler will define the implicit `operator=` as deleted. If you that class to be assignable (for all members that aren’t const), you will need to explicitly overload `operator=`.
 
 
 
