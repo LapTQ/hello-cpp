@@ -1965,13 +1965,98 @@
             // ...
         }
         ```
-    * Implicit copy assignment operator:
+    * ⚠️ **Implicit** copy assignment operator:
         * Unlike other operators, the compiler will provide an implicit `operator=` if you do not provide a user-defined one.
         * You can prevent assignments by making it private or using the `delete` keyword.
         * If your class has const members, the compiler will define the implicit `operator=` as deleted. If you that class to be assignable (for all members that aren’t const), you will need to explicitly overload `operator=`.
 
 
+## Shallow copy and deep copy
 
+* The default copy constructor and default assignment operators use **shallow copy**. When classes are simple, this works very well. ⚠️ However, if it handle dynamically allocated memory, shallow copy just copies the address of the pointer:
+    ```C++
+    class MyString
+    {
+    private:
+        char* m_data{}; // pointer to a dynamically allocated array
+        int m_length{};
+
+    public:
+        MyString(const char* source = "")
+        {
+            assert(source); // make sure source isn't a null string
+
+            m_length = std::strlen(source) + 1;
+            m_data = new char[m_length];
+
+            for (int i{ 0 }; i < m_length; ++i)
+                m_data[i] = source[i];
+        }
+
+        ~MyString() { delete[] m_data; }
+    };
+
+    MyString hello{ "Hello, world!" };
+    {
+        MyString copy{ hello }; // shallow copy, use default copy constructor
+    } // `copy` gets destroyed here => make `hello` with a dangling pointer
+    ```
+* **Deep copy** requires that we write our own copy constructors and overloaded assignment operators:
+    ```C++
+    class MyString2
+    {
+    private:
+        char* m_data{}; // pointer to a dynamically allocated array
+        int m_length{};
+
+    public:
+        MyString2(const char* source = "" )
+        {
+            // ... same as above
+        }
+
+        ~MyString2() { delete[] m_data; }
+
+        MyString2(const MyString2& source);
+        MyString2& operator=(const MyString2& source);
+        void deepCopy(const MyString2& source);
+    };
+
+    void MyString2::deepCopy(const MyString2& source)
+    {
+        // deallocate first
+        delete[] m_data;
+
+        m_length = source.m_length;
+
+        // if m_data is non-null
+        if (source.m_data)
+        {
+            m_data = new char[m_length];
+            for (int i{ 0 }; i < m_length; ++i)
+                m_data[i] = source.m_data[i];
+        }
+        else
+            m_data = nullptr;
+    }
+
+    MyString2::MyString2(const MyString2& source) { deepCopy(source); }
+
+    MyString2& MyString2::operator=(const MyString2& source)
+    {
+        if (this == &source)    // self-assignment guard
+            return *this;
+
+        deepCopy(source);
+        return *this;
+    }
+
+    MyString2 hello2{ "Hello, world!" };
+    {
+        MyString2 copy{ hello2 };
+    } // `copy` gets destroyed here => `hello2` is still valid
+    ```
+* ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.  
 
 
 

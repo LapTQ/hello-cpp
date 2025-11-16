@@ -11,6 +11,7 @@
 For example:
 */
 
+#include <iostream>
 #include <cstring> // for strlen()
 #include <cassert> // for assert()
 
@@ -40,6 +41,16 @@ public:
     char* getString() { return m_data; }
     int getLength() { return m_length; }
 };
+
+void func1()
+{
+    // shallow copy
+    MyString hello{ "Hello, world!" };
+    {
+        MyString copy{ hello }; // use default copy constructor
+    } // `copy` gets destroyed here => make `hello` with a dangling pointer
+    std::cout << hello.getString() << '\n'; // undefined behavior, may crash
+}
 
 
 /* Deep copying
@@ -118,25 +129,20 @@ MyString2& MyString2::operator=(const MyString2& source)
 }
 
 
-#include <iostream>
-
-int main()
+void func2()
 {
-    // shallow copy
-    MyString hello{ "Hello, world!" };
-    {
-        MyString copy{ hello }; // use default copy constructor
-    } // `copy` gets destroyed here => make `hello` with a dangling pointer
-    std::cout << hello.getString() << '\n'; // undefined behavior, may crash
-
-
     // deep copy
     MyString2 hello2{ "Hello, world!" };
     {
         MyString2 copy{ hello2 };
     } // `copy` gets destroyed here => `hello2` is still valid
     std::cout << hello2.getString() << '\n'; // Hello, world!
+}
 
+
+
+int main()
+{
     return 0;
 }
 
