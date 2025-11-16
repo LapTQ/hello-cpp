@@ -1768,6 +1768,18 @@
             int* ptr{ new int{} }; // allocate memory
             ptr = &value; // old address lost
         }
+        ```
+
+        ```C++
+        void func1()
+        {
+            int* ptr = new int;
+
+            return; // the function returns early, and ptr won’t be deleted!
+
+            delete ptr;
+        } // => memory leak
+        => ✅ See **smart pointer**.
     
 
 ## Lambdas
@@ -2059,6 +2071,40 @@
 * ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.  
 
 
+## Smart pointer classes
+
+* **Smart pointer**: a class that holds a pointer, and deallocates that pointer when the class object goes out of scope. ✅ => avoid memory leaks.
+    ```C++
+    class Resource
+    {
+    public:
+        Resource() { std::cout << "Resource acquired\n"; }
+        ~Resource() { std::cout << "Resource destroyed\n"; }
+    };
+
+    template <typename T>
+    class Auto_ptr1     // "smart pointer"
+    {
+        T* m_ptr {};
+    public:
+        Auto_ptr1(T* ptr=nullptr)
+            :m_ptr(ptr)
+        { }
+
+        ~Auto_ptr1() { delete m_ptr; }
+
+        T& operator*() const { return *m_ptr; }
+        T* operator->() const { return m_ptr; }
+    };
+
+    void func2()
+    {
+        Auto_ptr1<Resource> ptr { new Resource() };
+
+        // no explicit delete here
+    }   // ptr destructor will be called here
+    ```
+    ❌ `Auto_ptr1` is critically flaw with shallow copy. Read more in github lesson about `Auto_prt2`, `std::auto_ptr` are bad idea. 
 
 ---
 

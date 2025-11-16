@@ -13,7 +13,7 @@ public:
     ~Resource() { std::cout << "Resource destroyed\n"; }
 };
 
-void someFunction()
+void func1()
 {
     Resource* ptr = new Resource();
 
@@ -47,7 +47,7 @@ public:
 	T* operator->() const { return m_ptr; }
 };
 
-void someFunction2()
+void func2()
 {
     Auto_ptr1<Resource> ptr { new Resource() };
 
@@ -62,7 +62,7 @@ void someFunction2()
   When res1 goes to delete the resource, it will crash.
 */
 
-void someFunction3()
+void func3()
 {
     Auto_ptr1<Resource> res1 { new Resource() };
     Auto_ptr1<Resource> res2 { res1 }; // res2 now points to the same Resource as res1
@@ -72,7 +72,7 @@ void someFunction3()
 void passByValue(Auto_ptr1<Resource> res)
 {
 }
-void someFunction4()     
+void func4()     
 {
     Auto_ptr1<Resource> res { new Resource() };
     passByValue(res);
@@ -131,7 +131,7 @@ public:
 	bool isNull() const { return m_ptr == nullptr; }
 };
 
-void someFunction5()
+void func5()
 {
     Auto_ptr2<Resource> res1(new Resource());
 	Auto_ptr2<Resource> res2; // Start as nullptr
@@ -150,19 +150,6 @@ void someFunction5()
 
 int main()
 {
-    // function exits early
-    someFunction();
-
-    // smart pointer classes
-    someFunction2();
-
-    // Auto_ptr1 critical flaw with shallow copy
-    // someFunction3();    // will crash
-    // someFunction4();    // will crash
-
-    // Move semantics
-    someFunction5();
-
     return 0;
 }
 
