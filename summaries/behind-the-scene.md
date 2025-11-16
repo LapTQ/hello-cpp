@@ -1965,8 +1965,8 @@
             // ...
         }
         ```
-    * ⚠️ **Implicit** copy assignment operator:
-        * Unlike other operators, the compiler will provide an implicit `operator=` if you do not provide a user-defined one.
+    * **Implicit** copy assignment operator:
+        * ⚠️ Unlike other operators, the compiler will provide an implicit `operator=` if you do not provide a user-defined one.
         * You can prevent assignments by making it private or using the `delete` keyword.
         * If your class has const members, the compiler will define the implicit `operator=` as deleted. If you that class to be assignable (for all members that aren’t const), you will need to explicitly overload `operator=`.
 
