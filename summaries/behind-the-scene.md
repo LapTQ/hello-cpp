@@ -1575,6 +1575,46 @@
             ```
         * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
 
+* `std::initializer_list`:
+    * Consider initialization using initializer lists syntax:
+    ```C++
+    int array[] { 5, 4, 3, 2, 1 };
+    ```
+    When a compiler sees an initializer list, it automatically converts it into an object of type std::initializer_list.
+    
+    => ✅ Therefore, if we create a constructor that takes a `std::initializer_list` parameter, we can create objects using the initializer list as an input.
+
+    ```C++
+    class Element
+    {
+    private:
+        int m_value{};
+    public:
+        Element(int value) : m_value{ value } {}
+    };
+
+    class MyArray
+    {
+    public:
+        // ...
+
+        MyArray(std::initializer_list<Element> list) // allow MyArray to be initialized via list initialization
+        {
+            // ...
+        }
+
+        // ...
+    };
+
+
+    MyArray array{ Element{1}, Element{2}, Element{3}}; // initializer list
+    ```
+    * It has a `size()` member function which returns the number of elements in the list.
+    * Much like `std::string_view`, `std::initializer_list` is a view. 
+        * ✅ => `std::initializer_list` is often passed by value
+        * ⚠️ => Copying a `std::initializer_list` does not copy the elements in the list.
+
+
 ## Command line arguments
 
 * `argc`: the number of arguments passed to the program, always be at least 1.
@@ -2068,6 +2108,68 @@
     } // `copy` gets destroyed here => `hello2` is still valid
     ```
 * ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.
+* ⚠️ **Rule of Three**: If your class needs any of
+    1. a copy constructor,
+    2. a assignment operator,
+    3. a destructor,
+    defined explictly, then it is likely to need **all three** of them, or you should delete the copy constructor.
+
+    Consider the following code:
+    ```C++
+    class IntArray2
+    {
+    private:
+        int m_length{};
+        int* m_data{};
+
+    public:
+        IntArray2() = default;
+
+        IntArray2(int length)
+            : m_length{ length }
+            , m_data{ new int[static_cast<std::size_t>(length)] {} }
+        {
+
+        }
+
+        IntArray2(std::initializer_list<int> list)
+            : IntArray2(static_cast<int>(list.size()))
+        {
+            std::copy(list.begin(), list.end(), m_data);
+        }
+
+        ~IntArray2()
+        {
+            delete[] m_data;
+        }
+
+    //	IntArray2(const IntArray2&) = delete; // to avoid shallow copies
+    //	IntArray2& operator=(const IntArray2& list) = delete; // to avoid shallow copies
+
+        int& operator[](int index)
+        {
+            assert(index >= 0 && index < m_length);
+            return m_data[index];
+        }
+
+        int getLength() const { return m_length; }
+    };
+
+    void func2()
+    {
+        IntArray2 array{};
+        array = { 1, 3, 5, 7, 9, 11 }; // assignment
+
+        for (int count{ 0 }; count < array.getLength(); ++count)
+            std::cout << array[count] << ' '; // undefined behavior
+    }
+    ```
+    ⚠️ Here is what happens:
+    1. the compiler sees that an assignment function taking a `std::initializer_list` doesn’t exist.
+    2. Then, it discovers the **implicit** copy assignment operator. However, this function can only be used if it can convert the initializer list into an IntArray.
+    3. The compiler realizes that `{ 1, 3, 5, 7, 9, 11 }` is a `std::initializer_list`, which can be converted to a temporary `IntArray` using list constructor.
+    4. Then, the implicit copy assignment operator will do shallow copy.
+    5. Finally, the temporary `IntArray` is destroyed, leaving `array->m_data` as a dangling pointer.
 
 
 ## Move constructors and move assignment

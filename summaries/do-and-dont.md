@@ -477,6 +477,9 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * C-style string:
     * ⚠️ Avoid non-const C-style string objects. ✅ use `std::string`.
     * 👎️ Avoid C-style string symbolic constants. ✅ use `std::string_view`.
+* `std::initializer_list`:
+    * ✅ => `std::initializer_list` is often passed by value
+    * ⚠️ => Copying a `std::initializer_list` does not copy the elements in the list.
 
 ## Ellipsis
 
@@ -527,6 +530,15 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Always add an self-assignment guard at the of your assignment `operator=` to avoid self-assignment issue.
 
 
+## Shallow copy and Deep copy
+
+* ⚠️ **Rule of Three**: If your class needs any of
+    1. a copy constructor,
+    2. a assignment operator,
+    3. a destructor,
+    defined explictly, then it is likely to need **all three** of them, or you should delete the copy constructor.
+
+
 ## Move constructors and move assignment
 
 * ✅ Use `std::move` casts an object into an r-value reference, so that move semantics can be invoked.
@@ -534,6 +546,8 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     * ✅ pass/return it by value. Because it has move semantics.
     * 👎️ If you don't want the function to take ownership of the resource - although you can pass it by const reference - it’s better to just pass the resource. Use `get()`
 * ❌ Don't create a second `std::shared_ptr` from the resource directly
+
+
 
 
 
