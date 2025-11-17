@@ -31,6 +31,23 @@ std::ostream& operator<<(std::ostream& out, const Resource&)
 	return out;
 }
 
+void func0()
+{
+	std::unique_ptr<Resource> res1{ new Resource{} }; // Resource created here
+	std::unique_ptr<Resource> res2{}; // Start as nullptr
+
+	std::cout << "res1 is " << (res1 ? "not null\n" : "null\n");
+	std::cout << "res2 is " << (res2 ? "not null\n" : "null\n");
+
+	// res2 = res1; // Won't compile: copy assignment is disabled
+	res2 = std::move(res1); // res2 assumes ownership, res1 is set to null
+
+	std::cout << "Ownership transferred\n";
+
+	std::cout << "res1 is " << (res1 ? "not null\n" : "null\n");
+	std::cout << "res2 is " << (res2 ? "not null\n" : "null\n");
+}
+
 void func1()
 {
 	// allocate a Resource object and have it owned by std::unique_ptr
@@ -53,10 +70,9 @@ void func1()
 
 /* std::make_unique
 
-- C++14 comes with an additional function named std::make_unique(), which is recommended over creating a std::unique_ptr yourself.
-  It makes the code simpler, and in C++14 it resolves an exception safety issue
-
-- This templated function constructs an object of the template type and initializes it with the arguments passed into the function.
+- C++14 comes with an additional function named std::make_unique().
+- Use of std::make_unique() is optional, but it recommended over creating a std::unique_ptr yourself.
+  It makes the code simpler, and in C++14 it resolves an exception safety issue.
 */
 
 class Fraction
@@ -141,11 +157,6 @@ int func3()
 	return 0;
 
 }
-
-
-/* Passing std::unique_ptr to a function
-
-*/
 
 
 int main()

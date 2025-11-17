@@ -2067,12 +2067,19 @@
         MyString2 copy{ hello2 };
     } // `copy` gets destroyed here => `hello2` is still valid
     ```
-* ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.  
+* ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.
 
 
-## Smart pointer classes
+## Move constructors and move assignment
 
-* **Smart pointer**: a class that holds a pointer, and deallocates that pointer when the class object goes out of scope. ✅ => avoid memory leaks.
+* Copy semantics and Move semantics:
+    * **Copy semantics**:
+        * refers to how copies of objects are made.
+        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
+    * **Move semantics**:
+        * determine how the data from one object is moved (transfer ownership) to another object.
+        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
+* Copy semantics:
     ```C++
     class Resource
     {
@@ -2082,43 +2089,25 @@
     };
 
     template <typename T>
-    class Auto_ptr     // "smart pointer"
+    class MyClass
     {
         T* m_ptr {};
     public:
-        Auto_ptr(T* ptr=nullptr)
+        MyClass(T* ptr=nullptr)
             :m_ptr(ptr)
         { }
 
-        ~Auto_ptr() { delete m_ptr; }
-
-        T& operator*() const { return *m_ptr; }
-        T* operator->() const { return m_ptr; }
-    };
-
-    void func2()
-    {
-        Auto_ptr<Resource> ptr { new Resource() };
-
-        // no explicit delete here
-    }   // ptr destructor will be called here
-    ```
-    ❌ `Auto_ptr` is critically flaw with shallow copy. We can address this by overloading the copy constructor and assignment operator to make deep copies. But copying can be expensive:
-    ```C++
-    template<typename T>
-    class Auto_ptr3
-    {
-        // ...
+        ~MyClass() { delete m_ptr; }
 
         // Copy constructor
-        Auto_ptr(const Auto_ptr& a)
+        MyClass(const MyClass& a)
         {
             m_ptr = new T;
             *m_ptr = *a.m_ptr;		// use assignment to copy the value
         }
 
         // Copy assignment
-        Auto_ptr& operator=(const Auto_ptr& a)
+        MyClass& operator=(const MyClass& a)
         {
             // Self-assignment detection
             if (&a == this)
@@ -2133,17 +2122,14 @@
         }
     };
 
-    Auto_ptr<Resource> generateResource()
+    MyClass<Resource> generateResource()
     {
-        Auto_ptr<Resource> res{new Resource};
+        MyClass<Resource> res{new Resource};
         return res; // this return value will invoke the copy constructor
     }
 
-    void func1()
-    {
-        Auto_ptr<Resource> mainres;
-        mainres = generateResource(); // this assignment will invoke the copy assignment
-    }
+    MyClass<Resource> mainres;
+    mainres = generateResource(); // this assignment will invoke the copy assignment
     ```
     Here is what happens:
     1. `res` is constructed in `generateResource()` => Resource acquired
@@ -2152,68 +2138,65 @@
     4. The temporary object is copy assigned to `mainres` => Resource acquired
     5. The temporary object is destroyed => Resource destroyed
     6. `mainres` is destroyed => Resource destroyed 
-
-* Copy semantics and Move semantics:
-    * **Copy semantics**:
-        * refers to how copies of objects are made.
-        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
-    * **Move semantics**:
-        * determine how the data from one object is moved (transfer ownership) to another object.
-        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
-
-* Move constructors and move assignment:
+    
+    => 👎️ unnecessarily expensive copying
+* Move semantics:
     * while the copy constructors/assignment take a **const l-value reference** parameter, the move constructors/assignment use **non-const rvalue reference** parameters:
-        ```C++
-        template<typename T>
-        class Auto_ptr
+    ```C++
+    template<typename T>
+    class Auto_ptr
+    {
+        // ...
+
+        // Move constructor
+        Auto_ptr(Auto_ptr&& a) noexcept
+            : m_ptr(a.m_ptr)
         {
-            // ...
+            a.m_ptr = nullptr;	// don't forget
+        }
 
-            // Move constructor
-            Auto_ptr(Auto_ptr&& a) noexcept
-                : m_ptr(a.m_ptr)
-            {
-                a.m_ptr = nullptr;	// don't forget
-            }
-
-            // Move assignment
-            Auto_ptr& operator=(Auto_ptr&& a) noexcept
-            {
-                // Self-assignment detection
-                if (&a == this)
-                    return *this;
-
-                delete m_ptr;
-
-                m_ptr = a.m_ptr;
-                a.m_ptr = nullptr;	// don't forget
-
+        // Move assignment
+        Auto_ptr& operator=(Auto_ptr&& a) noexcept
+        {
+            // Self-assignment detection
+            if (&a == this)
                 return *this;
-            }
-        };
-        ```
-        Here is what happens:
-        1. `res` is constructed in `generateResource()` => Resource acquired
-        2. When `res` is returned by value, it's move constructed to a temporary object, then `res` is destroyed.
-        3. The temporary object is move assigned to `mainres`, then the temporary object is destroyed.
-        4. `mainres` is destroyed => Resource destroyed
-    * ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
-        1. The type of the object supports move semantics.
-        2. The object is being initialized/assigned with an rvalue object of the same type, or when an automatic l-values is returned from a function **by value**.
-        3. The move isn’t elided.
-    * ✅ For move-capable types, move semantics is invoked **automatically** when **returning by value**.
 
-        Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
-    * **Implicit** move constructor/assignment: ... if all of the following are true:
-        1. There are no user-declared copy constructors/assignment.
-        2. There are no user-declared move constructors/assignment.
-        3. There is no user-declared destructor.
+            delete m_ptr;
 
-        These move functions will do a member-wise move as follows:
-        * If member has a move constructor or move assignment (as appropriate), it will be invoked.
-        * Otherwise, the member will be copied.
+            m_ptr = a.m_ptr;
+            a.m_ptr = nullptr;	// don't forget
 
-        ⚠️ This means that implicit constructor/assignment will copy pointers, not move them! If you want to move a pointer member, you will need to define the move constructor and move assignment yourself.
+            return *this;
+        }
+    };
+
+    // ...
+    ```
+    Here is what happens:
+    1. `res` is constructed in `generateResource()` => Resource acquired
+    2. When `res` is returned by value, it's move constructed to a temporary object, then `res` is destroyed.
+    3. The temporary object is move assigned to `mainres`, then the temporary object is destroyed.
+    4. `mainres` is destroyed => Resource destroyed
+
+* ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
+    1. The type of the object supports move semantics.
+    2. The object is being initialized/assigned with an rvalue object of the same type.
+    3. The move isn’t elided.
+
+* ✅ For move-capable types, move semantics might be invoked **automatically** when **returning by value** from a function, even if the returned object is an l-value.
+
+    Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
+* **Implicit** move constructor/assignment: ... if all of the following are true:
+    1. There are no user-declared copy constructors/assignment.
+    2. There are no user-declared move constructors/assignment.
+    3. There is no user-declared destructor.
+
+    These move functions will do a member-wise move as follows:
+    * If member has a move constructor or move assignment (as appropriate), it will be invoked.
+    * Otherwise, the member will be copied.
+
+    ⚠️ This means that implicit constructor/assignment will copy pointers, not move them! If you want to move a pointer member, you will need to define the move constructor and move assignment yourself.
 
 * ✅ `std::move`:
     * a function that casts (using `static_cast`) its argument into an r-value reference, so that move semantics can be invoked
@@ -2247,6 +2230,96 @@
         ```
         👍 With a moved-from object (like `str`), it is safe to call any function that does not depend on the current value of the object.
 
+
+## Smart pointer classes
+
+* **Smart pointer**: a class that holds a pointer, and deallocates that pointer when the class object goes out of scope. ✅ => avoid memory leaks.
+    ```C++
+    void func1()
+    {
+        int* ptr { new int };
+
+        return; // the function returns early, and ptr won’t be deleted!
+
+        delete ptr;
+    } // => memory leak
+    ```
+
+    ```C++
+    template <typename T>
+    class Auto_ptr     // "smart pointer"
+    {
+        T* m_ptr {};
+    public:
+        Auto_ptr(T* ptr=nullptr)
+            :m_ptr(ptr)
+        { }
+
+        ~Auto_ptr() { delete m_ptr; }
+
+        T& operator*() const { return *m_ptr; }
+        T* operator->() const { return m_ptr; }
+    };
+
+    void func2()
+    {
+        Auto_ptr<int> ptr { new int };
+
+        // no explicit delete here
+    }   // ptr destructor will be called here
+    ```
+    ❌ `Auto_ptr` is critically flaw with shallow copy. Read more in github lesson.
+
+* `std::unique_ptr`:
+    * ✅ should be used to manage any **dynamically allocated object** that the ownership is not shared by multiple objects.
+    * Properties:
+        * ⚠️/✅ designed with move semantics in mind, copy initialization and copy assignment are disabled.
+            ```C++
+            std::unique_ptr<int> res1 { new int };  // resource created here
+            std::unique_ptr<int> res2 { new int };  // Start as nullptr
+
+            // res2 = res1; // Won't compile: copy assignment is disabled
+	        res2 = std::move(res1); // res2 assumes ownership, res1 is set to null
+            ```
+        * has an overloaded `operator*` (returns a reference) and `operator->` (returns a pointer). ✅ Before we use either of these operators, we should check whether the `std::unique_ptr` actually has a resource. Because, ⚠️ it might be created empty, or the resource might have been moved elsewhere.
+            ```C++
+            std::unique_ptr<int> res{ new int { 6 } };
+
+            if (res)    // make sure res contains a resource
+            {
+                std::cout << *res << '\n';  // dereference operator*
+            }
+            ```
+    * ✅ It is okay to use `std::unique_ptr` with both scalar objects and arrays. It's smart enough. However, `std::array` or `std::vector` (or `std::string`) are almost always better choices.
+    * ✅ `std::make_unique`: optional, but is preferred over creating `std::unique_ptr` yourself. It makes the code simpler, and resolves an exception safety issue.
+        ```C++
+        auto f1{ std::make_unique<int>(6) };    // create a dynamically allocated int with value 6
+        auto f2{ std::make_unique<int[]>(4) };  // create a dynamically allocated array of int of length 4
+        ```
+    * Because  `std::unique_ptr` has move semantics, you should pass/return it by value.
+        ```C++
+        std::unique_ptr<std::string> createString()
+        {
+            return std::make_unique<std::string>("Knock");
+        }
+
+        void takeOwnership(std::unique_ptr<std::string> res) // pass by value to take ownership
+        {
+            if (res)
+            ;
+        } // res is destroyed here
+        ```
+    * If you don't want the function to take ownership of the resource - although you can pass it by const reference - it’s better to just pass the resource. Use `get()`:
+        ```C++
+        void useResource(const std::string* res)	// okay, just pass the resource
+        {
+            if (res)
+            ;
+        }
+
+        auto res2{ std::make_unique<std::string>("Knock") };
+        useResource(res2.get());
+        ```
 
 
 

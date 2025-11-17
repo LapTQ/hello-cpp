@@ -1,17 +1,12 @@
 #include <iostream>
-
-class Resource
-{
-public:
-    Resource() { std::cout << "Resource acquired\n"; }
-    ~Resource() { std::cout << "Resource destroyed\n"; }
-};
+#include <memory> // for std::unique_ptr
 
 int main()
 {
-    Resource* ptr = new Resource();
+        std::unique_ptr<int> res{ new int { 6 } };
 
-    // return 0; // the function returns early, and ptr won’t be deleted!
-
-    delete ptr;
-} // => memory leak
+        if (res)    // make sure res contains a Resource
+        {
+            std::cout << *res << '\n';  // dereference operator*
+        }
+}
