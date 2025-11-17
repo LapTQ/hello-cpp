@@ -533,6 +533,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Always use `std::unique_ptr` (and `std::make_unique`) to manage any **dynamically allocated object** that the ownership is not shared by multiple objects. However, when working with arrays, `std::array` or `std::vector` (or `std::string`) are almost always better choices.
     * ✅ pass/return it by value. Because it has move semantics.
     * 👎️ If you don't want the function to take ownership of the resource - although you can pass it by const reference - it’s better to just pass the resource. Use `get()`
+* ❌ Don't create a second `std::shared_ptr` from the resource directly
 
 
 

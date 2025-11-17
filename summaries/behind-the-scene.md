@@ -2320,8 +2320,31 @@
         auto res2{ std::make_unique<std::string>("Knock") };
         useResource(res2.get());
         ```
-
-
+* `std::shared_ptr`:
+    * is used when you need multiple smart pointers co-owning a resource. It keeps track of how many std::shared_ptr are sharing the resource and the resource will not be deallocated if at least one `std::shared_ptr` is pointing to it. As soon as the last `std::shared_ptr` goes out of scope (or is reassigned to point at something else), the resource will be deallocated.
+        ```C++
+        {
+            int* res { new int };
+            std::shared_ptr<int> ptr1{ res };
+            {
+                std::shared_ptr<int> ptr2 { ptr1 }; // make another std::shared_ptr from ptr1
+            } // ptr2 goes out of scope here, but nothing happens
+        } // ptr1 goes out of scope here, and the allocated int is destroyed
+        ```
+    * ❌ Don't create a second shared pointer from the resource directly
+        ```C++
+        {
+            int* res { new int };
+            std::shared_ptr<int> ptr1{ res };
+            {
+                std::shared_ptr<int> ptr2 { res }; // make another std::shared_ptr from res
+            } // the allocated int is destroyed
+        } // the allocated int is destroyed
+        ```
+    * `std::make_shared`: optional, but is preferred over creating `std::shared_ptr` yourself.
+    * ⚠️ Circular dependencies and `std::weak_ptr`: See in github lesson.
+    * A `std::unique_ptr` can be converted into a `std::shared_ptr`. However, `std::shared_ptr` can not be safely converted to a `std::unique_ptr`.
+    * In C++17 and earlier, `std::shared_ptr` does not have proper support for managing arrays.
 
 
 
