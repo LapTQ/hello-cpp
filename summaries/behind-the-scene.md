@@ -2512,6 +2512,21 @@
         , m_cost{ cost }
     { }
     ```
+* Access specifiers:
+    1. `public`: accessible by anybody
+    2. `protected`: accessible base members, friends, and derived classes
+    3. `private`: accessible by base members and friends, but not derived classes
+
+    * C++ defaults to private inheritance.
+    * The access specifier for an inherited member may be changed depending on the type of inheritance used:
+    ```
+    Base class's        |           Kind of inheritance
+    access specifier    | Public       | Protected    | Private
+    -----------------------------------------------------------------
+    Public              | Public       | Protected    | Private
+    Protected           | Protected    | Protected    | Private
+    Private             | Inaccessible | Inaccessible | Inaccessible 
+    ```
 
 
 
