@@ -2449,6 +2449,70 @@
     * In C++17 and earlier, `std::shared_ptr` does not have proper support for managing arrays.
 
 
+# Inheritance
+
+* When C++ constructs derived objects, it does so in phases:
+    * ⚠️ First, the most-base class is constructed.
+    * Then ⚠️ **each** child class is constructed in order, until the most-child class is constructed last.
+* What actually happens when derived is instantiated:
+    1. Memory for derived is set aside (enough for both the base and derived portions)
+    2. The appropriate `Derived` constructor is called
+    3. The `Base` object is constructed first using the appropriate Base constructor. 
+      
+        ⚠️ If no base constructor is specified, the **default base constructor** will be used.
+    4. The member initializer list initializes variables
+    5. The body of the constructor executes
+    6. Control is returned to the caller
+
+    ```C++
+    class Base
+    {
+    public:
+        int m_id {};
+
+        Base(int id=1)
+            : m_id { id }
+        {
+            std::cout << "Base\n";
+        }
+    };
+
+    class Derived1: public Base
+    {
+    public:
+        double m_cost {};
+
+        Derived1(double cost=2)     // no base constructor is specified => will call default base constructor (Base(int id=1))
+            : m_cost { cost }
+        {
+            std::cout << "Derived\n";
+        }
+    };
+
+    Base base;
+    Derived1 derived;
+    ```
+    This prints:
+    ```
+    Base
+    Base
+    Derived
+    ```
+* C++ prevents initializing **inherited** member variables in the member initializer list:
+    ```C++
+    Derived::Derived(int id, double cost)
+        : m_id { id }       // error
+        , m_cost { cost }
+    { }
+    ```
+
+    ```C++
+    Derived(double cost=0.0, int id=0)
+        : Base{ id }        // okay, call Base(int) constructor
+        , m_cost{ cost }
+    { }
+    ```
+
 
 
 ---
