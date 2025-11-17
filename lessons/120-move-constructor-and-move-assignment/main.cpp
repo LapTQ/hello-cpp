@@ -24,7 +24,7 @@ public:
 	Auto_ptr3(const Auto_ptr3& a)
 	{
 		m_ptr = new T;
-		*m_ptr = *a.m_ptr;
+		*m_ptr = *a.m_ptr;		// use assignment to copy the value
 	}
 
 	// Copy assignment
@@ -206,7 +206,7 @@ These move functions will do a member-wise move as follows:
 + If member has a move constructor or move assignment (as appropriate), it will be invoked.
 + Otherwise, the member will be copied.
 
-Warning: this means that pointers will be copied, not moved!
+Warning: This means that implicit constructor/assignment will copy pointers, not move them! If you want to move a pointer member, you will need to define the move constructor and move assignment yourself.
 */
 
 

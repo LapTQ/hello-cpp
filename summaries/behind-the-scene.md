@@ -479,6 +479,29 @@
 
     std::cout << *(static_cast<double*>(pValue)) << '\n';   // okay, must cast before dereference
     ```
+* **R-value references**:
+    * is a reference that is initialized with an r-value. It **cannot** be initialized with l-values:
+        ```C++
+        int x{ 5 };
+        int& lref{ x }; // l-value reference
+        int&& rref{ 5 }; // r-value reference
+        ```
+    * It extends the lifespan of the object the are initialized with to its lifespan.
+    * Non-const r-value references allow you to modify the r-value.
+    * You can have overloaded functions for l-values and r-values:
+        ```C++
+        void func2(int& x)  { std::cout << "l-value reference" << '\n'; }
+        void func2(int&& x) { std::cout << "r-value reference" << '\n'; }
+
+        int x{ 5 };
+        func2(x); // print "l-value reference"
+        func2(5); // print "r-value reference"
+        ```
+    * Rvalue reference ***variables*** are **lvalues**.
+        ```C++
+        int&& ref{ 5 }; // r-value reference
+        func2(ref); // print "l-value reference"!!!
+        ```
 
 
 ## Function pointer
@@ -870,113 +893,7 @@
     * By default, members of a struct are `public`.
     * By default, members of a class are `private`.
     * ⚠️ C++ access levels work on a per-class basis, not per-object.
-* **Copy constructor**:
-    * It's a constructor that is used to initialize an object with an existing object of the same type. The copy constructor’s parameter must be a **reference**.
-
-        ```C++
-        class Fraction2
-        {
-        private:
-            int m_numerator{ 0 };
-            int m_denominator{ 1 };
-
-        public:
-            Fraction2(int numerator=0, int denominator=1)
-                : m_numerator{numerator}, m_denominator{denominator}
-            {
-            }
-
-            // Copy constructor
-            Fraction2(const Fraction2& fraction)
-                : m_numerator{ fraction.m_numerator }
-                , m_denominator{ fraction.m_denominator }
-            {
-            }
-        };
-        ```
-    * **Implicit copy constructor**: 
-        * If you do not provide a copy constructor for your classes, C++ will create a public implicit copy constructor. 
-        * By default, the implicit copy constructor will do memberwise initialization.
-
-            ```C++
-            class Fraction
-            {
-            private:
-                int m_numerator{ 0 };
-                int m_denominator{ 1 };
-
-            public:
-                // Default constructor
-                Fraction(int numerator=0, int denominator=1)
-                    : m_numerator{numerator}, m_denominator{denominator}
-                {
-                }
-            };
-
-            void func1()
-            {
-                Fraction f { 5, 3 };
-                Fraction fCopy { f }; // => implicit copy constructor
-            }
-            ```
-    * **Pass by value**, **return by value**, **initialization** of the same class type will implicitly invoke the copy constructor:
-
-        ```C++
-        void printFraction(Fraction2 f) // f is pass by value
-        {
-        }
-
-        void func2()
-        {
-            Fraction2 f2 { 5, 3 };
-            printFraction(f2); // f is copied using copy constructor
-
-        }
-        ```
-
-        ```C++
-        Fraction2 generateFraction(int n, int d)
-        {
-            return Fraction2{ n, d };
-        }
-
-        void func3()
-        {
-            Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
-        }
-        ```
-    * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
-* Copy semantics and Move semantics:
-    * **Copy semantics**:
-        * refers to how copies of objects are made.
-        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
-
-        ```C++
-        std::vector<int> generate() // return by value
-        {
-            std::vector arr1 { 1, 2, 3, 4, 5 }; // copies { 1, 2, 3, 4, 5 } into arr1
-            return arr1;
-        }
-
-        int main()
-        {
-            std::vector arr2 { generate() }; // the return value of generate() is a temporary object and will die at the end of the expression
-
-            return 0;
-        }
-        ```
-        => We've made a potentially expensive copy with copy semantics. We don’t need two sets of data to exist simultaneously.
-    * **Move semantics**:
-        * determine how the data from one object is moved (transfer ownership, usually just two or three pointer assignments) to another object.
-        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
-    * ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
-        1. The type of the object supports move semantics.
-        2. The object is being initialized with (or assigned) an rvalue (temporary) object of the same type.
-        3. The move isn’t elided.
-    * ✅ For move-capable types, move semantics is invoked **automatically** when **returning by value**.
-
-        Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
-* Type conversion using converting constructor:
+* **Converting constructor**:
     * **Implicit** conversion: in the below example, the `printFoo` function accepts a `Foo` parameter, but we're passing an `int` value. When compiler sees `printFoo(5);`, it will find a function that lets it convert an `int` to a `Foo`. That function is the `Foo(int)` constructor.
         ```C++
         class Foo
@@ -1669,118 +1586,6 @@
 
 * 👍 Ellipsis allows us to pass a **variable** number of parameters to a function. (See code in github lesson). 
 
-## Memory allocation
-
-* Overview of memory:
-    * The memory that a program uses is typically divided into areas, called ***segments***:
-        * code segment (text segment): stores compiled program
-        * bss segment (uninitialized data segment): stores zero-initialized global and static variables
-        * data segment (initialized data segment): stores initialized global and static variables
-        * heap: stores dynamically allocated variables
-        * call stack: stores function parameters, local variables, and other function-related information
-    * The call stack:
-        * When the program encounters a function call:
-            1. A **stack frame** is constructed and pushed on the stack. The stack frame consists of:
-                * The address of the instruction beyond the function call (called the **return address**) => where to return to after the called function exits.
-                * All function arguments.
-                * Memory for any local variables.
-                * Saved copies of any registers modified by the function that need to be restored when the function returns.
-            2. The CPU jumps to the function’s start point.
-            3. The instructions inside of the function begin executing.
-        * When the function terminates:
-            1. Registers are restored from the call stack
-            2. The stack frame is popped off the stack. This frees the memory for all local variables and arguments.
-            3. The return value is handled.
-            4. The CPU resumes execution at the return address.
-        * All memory allocated on the stack is known at compile time. Consequently, this memory can be accessed directly through a variable.
-        * ⚠️ Stack overflow:
-            * The stack has a limited size. E.g., default 1MB on Visual Studio, 8MB with g++/Clang for Unix.
-            * Stack overflow is generally due to allocating too many variables or nested function calls on the stack.
-            ```C++
-            int stack[10000000];
-            std::cout << "hi" << stack[0];
-            // Segmentation fault, tries to allocate a huge (likely 40MB) array on the stack
-            ```
-* C++ supports three basic types of memory allocation:
-    * **Static** memory allocation: happens for static and global variables.
-        * allocated once when your program is run, and persists throughout the life of your program.
-    * **Automatic** memory allocation: happens for function parameters and local variables.
-        * allocated when the relevant block is entered, and freed when the block is exited.
-
-        Both static and automatic allocation have things in common:
-            * The size of the variable must be known at compile time.
-            * 👍 Memory allocation and deallocation happens **automatically**.
-            * most normal variables are allocated in **stack** memory (quite small).
-    * **Dynamic** memory allocation:
-        * a way to request memory from the OS when needed.
-        * ⚠️ we must dispose the allocated memory by ourselves.
-        * use **heap** memory (generally slower than stack memory).
-* Dynamic memory allocation:
-    * allocating "single" variables:
-        ```C++
-        int* ptr{ new int };    // dynamically allocate an integer and assign the address to ptr
-        delete ptr;     // return the memory to the OS
-        ptr = nullptr;
-
-        // dynamically allocate and initialize
-        int* ptr1{ new int (5) }; // direct initialization
-        int* ptr2{ new int { 6 } }; // uniform initialization
-        delete ptr1;
-        ptr1 = nullptr;
-        delete ptr2;
-        ptr2 = nullptr;
-        ```
-    * allocating arrays (demo with C-style arrays):
-        ```C++
-        std::size_t length{ 10 };   // not constepxr
-        int* array{ new int[length]{} }; 
-        delete[] array;
-
-        // dynamically allocate and initialize
-        int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
-        auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
-        int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
-        delete[] array2;
-        delete[] array3;
-        delete[] array4;
-        ```
-    * ⚠️ Deallocating memory may create multiple dangling pointers:
-        ```C++
-        int* ptr3{ new int{} };
-        int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
-        delete ptr3; // ptr3 and otherPtr are now dangling pointers.
-        ptr3 = nullptr;
-        // however, otherPtr is still a dangling pointer!
-        ```
-    * ⚠️ allocation can fail: in rare circumstances, the OS may not have any memory to grant. By default, a bad_alloc exception is thrown and the program will crash. ✅ Alternatively, we can return a null pointer by adding `std::nothrow`:
-        ```C++
-        int* value { new (std::nothrow) int };
-        ```
-    * We don't actually delete the `ptr` variable, it can be assigned a new value (e.g., nullptr) just like any other variable.
-    * ⚠️ **Memory leaks**: when your program loses the address of the memory before giving it back to the OS => The OS cannot use this memory.
-        ```C++
-        {
-            int* ptr{ new int{} };
-        } // ptr goes out of scope, we lost the address of the memory
-
-        {
-            int value = 5;
-            int* ptr{ new int{} }; // allocate memory
-            ptr = &value; // old address lost
-        }
-        ```
-
-        ```C++
-        void func1()
-        {
-            int* ptr = new int;
-
-            return; // the function returns early, and ptr won’t be deleted!
-
-            delete ptr;
-        } // => memory leak
-        => ✅ See **smart pointer**.
-    
 
 ## Lambdas
 
@@ -1897,7 +1702,201 @@
     * There are a few cases where an overloaded typecast should be used instead:
         1. When providing a conversion to a fundamental type or a type you can’t add members to (since you can’t define constructors for these types).
         2. When avoiding circular dependencies.
-* Overload assignment operator: (See code in github lesson)
+* Overload assignment operator: (See code in github lesson and below)
+
+
+## Memory allocation
+
+* Overview of memory:
+    * The memory that a program uses is typically divided into areas, called ***segments***:
+        * code segment (text segment): stores compiled program
+        * bss segment (uninitialized data segment): stores zero-initialized global and static variables
+        * data segment (initialized data segment): stores initialized global and static variables
+        * heap: stores dynamically allocated variables
+        * call stack: stores function parameters, local variables, and other function-related information
+    * The call stack:
+        * When the program encounters a function call:
+            1. A **stack frame** is constructed and pushed on the stack. The stack frame consists of:
+                * The address of the instruction beyond the function call (called the **return address**) => where to return to after the called function exits.
+                * All function arguments.
+                * Memory for any local variables.
+                * Saved copies of any registers modified by the function that need to be restored when the function returns.
+            2. The CPU jumps to the function’s start point.
+            3. The instructions inside of the function begin executing.
+        * When the function terminates:
+            1. Registers are restored from the call stack
+            2. The stack frame is popped off the stack. This frees the memory for all local variables and arguments.
+            3. The return value is handled.
+            4. The CPU resumes execution at the return address.
+        * All memory allocated on the stack is known at compile time. Consequently, this memory can be accessed directly through a variable.
+        * ⚠️ Stack overflow:
+            * The stack has a limited size. E.g., default 1MB on Visual Studio, 8MB with g++/Clang for Unix.
+            * Stack overflow is generally due to allocating too many variables or nested function calls on the stack.
+            ```C++
+            int stack[10000000];
+            std::cout << "hi" << stack[0];
+            // Segmentation fault, tries to allocate a huge (likely 40MB) array on the stack
+            ```
+* C++ supports three basic types of memory allocation:
+    * **Static** memory allocation: happens for static and global variables.
+        * allocated once when your program is run, and persists throughout the life of your program.
+    * **Automatic** memory allocation: happens for function parameters and local variables.
+        * allocated when the relevant block is entered, and freed when the block is exited.
+
+        Both static and automatic allocation have things in common:
+            * The size of the variable must be known at compile time.
+            * 👍 Memory allocation and deallocation happens **automatically**.
+            * most normal variables are allocated in **stack** memory (quite small).
+    * **Dynamic** memory allocation:
+        * a way to request memory from the OS when needed.
+        * ⚠️ we must dispose the allocated memory by ourselves.
+        * use **heap** memory (generally slower than stack memory).
+* Dynamic memory allocation:
+    * allocating "single" variables:
+        ```C++
+        int* ptr{ new int };    // dynamically allocate an integer and assign the address to ptr
+        delete ptr;     // return the memory to the OS
+        ptr = nullptr;
+
+        // dynamically allocate and initialize
+        int* ptr1{ new int (5) }; // direct initialization
+        int* ptr2{ new int { 6 } }; // uniform initialization
+        delete ptr1;
+        ptr1 = nullptr;
+        delete ptr2;
+        ptr2 = nullptr;
+        ```
+    * allocating arrays (demo with C-style arrays):
+        ```C++
+        std::size_t length{ 10 };   // not constepxr
+        int* array{ new int[length]{} }; 
+        delete[] array;
+
+        // dynamically allocate and initialize
+        int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
+        auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
+        int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
+        delete[] array2;
+        delete[] array3;
+        delete[] array4;
+        ```
+    * ⚠️ Deallocating memory may create multiple dangling pointers:
+        ```C++
+        int* ptr3{ new int{} };
+        int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
+        delete ptr3; // ptr3 and otherPtr are now dangling pointers.
+        ptr3 = nullptr;
+        // however, otherPtr is still a dangling pointer!
+        ```
+    * ⚠️ allocation can fail: in rare circumstances, the OS may not have any memory to grant. By default, a bad_alloc exception is thrown and the program will crash. ✅ Alternatively, we can return a null pointer by adding `std::nothrow`:
+        ```C++
+        int* value { new (std::nothrow) int };
+        ```
+    * We don't actually delete the `ptr` variable, it can be assigned a new value (e.g., nullptr) just like any other variable.
+    * ⚠️ **Memory leaks**: when your program loses the address of the memory before giving it back to the OS => The OS cannot use this memory.
+        ```C++
+        {
+            int* ptr{ new int{} };
+        } // ptr goes out of scope, we lost the address of the memory
+
+        {
+            int value = 5;
+            int* ptr{ new int{} }; // allocate memory
+            ptr = &value; // old address lost
+        }
+        ```
+
+        ```C++
+        void func1()
+        {
+            int* ptr = new int;
+
+            return; // the function returns early, and ptr won’t be deleted!
+
+            delete ptr;
+        } // => memory leak
+        => ✅ See **smart pointer**.
+
+
+## Copy constructors and Copy assignment
+
+* **Copy constructor**:
+    * It's a constructor that is used to initialize an object with an existing object of the same type. The copy constructor’s parameter must be a **reference**.
+
+        ```C++
+        class Fraction2
+        {
+        private:
+            int m_numerator{ 0 };
+            int m_denominator{ 1 };
+
+        public:
+            Fraction2(int numerator=0, int denominator=1)
+                : m_numerator{numerator}, m_denominator{denominator}
+            {
+            }
+
+            // Copy constructor
+            Fraction2(const Fraction2& fraction)
+                : m_numerator{ fraction.m_numerator }
+                , m_denominator{ fraction.m_denominator }
+            {
+            }
+        };
+        ```
+    * **Implicit copy constructor**: 
+        * If you do not provide a copy constructor for your classes, C++ will create a public implicit copy constructor. 
+        * By default, the implicit copy constructor will do memberwise initialization.
+
+            ```C++
+            class Fraction
+            {
+            private:
+                int m_numerator{ 0 };
+                int m_denominator{ 1 };
+
+            public:
+                // Default constructor
+                Fraction(int numerator=0, int denominator=1)
+                    : m_numerator{numerator}, m_denominator{denominator}
+                {
+                }
+            };
+
+            void func1()
+            {
+                Fraction f { 5, 3 };
+                Fraction fCopy { f }; // => implicit copy constructor
+            }
+            ```
+    * **Pass by value**, **return by value**, **initialization** of the same class type will implicitly invoke the copy constructor:
+
+        ```C++
+        void printFraction(Fraction2 f) // f is pass by value
+        {
+        }
+
+        void func2()
+        {
+            Fraction2 f2 { 5, 3 };
+            printFraction(f2); // f is copied using copy constructor
+
+        }
+        ```
+
+        ```C++
+        Fraction2 generateFraction(int n, int d)
+        {
+            return Fraction2{ n, d };
+        }
+
+        void func3()
+        {
+            Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
+        }
+        ```
+    * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
+* **Copy assignment**:
     * Overloading `operator=` is fairly straightforward, with one specific caveat:
         ```C++
         class Fraction
@@ -1985,7 +1984,7 @@
 
 ## Shallow copy and deep copy
 
-* The default copy constructor and default assignment operators use **shallow copy**. When classes are simple, this works very well. ⚠️ However, if it handle dynamically allocated memory, shallow copy just copies the address of the pointer:
+* The default copy constructor and default assignment operators use **shallow copy**. When classes are simple, this works very well. ⚠️ However, if it handles dynamically allocated memory, shallow copy just copies the address of the pointer:
     ```C++
     class MyString
     {
@@ -2083,15 +2082,15 @@
     };
 
     template <typename T>
-    class Auto_ptr1     // "smart pointer"
+    class Auto_ptr     // "smart pointer"
     {
         T* m_ptr {};
     public:
-        Auto_ptr1(T* ptr=nullptr)
+        Auto_ptr(T* ptr=nullptr)
             :m_ptr(ptr)
         { }
 
-        ~Auto_ptr1() { delete m_ptr; }
+        ~Auto_ptr() { delete m_ptr; }
 
         T& operator*() const { return *m_ptr; }
         T* operator->() const { return m_ptr; }
@@ -2099,12 +2098,160 @@
 
     void func2()
     {
-        Auto_ptr1<Resource> ptr { new Resource() };
+        Auto_ptr<Resource> ptr { new Resource() };
 
         // no explicit delete here
     }   // ptr destructor will be called here
     ```
-    ❌ `Auto_ptr1` is critically flaw with shallow copy. Read more in github lesson about `Auto_prt2`, `std::auto_ptr` are bad idea. 
+    ❌ `Auto_ptr` is critically flaw with shallow copy. We can address this by overloading the copy constructor and assignment operator to make deep copies. But copying can be expensive:
+    ```C++
+    template<typename T>
+    class Auto_ptr3
+    {
+        // ...
+
+        // Copy constructor
+        Auto_ptr(const Auto_ptr& a)
+        {
+            m_ptr = new T;
+            *m_ptr = *a.m_ptr;		// use assignment to copy the value
+        }
+
+        // Copy assignment
+        Auto_ptr& operator=(const Auto_ptr& a)
+        {
+            // Self-assignment detection
+            if (&a == this)
+                return *this;
+
+            delete m_ptr;
+
+            m_ptr = new T;
+            *m_ptr = *a.m_ptr;
+
+            return *this;
+        }
+    };
+
+    Auto_ptr<Resource> generateResource()
+    {
+        Auto_ptr<Resource> res{new Resource};
+        return res; // this return value will invoke the copy constructor
+    }
+
+    void func1()
+    {
+        Auto_ptr<Resource> mainres;
+        mainres = generateResource(); // this assignment will invoke the copy assignment
+    }
+    ```
+    Here is what happens:
+    1. `res` is constructed in `generateResource()` => Resource acquired
+    2. When `res` is returned by value, it's copy constructed to a temporary object => Resource acquired
+    3. `res` is destroyed => Resource destroyed
+    4. The temporary object is copy assigned to `mainres` => Resource acquired
+    5. The temporary object is destroyed => Resource destroyed
+    6. `mainres` is destroyed => Resource destroyed 
+
+* Copy semantics and Move semantics:
+    * **Copy semantics**:
+        * refers to how copies of objects are made.
+        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
+    * **Move semantics**:
+        * determine how the data from one object is moved (transfer ownership) to another object.
+        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
+
+* Move constructors and move assignment:
+    * while the copy constructors/assignment take a **const l-value reference** parameter, the move constructors/assignment use **non-const rvalue reference** parameters:
+        ```C++
+        template<typename T>
+        class Auto_ptr
+        {
+            // ...
+
+            // Move constructor
+            Auto_ptr(Auto_ptr&& a) noexcept
+                : m_ptr(a.m_ptr)
+            {
+                a.m_ptr = nullptr;	// don't forget
+            }
+
+            // Move assignment
+            Auto_ptr& operator=(Auto_ptr&& a) noexcept
+            {
+                // Self-assignment detection
+                if (&a == this)
+                    return *this;
+
+                delete m_ptr;
+
+                m_ptr = a.m_ptr;
+                a.m_ptr = nullptr;	// don't forget
+
+                return *this;
+            }
+        };
+        ```
+        Here is what happens:
+        1. `res` is constructed in `generateResource()` => Resource acquired
+        2. When `res` is returned by value, it's move constructed to a temporary object, then `res` is destroyed.
+        3. The temporary object is move assigned to `mainres`, then the temporary object is destroyed.
+        4. `mainres` is destroyed => Resource destroyed
+    * ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
+        1. The type of the object supports move semantics.
+        2. The object is being initialized/assigned with an rvalue object of the same type, or when an automatic l-values is returned from a function **by value**.
+        3. The move isn’t elided.
+    * ✅ For move-capable types, move semantics is invoked **automatically** when **returning by value**.
+
+        Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
+    * **Implicit** move constructor/assignment: ... if all of the following are true:
+        1. There are no user-declared copy constructors/assignment.
+        2. There are no user-declared move constructors/assignment.
+        3. There is no user-declared destructor.
+
+        These move functions will do a member-wise move as follows:
+        * If member has a move constructor or move assignment (as appropriate), it will be invoked.
+        * Otherwise, the member will be copied.
+
+        ⚠️ This means that implicit constructor/assignment will copy pointers, not move them! If you want to move a pointer member, you will need to define the move constructor and move assignment yourself.
+
+* ✅ `std::move`:
+    * a function that casts (using `static_cast`) its argument into an r-value reference, so that move semantics can be invoked
+        ```C++
+        template <typename T>
+        void mySwapCopy(T& a, T& b)
+        {
+            T tmp { a }; // invokes copy constructor because a is an l-value
+            a = b; // invokes copy assignment because b is an l-value
+            b = tmp; // invokes copy assignment because tmp is an l-value
+        }
+
+        template <typename T>
+        void mySwapMove(T& a, T& b)
+        {
+            T tmp { std::move(a) }; // invokes move constructor
+            a = std::move(b); // invokes move assignment
+            b = std::move(tmp); // invokes move assignment
+        }
+        ```
+
+        ```C++
+        std::string str { "Knock" };    // use std::string because it is movable (std::string_view is not)
+        std::vector<std::string> v;
+
+        v.push_back(str); // calls l-value version of push_back => copies
+        std::cout << "str: " << str << '\n';	// str is unchanged
+
+        v.push_back(std::move(str)); // calls r-value version of push_back => moves
+        std::cout << "str: " << str << '\n'; // ⚠️ str is now indeterminate
+        ```
+        👍 With a moved-from object (like `str`), it is safe to call any function that does not depend on the current value of the object.
+
+
+
+
+
+
 
 ---
 

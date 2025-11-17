@@ -50,8 +50,8 @@ void func3()
 
 /* Rvalue reference variables are lvalues
 
-- when used in an expression, r-value reference variables are lvalues.
-- Just like int x is an lvalue of type int, int&& x is an lvalue of type int&&.
+- when used in an expression, r-value reference variables are lvalues. 
+    (Just like int x is an lvalue of type int, int&& x is an lvalue of type int&&).
 */
 
 void func4()
@@ -70,17 +70,6 @@ void func4()
 
 int main()
 {
-    // R-value references
-    func1();
-
-
-    // R-value references as function parameters
-    func3();
-
-
-    // Rvalue reference variables are lvalues
-    func4();
-
     return 0;
 }
 
