@@ -1226,3 +1226,50 @@ void func5()
 }
 ```
 => use `std::function` (Option 1) or template (Option 2) 
+
+
+## Inheritance
+
+Adding to existing functionality:
+```C++
+class Base2
+{
+public:
+    Base2() { }
+
+    void identify() const { std::cout << "Base::identify()\n"; }
+
+    friend std::ostream& operator<< (std::ostream& out, const Base2&)
+    {
+        out << "In Base\n";
+        return out;
+    }
+};
+
+class Derived2: public Base2
+{
+public:
+    Derived2() { }
+
+    void identify() const
+    {
+        std::cout << "Derived::identify()\n";
+        Base2::identify(); // call to Base::identify() here
+    }
+    
+    friend std::ostream& operator<< (std::ostream& out, const Derived2& d)
+    {
+       out << "In Derived\n";
+       // Because friend functions of the base class aren’t actually part of the base class. we need to static_cast Derived to a Base object, so we can call the Base version of the operator<<
+       out << static_cast<const Base2&>(d);
+       return out;
+    }
+};
+
+void func2()
+{
+    Derived2 derived {};
+    derived.identify();
+    std::cout << derived << '\n';
+}
+```

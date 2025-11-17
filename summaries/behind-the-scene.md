@@ -2519,14 +2519,63 @@
 
     * C++ defaults to private inheritance.
     * The access specifier for an inherited member may be changed depending on the type of inheritance used:
-    ```
-    Base class's        |           Kind of inheritance
-    access specifier    | Public       | Protected    | Private
-    -----------------------------------------------------------------
-    Public              | Public       | Protected    | Private
-    Protected           | Protected    | Protected    | Private
-    Private             | Inaccessible | Inaccessible | Inaccessible 
-    ```
+        ```
+        Base class's        |           Kind of inheritance
+        access specifier    | Public       | Protected    | Private
+        -----------------------------------------------------------------
+        Public              | Public       | Protected    | Private
+        Protected           | Protected    | Protected    | Private
+        Private             | Inaccessible | Inaccessible | Inaccessible 
+        ```
+* Overriding:
+    * Overrided function does not inherit the access specifier in the base class.
+        ```C++
+        class Base
+        {
+        private:
+            void print() const
+        // ...
+
+        class Derived : public Base
+        {
+        public:
+            void print() const
+        // ...
+        ```
+* Overloading resolution: 
+    * ⚠️ First, **all** overloaded functions in the same class with that name are considered. If no overloaded functions are found, the search continues in the base class:
+        ```C++
+        class Base
+        {
+        public:
+            void print(int)    { }
+        };
+
+        class Derived: public Base
+        {
+        public:
+            void print(double) { }
+        };
+
+        Derived d{};
+        d.print(5); // calls Derived::print(double), not Base::print(int)
+        ```
+    * What if we want to call `Base::print(int)` instead?
+        * Option 1: Override
+        * Option 2: Use `using`. This tells the compiler to consider all `Base::print` functions when resolving print
+            ```C++
+            class Derived: public Base
+            {
+            public:
+                using Base::print; 
+                void print(double) { }
+            };
+
+            Derived d{};
+            d.print(5); // calls Base::print(int)
+            ```
+
+    
 
 
 
