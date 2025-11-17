@@ -527,6 +527,10 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ✅ Always add an self-assignment guard at the of your assignment `operator=` to avoid self-assignment issue.
 
 
+## Move constructors and move assignment
+
+* ✅ Use `std::move` casts an object into an r-value reference, so that move semantics can be invoked
+
 
 
 Just like function templates, class templates are typically defined in header files.
