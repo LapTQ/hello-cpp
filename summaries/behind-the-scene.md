@@ -2527,21 +2527,34 @@
         Protected           | Protected    | Protected    | Private
         Private             | Inaccessible | Inaccessible | Inaccessible 
         ```
-* Overriding:
     * Overrided function does not inherit the access specifier in the base class.
         ```C++
         class Base
         {
         private:
-            void print() const
-        // ...
+            void print() {}
+        };
 
-        class Derived : public Base
+        class Derived: public Base
         {
         public:
-            void print() const
-        // ...
+            void print() {}
+        };
         ```
+    * Given a set of overloaded functions in the base class, there is no way to change the access specifier for a single overload. You can only change them all.
+        ```C++
+        class Base
+        {
+        protected:
+            void print(int)    { }
+        };
+
+        class Derived: public Base
+        {
+        public:
+            using Base::print;  // change all Base::print overloads to public
+        };
+        ``` 
 * Overloading resolution: 
     * ⚠️ First, **all** overloaded functions in the same class with that name are considered. If no overloaded functions are found, the search continues in the base class:
         ```C++
@@ -2574,6 +2587,29 @@
             Derived d{};
             d.print(5); // calls Base::print(int)
             ```
+* Hiding functionality: 
+    * 2 options:
+        1. mark member functions as `delete` in the derived class.
+        2. change the access specifier in the derived class.
+    * However, the base version of the function is still accessible:
+        ```C++
+        class Base
+        {
+        public:
+            int getValue() const { }
+        };
+
+        class Derived : public Base
+        {
+        public:
+            int getValue() const = delete;
+        };
+
+        Derived derived { 7 };
+
+        derived.getValue();         // won't work
+        derived.Base::getValue();   // call the Base::getValue() function directly
+        static_cast<Base&>(derived).getValue();   // casting to a Base& (rather than a Base to avoid making a copy)
 
     
 
