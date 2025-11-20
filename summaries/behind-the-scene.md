@@ -2451,9 +2451,19 @@
 
 # Inheritance
 
-* When C++ constructs derived objects, it does so in phases:
-    * ⚠️ First, the most-base class is constructed.
-    * Then ⚠️ **each** child class is constructed in order, until the most-child class is constructed last.
+* ⚠️ If `Derived` inherits from `Base`, then `Derived` is really 2 parts: a `Base` part, and a `Derived` part. When C++ constructs derived objects, it does so in phases: first, the most-base class is constructed, then **each** child class is constructed **in order** until the most-child class is constructed last.
+    ```
+       Derived object:
+    -------------------
+    |    Base part    |
+    |                 |
+    |     int m_x     |
+    |-----------------|
+    |  Derived part   |
+    |                 |
+    |     int m_y     |
+    -------------------
+    ```
 * What actually happens when derived is instantiated:
     1. Memory for derived is set aside (enough for both the base and derived portions)
     2. The appropriate `Derived` constructor is called
@@ -2610,6 +2620,152 @@
         derived.getValue();         // won't work
         derived.Base::getValue();   // call the Base::getValue() function directly
         static_cast<Base&>(derived).getValue();   // casting to a Base& (rather than a Base to avoid making a copy)
+* Multiple inheritance: See code in github lesson.
+* ⚠️ **Object slicing**: Consider this example:
+    ```C++
+    class Base
+    {
+    public:
+        std::string_view getName() const { return "Base"; }
+    };
+
+    class Derived: public Base
+    {
+    public:
+        std::string_view getName() const { return "Derived"; }
+    };
+
+    Derived derived {};
+    ```
+
+    * Pointers and references to the base **part** of derived objects:
+        ```C++
+        Base& rBase{ derived };    // reference to the base part of `derived`
+        rBase.getName();            // call Base::getName(), not Derived::getName()
+
+        Base* pBase{ &derived };   // pointer to the base part of `derived`
+        pBase->getName();           // call Base::getName(), not Derived::getName()
+        ```
+        ⚠️ => A pointers/references to the base **part** can only see members of the base class.
+    * Not using pointers/references might make a **copy** of the base part:
+        ```C++
+        Base base { derived };     // "copies" the Base portion of `derived` into `base`
+        base.getName() << '\n';    // base is a Base, always calls Base::getName()
+        ```
+
+        ⚠️ The Frankenobject:
+        ```C++
+        Derived d1 {};
+        Derived d2 {};
+        Base& b{ d1 };
+        b = d2;
+        ```
+        Here is what happens in the above code: Because `b` is a `Base`, and `operator=` is not virtual by default => only the `Base` part of `d2` is copied into `d1`, while the `Derived` part of `d1` remains unchanged => `d1` is now a Frankenobject: composed of parts of multiple objects.
+
+        ⚠️ Sliding vectors:
+        ```C++
+        std::vector<Base6> v{};
+        v.push_back(Base6{});    // add a Base object to our vector
+        v.push_back(Derived6{}); // add a Derived object to our vector => sliced
+
+        for (const auto& element : v)
+            std::cout << "I am a " << element.getName() << '\n';
+            // Outputs:
+            // I am a Base
+            // I am a Base
+        ```
+        => ✅ use pointers or references wrapper (See code in github lesson).
+* Virtual functions and polymorphism:
+    * A virtual function, when called, resolves to the **most-derived** version of the function for the **actual type** of the object being referenced or pointed to. Consider this example:
+        ```C++
+        class Base
+        {
+        public:
+            std::string_view getName() const { return "Base"; }
+        };
+
+        class Derived: public Base
+        {
+        public:
+            std::string_view getName() const { return "Derived"; }
+        };
+
+        Derived derived {};
+        ```
+
+        ```C++
+        Base& rBase{ derived };   // reference to the Base part
+        rBase.getName();  // normally resolve to Base::getName(), but because it's virtual, it calls Derived::getName()
+
+        Base base { derived };    // ⚠️ not reference => copies the Base part
+        base.getName();           // => call Base::getName(), not Derived::getName() although getName() is virtual
+        ```
+        ⚠️ => Virtual function resolution only works when a member function is called through a pointer/reference.
+    * To call the Base version of a virtual function from a derived class, use the scope resolution operator:
+        ```C++
+        rBase.Base::getName(); // calls Base::getName()
+        ```
+    * If a function is virtual, all matching overrides in derived classes are also **implicitly** virtual.
+    * ⚠️ A virtual function is only overrided if its signature and return types match exactly:
+        ```C++
+        class A1
+        {
+            virtual std::string_view getName1(int x) { return "A"; }
+	        virtual std::string_view getName2(int x) { return "A"; }
+        };
+
+        class B1 : public A1
+        {
+            virtual std::string_view getName1(short x) { return "B"; } // not override: parameter is a short
+            virtual std::string_view getName2(int x) const { return "B"; } // not override: function is const
+        };
+        ```
+        => ✅ Use `override` keyword to let the compiler check for you: it raises errors if:
+        1. the base function is not virtual,
+        2. or, the child function does not override a base function.
+        ```C++
+        class C1 : public A1
+        {
+        public:
+            std::string_view getName1(short x) override { return "C"; } // compile error, function is not an override
+            std::string_view getName2(int x) const override { return "C"; } // compile error, non-virtual member function cannot be marked as override
+            std::string_view getName2(int x) override { return "C"; } // okay
+        };
+        ```
+        
+        * ⚠️ ***Covariant return types***: One special case where the compiler allows a **different** "return type" to still be considered an override: if the return type of a virtual function is a pointer or reference to a class type, then the overriding function may return a pointer or reference to a **derived** class:
+        ```C++
+        class Base3
+        {
+        public:
+            virtual Base3* getThis() { std::cout << "called Base::getThis()\n"; return this; }
+            void printType() { std::cout << "returned a Base\n"; }
+        };
+
+        class Derived3 : public Base3
+        {
+        public:
+            // Normally override functions have to return objects of the same type as the base function
+            // However, it's okay to return Derived* instead of Base* because Derived is derived from Base.
+            Derived3* getThis() override { std::cout << "called Derived::getThis()\n";  return this; }
+            void printType() { std::cout << "returned a Derived\n"; }
+        };
+
+        void func4()
+        {
+            Derived3 d{};
+            Base3* b{ &d };
+            d.getThis()->printType(); // calls Derived::getThis(), returns a Derived*, calls Derived::printType
+            b->getThis()->printType(); // calls Derived::getThis(), returns a Base*, ⚠️ calls Base::printType because printType is not virtual
+        }
+        ```
+    * Use `final` keyword if you don’t want someone to override a virtual function, or inherit from a class.
+    * ⚠️ Call virtual functions from constructors or destructors:
+        * If you call a virtual function from within the base class constructor, it will always resolve to the base class version of the function. Because, at that point, the derived class portion of the object has not yet been constructed.
+        * Similarly, if you call a virtual function from within the base class destructor, it will always resolve to the base class version of the function. Because, at that point, the derived class portion of the object has already been destroyed.
+    * ✅ Virtual destructors: Always declare destructors as virtual in base classes. Because, if your derived class allocates resources, you might need to deallocate them through the base class pointer in polymorphic use.
+    * ⚠️ Unlike other functions, virtualizing the assignment operator really opens up a bag full of worms. => don’t do it.
+        
 
     
 

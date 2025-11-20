@@ -73,7 +73,7 @@ void func2()
     std::cout << "rBase is a " << rBase.getName() << '\n';  // rBase is a Derived
 
     // Object slicing
-    Base2 base { derived };     // copies the A portion of c into a
+    Base2 base { derived };     // copies the Base portion of `derived` into `base`
     std::cout << "base is a " << base.getName() << '\n';    // base is a Base, always calls Base::getName()
 
     // Frankenobject
@@ -258,9 +258,22 @@ public:
     virtual std::string_view getName() const { return "Derived"; }
 };
 
+void func6Incorrect()
+{
+	std::vector<Base6> v{};
+	v.push_back(Base6{});    // add a Base object to our vector
+	v.push_back(Derived6{}); // add a Derived object to our vector => sliced
+
+	for (const auto& element : v)
+		std::cout << "I am a " << element.getName() << '\n';
+}
+// Output:
+// I am a Base
+// I am a Base
+
 void func6WithPointer()
 {
-    std::vector<Base6*> v;
+    std::vector<Base6*> v;    // vector 
     Derived6 d1;
     Derived6 d2;
     v.push_back(&d1);
@@ -319,7 +332,8 @@ int main()
   If you were to call a virtual function from the base class constructor, it will call the base class version of the function
   because the derived class part of the object has not been constructed yet for the derived class version of the function to work with.
 
-- Similarly, when you destroy an object of a derived class, the derived portion of the object is destroyed first...
+- Similarly, If you call a virtual function in a Base class destructor, it will always resolve to the Base class version of the function, 
+  because the Derived portion of the class will already have been destroyed.
 */
 
 

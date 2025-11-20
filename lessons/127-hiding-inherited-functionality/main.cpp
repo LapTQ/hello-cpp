@@ -33,7 +33,7 @@ public:
     using Base1::printValue;
 };
 
-void func1()
+void func2()
 {
     Derived1 derived { 7 };
 
@@ -93,7 +93,7 @@ int func2()
 int main()
 {
     // Changing an inherited member’s access level
-    func1();
+    func2();
 
     // Hiding functionality
     func2();

@@ -92,7 +92,7 @@ private:
 
 class Button : public Box, public Label, public Tooltip {}; // Button using three mixins
 
-void func1()
+void func2()
 {
 	Button button{};
 	button.Box::setTopLeft({ 1, 1 });
@@ -105,9 +105,6 @@ void func1()
 
 int main()
 {
-    Child child { 1, 2, 3 };
-
-    func1();
 }
 
 

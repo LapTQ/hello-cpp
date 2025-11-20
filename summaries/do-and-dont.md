@@ -548,7 +548,13 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ❌ Don't create a second `std::shared_ptr` from the resource directly
 
 
+## Inheritance
 
+* ⚠️ Be careful of the **object slicing** problem.
+* ✅ Always use `override` keyword for overridden virtual functions.
+* ⚠️ Be aware of calling virtual functions from constructors or destructors.
+* ✅ Always declare destructors as virtual in base classes.
+* ⚠️ Don't virtualize the assignment operator.
 
 
 Just like function templates, class templates are typically defined in header files.
