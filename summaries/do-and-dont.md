@@ -555,6 +555,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 * ⚠️ Be aware of calling virtual functions from constructors or destructors.
 * ✅ Always declare destructors as virtual in base classes.
 * ⚠️ Don't virtualize the assignment operator.
+* `dynamic_cast` vs `static_cast`: ✅ use `static_cast` unless you’re downcasting.
 
 
 Just like function templates, class templates are typically defined in header files.

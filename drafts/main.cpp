@@ -1,27 +1,17 @@
-
-
-#include <iostream>
-
-class Base2
+class Base
 {
 public:
-    virtual std::string_view getName() const { return "Base"; } // note addition of virtual keyword
+    virtual ~Base() = default;
 };
 
-class Derived2: public Base2
+class Derived: public Base
 {
-public:
-    virtual std::string_view getName() const { return "Derived"; }
+
 };
 
 int main()
 {
-    Derived2 derived {};
-	std::cout << "rBase is a " << derived.getName() << '\n';
-
-    // reference to the base class
-    Base2& rBase{ derived };
-    std::cout << "rBase is a " << rBase.getName() << '\n';  // rBase is a Derived
-
-    
+    Derived d {};
+    Base& b { d };
+    Derived d2 { dynamic_cast<Derived&>(b)};
 }

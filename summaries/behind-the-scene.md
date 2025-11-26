@@ -2585,6 +2585,16 @@
         ```
     * What if we want to call `Base::print(int)` instead?
         * Option 1: Override
+            ```C++
+            class Derived: public Base
+            {
+            public:
+                void print(int value)
+                {
+                    Base::print(value); // call Base::print(int)
+                }
+            };
+            ```
         * Option 2: Use `using`. This tells the compiler to consider all `Base::print` functions when resolving print
             ```C++
             class Derived: public Base
@@ -2765,7 +2775,73 @@
         * Similarly, if you call a virtual function from within the base class destructor, it will always resolve to the base class version of the function. Because, at that point, the derived class portion of the object has already been destroyed.
     * ✅ Virtual destructors: Always declare destructors as virtual in base classes. Because, if your derived class allocates resources, you might need to deallocate them through the base class pointer in polymorphic use.
     * ⚠️ Unlike other functions, virtualizing the assignment operator really opens up a bag full of worms. => don’t do it.
+* **Pure virtual functions** (**abstract functions**):
+    * a special kind of virtual function that must be overridden in derived classes. It can have no body at all:
+        ```C++
+        class Base
+        {
+        public:
+            virtual void doSomething() = 0; // pure virtual function
+        };
+        ```
+    * A pure virtual function makes a class **abstract**.
+    * You can provide definition for pure virtual function, but the definition must be outside the class declaration (not inline):
+        ```C++
+        class Base
+        {
+        public:
+            virtual void doSomething() = 0; // pure virtual function
+        };
+
+        void Base::doSomething()
+        {
+            // ...
+        }
+        ```
+* Diamond problem and virtual inheritance: See code in github lesson.
+* Dynamic casting:
+    * We know that C++ allows implicit conversion from derived class pointers/references to base class pointers/references. However, sometimes we want to convert base class pointers/references to derived class pointers/references.
         
+        For example, sometimes we want to access some derived-class-specific functionality from a base-class pointer/reference:
+        ```C++
+        class Base {};
+        class Derived: public Base {}
+        
+        Base* getObject(bool returnDerived)
+        {
+            if (returnDerived)
+                return new Derived{};
+            else
+                return new Base{};
+        }
+
+        Base* b { getObject(true) };
+
+        // Now we want to call some Derived-specific function on b
+
+        delete b;
+        ```
+
+        1. Solution 1: use virtual functions. But this might pollute the base class interface with functions that are only relevant to certain derived classes.
+        2. Solution 2: use `dynamic_cast` to safely downcast base class pointers/references to derived class pointers/references.
+    * `dynamic_cast`:
+        ```C++
+        Derived* d1 { dynamic_cast<Derived*>(b) };
+
+        if (d) // make sure d is non-null
+        {
+            // ...
+        }
+        ```
+
+        When `dynamic_cast` will not work:
+        * when `b` wasn’t pointing to a Derived object. In this case `dynamic_cast` will return a null pointer.
+        * With protected or private inheritance.
+        * For classes that do not declare or inherit any virtual functions (and thus don’t have a virtual table).
+        * In certain cases involving virtual base classes.
+    * Downcasting can also be done with `static_cast`. It's faster, but ⚠️ more dangerous because it does no runtime type checking.
+    * New programmers are sometimes confused about when to use `static_cast` vs `dynamic_cast`. => ✅ use `static_cast` unless you’re downcasting.
+
 
     
 
