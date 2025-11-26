@@ -219,7 +219,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
     ```
 
 
-## Function templates
+## Templates
 
 * ✅ Use non-type template parameters to when we need to pass constexpr values to functions/class types. For example, to `static_assert` at compile time.
 * Function templates in multiple files:
@@ -395,6 +395,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
         👍 More efficient.
         
         👎️ Requires more files.
+* For template specializations: ✅ specialized classes and functions are often defined in a header file just below the definition of the non-specialized class.
 
 * Static member variables:
     * If the class is defined in a header file:

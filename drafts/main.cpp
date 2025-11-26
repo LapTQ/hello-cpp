@@ -1,17 +1,14 @@
-class Base
+template<typename T>
+class A
 {
 public:
-    virtual ~Base() = default;
+    T x;
 };
 
-class Derived: public Base
+class A
 {
-
-};
-
-int main()
-{
-    Derived d {};
-    Base& b { d };
-    Derived d2 { dynamic_cast<Derived&>(b)};
+public:
+    int x;
 }
+
+class A

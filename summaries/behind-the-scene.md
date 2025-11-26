@@ -373,7 +373,7 @@
     * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
 
 
-## Function templates
+## Templates
 
 * Function templates are not actually functions. They generate functions.
 * The process of creating functions from function templates is called **instantiation**.
@@ -382,6 +382,11 @@
 * Function templates can be overloaded.
 * A **non-type template parameter**: a template parameter with a fixed type that serves as a placeholder for a constexpr value.
 * Functions implicitly instantiated from templates are implicitly inline.
+* There are cases where you may want to provide a slightly different implementation for a specific type:
+    1. Solution 1 (does not work for class type): define a non-template function for that specific type. That function will take precedence over the template function during overload resolution.
+    2. Solution 2: use **template specialization**. This solution achieves the same effect. (see code in github lesson).
+    
+    Partial template specialization: as of the time of writing (C++23) functions cannot be partially specialized, only classes can be partially specialized. (see code in github lesson)
 
 
 ## Value categories 
@@ -966,6 +971,7 @@
     2. the compiler will only instantiate a class template if the class template is used (i.e., the compiler must see both the full class template definition (not just a declaration) and the specific template type(s) needed).
 
     => the compiler will not instantiate it in the .cpp file to be linked with the call from the main.cpp file. More details [here](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes)
+* With template specialization: the compiler must be able to see the full definition of both the non-specialized class and the specialized class in order to use a template specialization. => If can only see the definition of the non-specialized class, it will use that instead of the specialization.
  
 
 ## Nested types
