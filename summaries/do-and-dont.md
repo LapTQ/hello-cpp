@@ -562,6 +562,9 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 Just like function templates, class templates are typically defined in header files.
 
 
+## Exception handling
+
+* ✅ Exceptions of non-fundamental types should be caught by const reference to avoid making an unnecessary copy.
 
 
 

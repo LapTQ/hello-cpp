@@ -116,7 +116,13 @@ int func2()
 
 
 /* If a constructor must fail for some reason, simply throw an exception
-...  in such a case, the object’s construction is aborted, and all class members are destructed as per usual.
+...  in such a case, the object’s construction is aborted, and all class members (which have "already been created" and initialized prior to the body of the constructor executing) 
+    are destructed as per usual.
+    However, the class’s destructor is never called (because the object never finished construction). 
+    This leads to the question of what we should do if we’ve allocated resources in our constructor and then an exception occurs prior to the constructor finishing?
+    1. Solution 1: wrap any code that can fail in a try block. But this adds a lot of clutter.
+    2. Solution 2: wrap the resource allocations inside a class member (because (recall that) class members are destructed if the constructor fails). However, creating a custom class like to manage a resource allocation isn’t efficient.
+    3. Solution 3: use RAII-compliant classes such as files (std::fstream), smart pointers (std::unique_ptr, ...).
 */
 
 
@@ -181,8 +187,8 @@ int func3()
 /* The lifetime of exceptions
 
 - The object being thrown is typically a temporary object or a local variable.
-  But recall that when a function throws an exception, the stack is unwound.
-  SO how can the object being thrown persist after the function has been exited?
+  But recall that when a function throws an exception, the stack is unwound, causing all variables local to the function to be destroyed.
+  So how can the object being thrown persist after the function has been exited?
 - The answer is that the object is copied to some piece of memory (outside the stack).
   => the object being thrown generally need to be copyable. 
 */

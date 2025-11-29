@@ -794,6 +794,9 @@
 
 * **Constructors**:
     * Constructors do not create the objects. The compiler sets up the memory allocation for the object prior to the constructor call.
+    * ✅ If the constructor is aborted for some reason, then all class members which have **already** been created and initialized **prior to** the **body** of the constructor executing are destructed as per usual.
+        
+        This is part of the [***RAII***]( https://www.learncpp.com/cpp-tutorial/destructors/#:~:text=destroyed%20after%20main().-,RAII,-RAII%20(Resource%20Acquisition) principle.
     * **Default constructor**: a constructor that accepts no arguments.
 
         ```C++
@@ -954,7 +957,6 @@
         ```
 
 
-
 ## Program-defined types and header files
 
 * Note that this is a full definition, not a forward declaration:
@@ -1023,6 +1025,7 @@
 * Destructor: a special member function that is called automatically when an object of a non-aggregate class type is destroyed. For example:
     * when an object goes out of scope normally
     * when a dynamically allocated object is explicitly deleted using the `delete` keyword
+* If a constructor is aborted for some reason, the class’s destructor is never called (because the object never finished construction).
 * The destructor must have the same name as the class, preceded by a tilde (`~`).
 * The destructor can not take arguments.
 * The destructor has no return type.
@@ -2849,6 +2852,59 @@
     * New programmers are sometimes confused about when to use `static_cast` vs `dynamic_cast`. => ✅ use `static_cast` unless you’re downcasting.
 
 
+## Exception handling
+
+* `throw` keyword: used to signal that an exception or error has occurred.
+    * You can throw any data type you wish:
+        ```C++
+        throw 7;                      // throw an int
+        throw std::string("Error");   // throw a string
+        throw MyException{};          // throw an object of user-defined type
+        ```
+* `catch` keyword: used to handle exceptions for a single data type:
+    ```C++
+    catch (int x)
+    {
+        // Handle an exception of type int here
+    }
+    ```
+
+    ```C++
+    catch (const MyException& e)    // use const reference to avoid making an unnecessary copy
+    {
+    }
+    ```
+
+    * `catch(...)` can be used to catch any exception type:
+        ```C++
+        catch (...)
+        {
+            // Handle any exception type here
+        }
+        ```
+* `std::exception`: Many of the classes and operators in the standard library throw exception classes on failure, e.g.: `std::bad_alloc`, `std::bad_cast`, .... All these exception classes are derived from the base class `std::exception`:
+    ```C++
+    try
+    {
+        throw std::runtime_error("An error occurred");
+    }
+    catch (const std::exception& e) // catch any standard library exception
+    {
+        std::cout << "Standard exception: " << e.what() << '\n';
+    }
+    ```
+* Stack unwinding:
+    1. When a function throws an exception, the program will look for a catch block that can handle the exception.
+    2. If a handler is not found in the current function, it will look in the calling function and so on up the call stack until it finds a catch block that can handle the exception, or no handler can be found.
+        1. If a handler is found, the stack is unwound.
+        2. If no handler is found, the stack might or might not be unwound. => local objects might not be destroyed => ⚠️ any cleanup expected upon destruction of said variables will not happen!
+* If a constructor must fail for some reason, we can simply throw an exception because all class members are destructed when construction is aborted. However, given that the class’s destructor is never called in this case, what we should do if we’ve allocated resources in our constructor before the exception is thrown?
+    1. Solution 1: wrap any code that can fail in a try block. ⚠️ But this adds a lot of clutter.
+    2. Solution 2: wrap the resource allocations inside a class member (because (recall that) class members are destructed if the constructor fails). ⚠️ However, creating a custom class like to manage a resource allocation isn’t efficient.
+    3. Solution 3: ✅ use RAII-compliant classes such as files (`std::fstream`), smart pointers (`std::unique_ptr`, ...).
+* The lifetime of exceptions: The object being thrown is typically a temporary object or a local variable. But recall that when a function throws an exception, the stack is unwound, causing all variables local to the function to be destroyed. So how can the object being thrown persist after the function has been exited?
+    
+    The answer is that the object is copied to some piece of memory (outside the stack) => the object being thrown generally need to be copyable. 
     
 
 
