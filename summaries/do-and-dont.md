@@ -65,8 +65,7 @@ std::cout << (++x, ++y) << '\n'; // evaluates left and right, then retuns the ri
 
 ## Compile-time optimization
 
-* ✅ Most compilers default to no optimization, so if you’re using a command-line 
-  compiler, you’ll need to enable optimization yourself.
+* ✅ Most compilers default to no optimization, so if you’re using a command-line compiler, you’ll need to enable optimization yourself.
 
 
 ## Using `std:string` and `std::string_view`
