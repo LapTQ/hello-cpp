@@ -2955,7 +2955,47 @@
         {
             b.print();              // prints "Derived"!!!
         }
-    
+* **Function try block**: there is one particular case in which they are not sufficient:
+    ```C++
+    class A
+    {
+    public:
+        A(int x)
+        {
+            if (x <= 0)
+                throw 1; // Exception thrown here
+        }
+    };
+
+    class B1 : public A
+    {
+    public:
+        B1(int x) : A{x}
+        {
+            // What happens if creation of A fails and we want to handle it here?
+        }
+    };
+    ```
+
+    Function try block allows us to handle exceptions around the body of an entire function, rather than around a block of code.
+    ```C++
+    class B2 : public A
+    {
+    public:
+        B2(int x) try : A{x}
+        {
+        }
+        catch (...)
+        {
+            std::cerr << "Exception caught\n";
+
+            throw; // rethrow the existing exception
+        }
+    };
+    ```
+    Notes:
+    * A function-level catch block for a constructor must either throw a new exception or rethrow the existing exception -- they are not allowed to resolve exceptions!
+    * Reaching the end of the catch block will implicitly rethrow.
 
 
 
