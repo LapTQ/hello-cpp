@@ -565,6 +565,14 @@ Just like function templates, class templates are typically defined in header fi
 ## Exception handling
 
 * ✅ Exceptions of non-fundamental types should be caught by const reference to avoid making an unnecessary copy.
+* ✅ Always mark the following as `noexcept`:
+    * Move constructors
+    * Move assignment operators
+    * Swap functions
+* ✅ Consider marking the following as noexcept:
+    * Functions which you want to express a no-throw or no-fail guarantee.
+    * Copy constructors and copy assignment operators that are no-throw (to take advantage of optimizations).
+    * Destructors. Destructors are implicitly noexcept so long as all members have noexcept destructors
 
 
 

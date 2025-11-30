@@ -8,14 +8,14 @@
   But the answer is important in some contexts.
 
 - In C++, all functions are classified as either "non-throwing" or "potentially throwing". 
+  * potentially throwing: a function that might throw exceptions to its caller.
+  * non-throwing: a function that is guaranteed not to throw exceptions to its caller. It can still throw exceptions internally but must catch and handle them itself internally.
+      If a non-throwing function does throw an exception to its caller, std::terminate is called.
+
 - To define a function as non-throwing, we can use the "noexcept" specifier.
     ```
     void doSomething() noexcept;
     ```
-
-- Note that noexcept doesn’t actually prevent the function from throwing exceptions,
-  so long as the noexcept function catches and handles those exceptions "internally".
-  Otherwise, std::terminate will be called.
 
 The noexcept specifier has an optional Boolean parameter:
   + noexcept(true) is equivalent to noexcept
@@ -60,6 +60,13 @@ void func2()
 /* When to use noexcept
 
 Read: https://www.learncpp.com/cpp-tutorial/exception-specifications-and-noexcept/#:~:text=When%20to%20use%20noexcept
+
+
+There are a few good reasons to mark functions a non-throwing:
+* Non-throwing functions can be safely called from functions that are not exception-safe, such as destructors.
+* Functions that are noexcept can enable the compiler to perform some optimizations.
+* the standard library containers are noexcept aware and will use the noexcept operator to determine whether to use move semantics (faster) or copy semantics (slower)
+
 
 For your own code, always mark the following as noexcept:
 + Move constructors

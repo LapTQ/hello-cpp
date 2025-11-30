@@ -2996,7 +2996,23 @@
     Notes:
     * A function-level catch block for a constructor must either throw a new exception or rethrow the existing exception -- they are not allowed to resolve exceptions!
     * Reaching the end of the catch block will implicitly rethrow.
-
+* `noexcept`: 
+    * In C++, all functions are classified as either:
+        * potentially throwing: a function that might throw exceptions to its caller.
+        * non-throwing: a function that is guaranteed not to throw exceptions to its caller. It can still throw exceptions internally but must catch and handle them itself internally. If a non-throwing function does throw an exception to its caller, `std::terminate` is called.
+    * To define a function as non-throwing, we can use the `noexcept` specifier.
+        ```C++
+        void doSomething() noexcept {};
+        ```
+    * *Exception safety guarantees*: a contractual guideline about how functions or classes will behave when an exception occurs. 4 levels:
+        1. No guarantee
+        2. Basic guarantee: no resource leaks, but the program state may be modified.
+        3. Strong guarantee: no resource leaks, and the program state is unchanged. => the function call is either completed successfully, or has no side effect.
+        4. No-throw/no-fail guarantee: the function is guaranteed not to throw an exception to the caller (may throw internally). The `noexcept` specifier indicates this guarantee.
+    * There are few good reasons to declare a function as `noexcept`:
+        1. Non-throwing functions can be safely called from functions that are not exception-safe, such as destructors.
+        2. Functions that are noexcept can enable the compiler to perform some optimizations.
+        3. The standard library containers will use the `noexcept` operator to determine whether to use move semantics (faster) or copy semantics (slower).
 
 
 ---
