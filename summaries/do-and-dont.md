@@ -573,6 +573,7 @@ Just like function templates, class templates are typically defined in header fi
     * Functions which you want to express a no-throw or no-fail guarantee.
     * Copy constructors and copy assignment operators that are no-throw (to take advantage of optimizations).
     * Destructors. Destructors are implicitly noexcept so long as all members have noexcept destructors
+* ✅ Consider using the `noexcept` specifier in conjunction with `std::move_if_noexcept` (instead of using `std::move`) to provide strong exception safety guarantees.
 
 
 

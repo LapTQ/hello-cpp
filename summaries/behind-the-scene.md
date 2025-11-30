@@ -3013,6 +3013,10 @@
         1. Non-throwing functions can be safely called from functions that are not exception-safe, such as destructors.
         2. Functions that are noexcept can enable the compiler to perform some optimizations.
         3. The standard library containers will use the `noexcept` operator to determine whether to use move semantics (faster) or copy semantics (slower).
+* `std::move_if_noexcept`:
+    * Consider the case where we are copying some object. If the copy fails for some reason, the object being copied is not harmed. However, if we move the object instead, and the move fails, ⚠️ the source object might be left in modified state.
+    * `std::move_if_noexcept` is a counterpart to `std::move` that is used in the same way, but only performs the move if the object has a `noexcept` move constructor. Otherwise, it will return a copyable l-value.
+        => ✅ We can use the `noexcept` specifier in conjunction with `std::move_if_noexcept` to provide strong exception safety guarantees.
 
 
 ---
