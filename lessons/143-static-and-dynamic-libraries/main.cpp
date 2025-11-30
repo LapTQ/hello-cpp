@@ -41,6 +41,12 @@ There are two types of libraries:
 */
 
 
+/* Watch the following videos to understand static/dynamic libraries (extremely recommended):
+
+- https://www.youtube.com/watch?app=desktop&v=XJC5WB2Bwrc
+*/
+
+
 /* References
 
 - https://www.learncpp.com/cpp-tutorial/a1-static-and-dynamic-libraries/

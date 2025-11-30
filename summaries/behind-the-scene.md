@@ -3019,6 +3019,9 @@
         => ✅ We can use the `noexcept` specifier in conjunction with `std::move_if_noexcept` to provide strong exception safety guarantees.
 
 
+## 
+
+
 ---
 
 Few reminders about passing temporary objects:

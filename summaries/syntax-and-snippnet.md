@@ -1273,3 +1273,15 @@ void func2()
     std::cout << derived << '\n';
 }
 ```
+
+
+## Streams
+
+So far, all of the I/O examples you have seen have been writing to cout or reading from cin. There are six stream classes for strings: istringstream, ostringstream, stringstream, wistringstream, wostringstream, and wstringstream. 
+
+See in github lesson.
+
+
+## File I/O
+
+See in github lesson.
