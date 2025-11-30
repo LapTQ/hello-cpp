@@ -25,14 +25,14 @@ int func1()
     {
         try
         {
-            throw Derived{};
+            throw Derived{};    // throw a copy of Derived
         }
-        catch (Base& b)
+        catch (Base& b)         // b is a Base reference to the (copied) Derived object
         {
             std::cout << "Caught Base b, which is actually a ";
             b.print();      // prints "Derived"
             std::cout << '\n';
-            throw b; // the Derived object gets sliced here
+            throw b;        // ⚠️ throw a copy of the Base part of the Derived object!!!
         }
     }
     catch (Base& b)

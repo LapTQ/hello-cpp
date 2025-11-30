@@ -2904,7 +2904,57 @@
     3. Solution 3: ✅ use RAII-compliant classes such as files (`std::fstream`), smart pointers (`std::unique_ptr`, ...).
 * The lifetime of exceptions: The object being thrown is typically a temporary object or a local variable. But recall that when a function throws an exception, the stack is unwound, causing all variables local to the function to be destroyed. So how can the object being thrown persist after the function has been exited?
     
-    The answer is that the object is copied to some piece of memory (outside the stack) => the object being thrown generally need to be copyable. 
+    ⚠️ The answer is that the object is **copied** to some piece of memory (outside the stack) => the object being thrown generally need to be copyable. 
+* Rethrowing an exception:
+    * The wrong way:
+
+        Remind: when we throw an exception, the thrown exception is copy-initialized from variable exception.
+        ```C++
+        class Base
+        {
+            virtual void print() { std::cout << "Base"; }
+        };
+
+        class Derived: public Base
+        {
+            void print() override { std::cout << "Derived"; }
+        };
+
+        try
+        {
+            try
+            {
+                throw Derived{};    // throw a copy of Derived
+            }
+            catch (Base& b)         // b is a Base reference to the (copied) Derived object
+            {
+                b.print();          // prints "Derived"
+                throw b;            // ⚠️ throw a copy of the Base part of the Derived object!!!
+            }
+        }
+        catch (Base& b)
+        {
+            b.print();              // prints "Base"!!!
+        }
+        ```
+    * The right way: simply use the throw keyword from within the catch block with no associated variable
+        ```C++
+        try
+        {
+            try
+            {
+                throw Derived{};    
+            }
+            catch (Base& b)
+            {
+                b.print();          // prints "Derived"
+                throw;              // rethrow the current exception without slicing
+            }
+        }
+        catch (Base& b)
+        {
+            b.print();              // prints "Derived"!!!
+        }
     
 
 

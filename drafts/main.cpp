@@ -1,14 +1,40 @@
-template<typename T>
-class A
+#include <iostream>
+class Base
 {
 public:
-    T x;
+    Base() {}
+    virtual void print() { std::cout << "Base"; }
 };
 
-class A
+class Derived: public Base
 {
 public:
-    int x;
-}
+    Derived() {}
+    void print() override { std::cout << "Derived"; }
+};
 
-class A
+int main()
+{
+    try
+    {
+        try
+        {
+            throw Derived{};
+        }
+        catch (Base& b)
+        {
+            std::cout << "Caught Base b, which is actually a ";
+            b.print();      // prints "Derived"
+            std::cout << '\n';
+            throw; // the Derived object gets sliced here
+        }
+    }
+    catch (Base& b)
+    {
+        std::cout << "Caught Base b, which is actually a ";
+        b.print();    // prints "Base"!!!
+        std::cout << '\n';
+    }
+
+    return 0;
+}
