@@ -796,7 +796,7 @@
     * Constructors do not create the objects. The compiler sets up the memory allocation for the object prior to the constructor call.
     * ✅ If the constructor is aborted for some reason, then all class members which have **already** been created and initialized **prior to** the **body** of the constructor executing are destructed as per usual.
         
-        This is part of the [***RAII***]( https://www.learncpp.com/cpp-tutorial/destructors/#:~:text=destroyed%20after%20main().-,RAII,-RAII%20(Resource%20Acquisition) principle.
+        This is part of the [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors) principle.
     * **Default constructor**: a constructor that accepts no arguments.
 
         ```C++
