@@ -3019,7 +3019,42 @@
         => ✅ We can use the `noexcept` specifier in conjunction with `std::move_if_noexcept` to provide strong exception safety guarantees.
 
 
-## 
+## Static and dynamic libraries
+
+* C++ library typically includes 2 pieces:
+    1. Header files: contain declarations for the library’s functionality.
+    2. Library files: contain the compiled implementation of the library’s functionality.
+* C++ compilation process:
+    1. Preprocessing: the output is still C++ code files.
+    2. Compiler: the output is assembly code files (still human-readable).
+    3. Assembler: the output is machine code (binary) files. The result is called **object files** (`.o` or `.obj`). However, these files are not yet executable.
+    4. Linker: At this stage, we may have multiple object files:
+        * some from our code
+        * others from external libraries we included during development. 
+        
+        The linker's job is to combine all these object files into a single executable. There're 2 options:
+        1. Static linking: all library code used by our program is copied into the final executable.
+            * ✅ The final executable is self-contained and can be run on any system that supports the target architecture.
+            * ⚠️ Think about how many programs on your system use the same `printf` function from the standard library. You'd end up with thousands of identical copies stored across your disk.
+            * ❌ If a library is updated (e.g., to fix a bug), you need to recompile and relink all programs that use that library.
+        2. Dynamic linking: libraries are pre-compiled into a special type of file called a **dynamic shared library** (`.so` files on Unix, `.dll` files on Windows). They are excutable files but don't contain a an entry point to start execution (the `main` function).  When our program is compiled, the linker won't copy the functions from the library directly into the executable. Instead, it will simply insert a reference to the library. At runtime, if the program needs a function from that dynamic library, the OS will load the required function into the program's address space so the program can use it as if it were part of the executable.
+            * ✅ saves disk space
+            * ✅ updating a shared library does not require recompiling or relinking the programs that use it.
+* Why break the compilation process into so many phases if the compiler could just go directly from source to executable?
+    * Suppose we need to write a program in C. But let's say we don't trust the compiler optimizations. So we decide to write the heavy calculation function directly in assembly and just call it from C. Then, when we pass both files to GCC, it will:
+        1. compile and assemble the C code into an object file
+        2. assemble the assembly code into another object file
+        3. link both object files into a single executable file
+
+        And voila, we've just compiled a multi-language project. This technique is used by real world systems like the Linux kernel, ffmpeg, openSSL, and many embedded projects.
+    * Take Rust for example. It has a completely different tool chain from C, different compiler, different build system, and a different philosophy altogether. But same as C, Rust also relies on a linker. So if we want to call a Rust function from C:
+        1. We compile the Rust code into an object file using Rust's compiler.
+        2. We declare the Rust function in C, compile the C code into another object file using GCC.
+        3. Finally, we link both object files into a single executable file using GCC.
+
+        And of course, we can call C functions from Rust.
+
+    * There's one more really important point to understand. Let's say we have two highle languages language A and language B. Just because both of them have a final linking phase doesn't automatically mean they can be correctly linked together into one executable. Even if both compilers emit assembly for the same architecture, they might make different assumptions (e.g, about how data is passed between functions, ...), resulting in unnexpected behavior. Therefore, the 2 sides must agree on a common rules, called the **application binary interface** (ABI).
 
 
 ---
