@@ -3055,6 +3055,20 @@
         And of course, we can call C functions from Rust.
 
     * There's one more really important point to understand. Let's say we have two highle languages language A and language B. Just because both of them have a final linking phase doesn't automatically mean they can be correctly linked together into one executable. Even if both compilers emit assembly for the same architecture, they might make different assumptions (e.g, about how data is passed between functions, ...), resulting in unnexpected behavior. Therefore, the 2 sides must agree on a common rules, called the **application binary interface** (ABI).
+* Installing and using libraries:
+    * Installing:
+        1. Acquire the library:
+            * The best option iss to download a pre-compiled package.
+            * Alternatively, you can download the source code and compile it yourself.
+
+            On Linux, libraries are typically distributed as packages (e.g. .RPM). Your package manager may have some of the more popular libraries (e.g. SDL) listed already for easy installation, so check there first.
+        2. Install the library: On Linux, this typically involves invoking the package manager and letting it do all the work.
+        3. Tell the compiler where to find the library header files. On Linux, header files are typically installed to `/usr/include`.
+        4. Tell the linker where to look for the library files. On Linux, library files are typically installed to `/usr/lib`.
+    * Using: Once the library is installed and the IDE knows where to look for it, for each project that wants to use the library:
+        5. If using static libraries or import libraries, tell the linker which library files to link.
+        6. `#include` the library’s header files.
+        7. If using dynamic libraries, tell your program where to find the dynamic library files at runtime. On Linux, library files are typically installed to `/usr/lib`. You can also set the `LD_LIBRARY_PATH` environment variable to point to additional directories. `LD_LIBRARY_PATH` contains a colon separated list of paths and the linker gives priority to these paths over the standard library paths `/lib` and `/usr/lib`. The standard paths will still be searched, but only after the list of paths in LD_LIBRARY_PATH has been exhausted.
 
 
 ---
