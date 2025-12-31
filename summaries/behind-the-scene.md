@@ -1022,7 +1022,7 @@
 
 ## Destructor
 
-* Destructor: a special member function that is called automatically when an object of a non-aggregate class type is destroyed. For example:
+* Destructor: a special class member function that is executed when an object of that class is destroyed. For example:
     * when an object goes out of scope normally
     * when a dynamically allocated object is explicitly deleted using the `delete` keyword
 * If a constructor is aborted for some reason, the class’s destructor is never called (because the object never finished construction).
