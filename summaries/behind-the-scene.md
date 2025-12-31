@@ -2255,19 +2255,19 @@
     * while the copy constructors/assignment take a **const l-value reference** parameter, the move constructors/assignment use **non-const rvalue reference** parameters:
     ```C++
     template<typename T>
-    class Auto_ptr
+    class MyClass
     {
         // ...
 
         // Move constructor
-        Auto_ptr(Auto_ptr&& a) noexcept
+        MyClass(MyClass&& a) noexcept
             : m_ptr(a.m_ptr)
         {
             a.m_ptr = nullptr;	// don't forget
         }
 
         // Move assignment
-        Auto_ptr& operator=(Auto_ptr&& a) noexcept
+        MyClass& operator=(MyClass&& a) noexcept
         {
             // Self-assignment detection
             if (&a == this)
