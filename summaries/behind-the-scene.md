@@ -1,217 +1,215 @@
 
 
-## How `std::cin >>` works (simplified)
+## Cơ chế hoạt động của `std::cin >>` (Tóm tắt đơn giản)
 
-1. First, leading whitespace is discared from the input buffer.
-2. If the input buffer is now empty, `>>` will wait for the user input. Leading whitespace is again discarded.
-3. `>>` then extracts as many consecutive characters as it can, until it encounters either a newline character or a character that is not valid for the variable being extracted to.
+1. Bước đầu tiên, `std::cin >>` sẽ tự động bỏ qua tất cả các ký tự khoảng trắng (*whitespace*) nằm ở đầu *input buffer*.
+2. Lúc này, nếu *input buffer* trống, toán tử `>>` sẽ dừng lại chờ người dùng nhập dữ liệu. Sau khi người dùng nhập xong, các *whitespace* ở đầu lại tiếp tục bị loại bỏ một lần nữa.
+3. Kế tiếp, `>>` tiến hành đọc nhiều ký tự liên tiếp nhất có thể, cho đến khi nó chạm phải một ký tự xuống dòng (*newline*) hoặc một ký tự không hợp lệ với kiểu dữ liệu của biến.
 
-    If no characters could be extracted in this step, e.g. typing a non-digit `a` character 
-    for an int `y`, 3 things happen at this point:
-    * the object being extracted to is assigned the value 0 (as of C++11)
-    * `a` is left in the input buffer
-    * `std::cin` goes into “failure mode” (until the `clear()` function is called): any requests for further extraction are ignored. This means that instead waiting for us to enter an operation, the input prompt is silently skipped.
-4. Any non-extracted characters (including newlines) remain available for the next extraction attempt.
+    Trong trường hợp không đọc được bất kỳ ký tự nào hợp lệ ở bước trên (chẳng hạn bạn nhập chữ `a` trong khi biến `y` yêu cầu kiểu `int`), hệ thống sẽ xử lý theo 3 bước sau:
+    * Biến nhận dữ liệu sẽ tự động được gán giá trị bằng 0 (quy định từ chuẩn C++11).
+    * Ký tự lỗi `a` vẫn bị để lại và kẹt trong *input buffer*.
+    * `std::cin` lập tức rơi vào trạng thái lỗi (*failure mode*) cho đến khi hàm `clear()` được gọi. Trong suốt thời gian này, mọi yêu cầu trích xuất dữ liệu tiếp theo đều bị ngó lơ, dẫn đến việc chương trình tự động bỏ qua các *input prompt* kế tiếp một cách im lặng thay vì dừng lại chờ bạn nhập.
+4. Cuối cùng, những ký tự chưa được đọc (bao gồm cả ký tự *newline*) vẫn nằm chờ trong *input buffer* và sẵn sàng cho lần gọi `std::cin >>` tiếp theo.
 
 
-## Compiling and naming collision
+## Xung đột tên gọi (Naming collision) trong quá trình build
 
-* If the colliding identifiers are introduced into the same file, the result will be a compiler error. 
-* If the colliding identifiers are introduced into separate files belonging to the same program, the result will be a linker error.
-* When the compiler compiles this program, it will compile each file (e.g., a.cpp and main.cpp) independently, and each file will compile with no problems.
-    
-    However, when the linker executes, it will link all the definitions in a.cpp and main.cpp together, and discover conflicting definitions for function myFcn().
+* Nếu các *identifier* trùng tên xuất hiện trong cùng một *file*, hệ thống sẽ ngay lập tức báo lỗi biên dịch (*compiler error*).
+* Nếu các *identifier* trùng tên nằm ở các *file* khác nhau trong cùng một chương trình (*program*), kết quả sẽ dẫn đến lỗi liên kết (*linker error*).
+    * Khi biên dịch, *compiler* sẽ xử lý từng *file* (ví dụ: `a.cpp` và `main.cpp`) một cách độc lập, do đó quá trình *compile* từng *file* riêng lẻ vẫn diễn ra suôn sẻ và không gặp lỗi gì.
+    * Tuy nhiên, khi chuyển sang giai đoạn linking, *linker* sẽ kết nối tất cả các *definition* từ `a.cpp` và `main.cpp` lại với nhau. Lúc này, nó sẽ phát hiện ra sự xung đột do có các *definition* trùng tên.
 
 
 ## Preprocessor
 
-* Prior to compilation, each code file goes through a preprocessing phase.
-* A ***translation unit*** is a single file after it has been preprocessed, and before it is compiled.
-* When the preprocessor runs, it processes the code file from top to bottom, looking for ***preprocessor directives*** (lines that start with `#`):
-    * `#include`: replaces the directive with the contents of the specified file.
-    * `#define`: 2 types: object-like macros and function-like macros.
+* Trước khi quá trình biên dịch (*compilation*) chính thức diễn ra, mọi *code file* đều phải đi qua một giai đoạn sơ chế gọi là tiền xử lý (*preprocessing*).
+* Một ***translation unit*** chính là trạng thái của một *file* đơn lẻ sau khi đã chạy xong bước *preprocess* và ngay trước khi được đem đi *compile*.
+* Khi hoạt động, *preprocessor* sẽ quét qua *code file* tuần tự từ trên xuống dưới để tìm và xử lý các ***preprocessor directive*** (những dòng lệnh bắt đầu bằng dấu `#`):
+    * `#include`: Tự động thay thế chính dòng *directive* đó bằng toàn bộ nội dung của *file* được chỉ định.
+    * `#define`: Gồm có 2 loại cấu trúc macro chính là *object-like macro* và *function-like macro*.
 
 
-## Scope of directives
+## Phạm vi hoạt động (Scope) của các directive
 
-* an `#include` can "copy" directives (other `#include` and `#define`) from the included file into the current file.
+* Lệnh `#include` có thể "sao chép" các *directive* khác (chẳng hạn như các lệnh `#include` hoặc `#define` khác) từ *file* được nhúng vào trong *file* hiện tại.
 
-    => if you `#define` a macro in a header file, and `#include` the header file in a source file, the macro will be available in the source file. 
-* Directives are only valid from the point of definition to the end of the file in which they are defined.
+    => Do đó, nếu bạn `#define` một *macro* trong một *header file*, rồi tiến hành `#include` *header file* đó vào một *source file*, thì *macro* này cũng sẽ khả dụng và dùng được trong *source file* đó.
+* Các *directive* chỉ có hiệu lực kể từ vị trí nó được khai báo cho đến hết *file* chứa nó.
     
-    => directives defined in one file do not carry over to other files that are compiled separately (unless they are #included in those files).
+    => Hệ quả là, các *directive* được định nghĩa ở *file* này sẽ không ảnh hưởng hay lan sang các *file* khác được biên dịch độc lập (trừ khi chúng được `#include` trực tiếp vào các *file* đó).
 
 
-## One-Definition Rule (ODR)
+## Quy tắc Một Định Nghĩa (One-Definition Rule - ODR)
 
-* A variable or function identifier can only have one definition (not declaration).
-* But types (including program-defined types) are exempt from the part of the ODR. For example:
-    * Including a given type definitions into multiple translation units does not violate ODR, but
-    * Including a given type definition more than once into a single translation unit is still violates ODR (=> still need header guards).
+* Một *identifier* của biến hoặc hàm chỉ được phép có duy nhất một *definition* (quy tắc này không áp dụng đối với *declaration*).
+* Tuy nhiên, các kiểu dữ liệu (*types* — bao gồm cả *program-defined types*) sẽ được miễn trừ khỏi một phần của quy tắc ODR này. Ví dụ:
+    * Việc nhúng cùng một *type definition* vào nhiều *translation unit* khác nhau không hề vi phạm ODR, nhưng
+    * Nếu nhúng định nghĩa đó từ hai lần trở lên vào trong cùng một *translation unit* đơn lẻ thì vẫn bị tính là vi phạm ODR (đây chính là lý do vì sao chúng ta vẫn luôn cần đến *header guards*).
 
 
-## Fundamental data types
+## Kiểu dữ liệu cơ bản (Fundamental data types)
 
-* C++ standard does not define the exact size (in bits) of any of the fundamental types.
-* WARNING: `std::int8_t` and `std::uint8_t` typically behave like chars.
-* The fixed-width integers actually don’t define new types -- they are just aliases for existing integral types.
-* Types that use less memory are not sure to be faster than types that use more memory. CPUs are often optimized to process data of a certain size (e.g. 32 bits).
-* **integer** vs **integral**:
-    * **integer**: refer to a broad set including `short`, `int`, `long`, `long long`.
-    * **integral**: means “like an integer”, includes the broader set of types that are stored in memory as integers, including `bool`, `char`.
-* Fast and least integral types. E.g.:
-    * `std::int_fast32_t` gives the fastest (i.e., most quickly by the CPU) signed integer type that’s at least 32-bits.
-    * `std::int_least32_t` gives the smallest (i.e., least memory) signed integer type that’s at least 32-bits.
-* `sizeof()` returns a value of type `std::size_t`, which is an **alias** for an *implementation-defined* **unsigned** integral type.
-* Floating point numbers:
-    * `float` is almost always implemented using the 4-byte IEEE 754 single-precision format.
-    * `double` is almost always implemented using the 8-byte IEEE 754 double-precision format.
-    * `long double`: On different platforms, its size can vary between 8 and 16 bytes or may not use an IEEE 754 compliant format. 
-* Boolean values are **stored** and **evaluated to** as integral values: 0, 1, not `true` or `false`.
+* Chuẩn C++ không quy định kích thước chính xác (tính theo bit) cho bất kỳ fundamental type nào.
+* WARNING: `std::int8_t` và `std::uint8_t` thường có hành vi hoạt động giống hệt như các kiểu `char`.
+* Các fixed-width integer thực chất không định nghĩa loại type mới — chúng chỉ là các alias cho các integral type sẵn có.
+* Các type tốn ít memory hơn chưa chắc đã chạy nhanh hơn các type tốn nhiều memory. CPU thường được tối ưu hóa để xử lý dữ liệu ở một kích thước nhất định (ví dụ: 32 bit).
+* Phân biệt giữa **integer** và **integral**:
+    * **integer**: Chỉ một nhóm rộng bao gồm `short`, `int`, `long`, `long long`.
+    * **integral**: Nghĩa là “dạng như số nguyên”, bao gồm một tập hợp rộng hơn các type được lưu trữ trong memory dưới dạng số nguyên, tính cả `bool` và `char`.
+* Các kiểu fast và least integral types. Ví dụ:
+    * `std::int_fast32_t`: Trả về signed integer type nhanh nhất (được CPU xử lý tối ưu nhất) có kích thước tối thiểu là 32-bit.
+    * `std::int_least32_t`: Trả về signed integer type tốn ít memory nhất có kích thước tối thiểu là 32-bit.
+* Lệnh `sizeof()` trả về một giá trị thuộc kiểu `std::size_t` — đây thực chất là một **alias** cho một *implementation-defined* **unsigned** integral type.
+* Các floating point number:
+    * `float`: Hầu như luôn được triển khai bằng định dạng single-precision IEEE 754 chuẩn 4-byte.
+    * `double`: Hầu như luôn được triển khai bằng định dạng double-precision IEEE 754 chuẩn 8-byte.
+    * `long double`: Trên các platform khác nhau, kích thước của nó có thể biến động từ 8 đến 16 byte hoặc có thể không dùng định dạng chuẩn IEEE 754.
+* Các giá trị Boolean được **lưu trữ** và **xem như là** (evaluated to) các integral value: là 0 và 1, chứ không phải `true` hay `false`.
 
 
 ## Constant expression
 
-* **Constant expression** is an expression that *must* be evaluatable at compile-time.
-* `constexpr` means that the object can be used in a constant expression.
+* **Constant expression** là một biểu thức *bắt buộc* phải có thể tính toán và đánh giá được ngay tại compile-time.
+* Từ khóa `constexpr` nghĩa là object đó đủ điều kiện để sử dụng bên trong một constant expression.
 * **Constexpr variable**:
-    * must be initialized with a constant expression.
-    * are implicitly `const`.
-    * can be initialized with a non-`const` value.
+    * Bắt buộc phải được khởi tạo bằng một constant expression.
+    * Mặc định được hiểu là một biến `const` (implicitly const).
+    * Có thể được khởi tạo bằng một giá trị non-`const` (chẳng hạn như một literal).
 * **Constexpr functions**:
-    * is a function that **can** be called in a constant expression (i.e., non-`constexpr` functions cannot be called in a constant expression).
-    * The return value of a non-constexpr function is not a constant expression.
-    * To evaluate at compile-time, two other things must also be true:
-        * passed arguments must be constant expressions
-        * all statements in the function must be evaluatable at compile-time.
-* Forward declaration cannot be `constexpr`, because the compiler will need to know the full definition of the function/variable to evaluate it at compile time.
-* The parameters of a constexpr function cannot be declared as `constexpr` (nor implicitly `constexpr`). 
-    * It means these parameters cannot be used in constant expressions within the function:
+    * Là hàm **có thể** được gọi bên trong một constant expression (ngược lại, các hàm non-`constexpr` hoàn toàn không thể gọi được trong constant expression).
+    * Giá trị trả về của một hàm non-constexpr sẽ không được xem như là một constant expression.
+    * Để hàm có thể thực thi ngay tại compile-time, cần phải thỏa mãn thêm hai điều kiện sau:
+        * Các đối số truyền vào (arguments) phải là các constant expression.
+        * Tất cả các câu lệnh bên trong hàm đều phải có thể xử lý được tại compile-time.
+* Một *forward declaration* không thể khai báo là `constexpr`, bởi vì compiler bắt buộc phải biết toàn bộ phần định nghĩa (*definition*) cụ thể của hàm/biến đó thì mới tính toán được tại compile-time.
+* Các parameter của một constexpr function không được phép khai báo là `constexpr` (và chúng cũng không tự động mang tính chất `constexpr`). 
+    * Điều này có nghĩa là bạn không thể sử dụng các parameter này trong các constant expression khác nằm bên trong hàm:
         
         ```C++
-        constexpr int foo(int b)    // b is not constexpr
+        constexpr int foo(int b)    // b không phải là constexpr
         {
-            constexpr int b2 { b }; // compile error: b cannot be used in constant expressions
+            constexpr int b2 { b }; // compile error: b không thể dùng trong các constant expression
         }
         ```
-    * However, these parameters can be used in a call to another `constexpr` function:
+    * Tuy nhiên, các parameter này vẫn có thể được dùng làm đối số khi gọi một constexpr function khác:
         
         ```C++
         constexpr int goo(int c) { return c; }
 
-        // b is not a constant expression within foo(), but goo() will be evaluated at compile-time if foo() is called at compile-time
+        // b không phải là một constant expression trong phạm vi của foo(), nhưng goo() vẫn sẽ được tính toán tại compile-time nếu foo() được gọi tại compile-time
         constexpr int foo(int b) { return goo(b); }
 
         int main()
         {
-            constexpr int a { foo(5) };     // foo(5) must evaluate at compile-time
+            constexpr int a { foo(5) };     // foo(5) bắt buộc phải được tính toán tại compile-time
         }
         ```
-* In a non-constant expression that uses a constexpr function, the compiler may choose to or not to evaluate the constexpr function at either compile-time. `consteval` (C++20) forces the compiler to evaluate the function at compile-time.
+* Khi một constexpr function được gọi bên trong một biểu thức non-constant expression, compiler có quyền tự quyết định xem có tính toán hàm đó tại compile-time hay không. Từ khóa `consteval` (C++20) ra đời để ép buộc compiler bắt buộc phải xử lý hàm tại compile-time.
 
 
 ## C-style string, `std::string`, `std::string_view`
 
-* `std::string` and `std::string_view` aren’t fundamental types (they’re class types).
-* `std::string_view` provides read-only access to an existing string without making a copy.
-* Both a C-style string and a `std::string` will implicitly convert to a `std::string_view`.
-* `std::string_view` will not implicitly convert to `std::string`.
-* `std::string` is a (sole) owner, `std::string_view` is a viewer.
-* String literals:
+* `std::string` và `std::string_view` không phải là các fundamental type (chúng là các class type).
+* `std::string_view` cung cấp quyền truy cập read-only đến một string sẵn có mà không tạo copy.
+* Cả C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`.
+* Ngược lại, `std::string_view` sẽ không implicitly convert thành `std::string`.
+* `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
+* Các string literal:
     * `"Hello, world!"`: C-style string literal
     * `"Hello, world!"s`: `std::string` literal
-    * `"Hello, world!"ss`: `std::string_view` literal
+    * `"Hello, world!"sv`: `std::string_view` literal.
 
 
 ## Switch-case
 
-* Declaration is allowed, but initialization is disallowed underneath a `case` label. But it allowd inside an explicit block.
+* Bạn được phép khai báo (*declaration*) nhưng không được phép khởi tạo giá trị (*initialization*) cho biến ngay phía dưới một `case` label. Tuy nhiên, việc khởi tạo này lại hoàn toàn hợp lệ nếu đặt bên trong một *explicit block* (sử dụng cặp ngoặc nhọn `{}`).
 
 
 ## `goto` statement
 
-* If you jump forward, you can’t jump forward over the initialization of any variable 
-  that is still in scope at the location being jumped to.
+* Nếu thực hiện nhảy cóc về phía trước (*jump forward*), bạn không được phép nhảy qua vị trí *initialization* của bất kỳ biến nào 
+  mà biến đó vẫn đang còn nằm trong *scope* tại điểm đích được nhảy đến.
 
 
 ## `for` loop
 
-* The order of execution:
+* Thứ tự thực thi (*order of execution*) cụ thể như sau:
 
     ```
     for (init-statement; condition; end-expression)
         statement;
     ```
-    1. Init-statement: only happens once when the loop is initiated.
-    2. Condition: with each loop iteration, the condition is evaluated. If this evaluates to true, the statement is executed.
-    3. Loop body: the statement is executed.
-    4. End-expression: executed after the statement, then jumps back to condition.
+    1. Init-statement: Chỉ diễn ra duy nhất một lần khi vòng lặp bắt đầu được khởi tạo.
+    2. Condition: Với mỗi lần lặp (*loop iteration*), điều kiện này sẽ được kiểm tra và đánh giá. Nếu kết quả là `true`, phần lệnh (*statement*) mới được thực thi.
+    3. Loop body: Phần thân vòng lặp (tức là lệnh *statement*) chính thức được chạy.
+    4. End-expression: Được thực thi ngay sau khi *statement* chạy xong, sau đó luồng xử lý sẽ quay ngược trở lại bước kiểm tra điều kiện (*condition*).
 
 
 ## Namespace
 
-* **Namespace** is used to prevent *naming conflicts*.
-* If `::` is used without providing a namespace name (e.g. `::doSomething`), the identifier (e.g. `doSomething`) is explicitly looked for in the global namespace.
-* If `::` not used, the compiler will first try to find a matching declaration in that same namespace. If no matching identifier is found, the compiler will then check each containing namespace in sequence, with the global namespace being checked last.
-* Multiple namespace blocks and nested namespaces are allowed.
-* **Unnamed namespace**: All content declared in an unnamed namespace is treated as part of the parent namespace.
-* **Inline namespace**: (Much like an unnamed namespace) All content declared in an inline namespace is treated as part of the parent namespace. The difference is that the inline namespace can be versioned.
+* **Namespace** được sử dụng để ngăn chặn tình trạng trùng tên (*naming conflicts*).
+* Nếu toán tử `::` được sử dụng mà không đi kèm tên namespace cụ thể (ví dụ: `::doSomething`), hệ thống sẽ hiểu là ta đang chỉ định tìm kiếm *identifier* (`doSomething`) đó trực tiếp trong *global namespace*.
+* Trong trường hợp không dùng `::`, đầu tiên *compiler* sẽ cố gắng tìm một *declaration* phù hợp ngay trong chính *namespace* hiện tại. Nếu không tìm thấy *identifier* nào khớp, nó sẽ lần lượt kiểm tra các *containing namespace* (namespace bao quanh) theo thứ tự từ trong ra ngoài, và *global namespace* sẽ là nơi được kiểm tra cuối cùng.
+* C++ cho phép bạn định nghĩa nhiều khối *namespace* trùng tên (chúng sẽ được gộp lại) cũng như khai báo các *namespace* lồng nhau (*nested namespaces*).
+* **Unnamed namespace**: Tất cả nội dung được khai báo bên trong một *unnamed namespace* (namespace không tên) đều được đối xử như một phần thuộc về *parent namespace*.
+* **Inline namespace**: (Cơ chế rất giống với *unnamed namespace*) Mọi nội dung khai báo bên trong một *inline namespace* cũng được xem như thuộc về *parent namespace*. Điểm khác biệt là *inline namespace* có thể được tận dụng để quản lý các phiên bản mã nguồn (*versioned*).
 
 
 ## Storage duration
 
-* Global variables are variables that are defined outside of any function. Global variables can also be defined inside a user-defined namespace.
-* **Storage duration** determines when and how a variable will be created and destroyed.
-* **Automatic duration**: variables are created at the point of definition and destroyed at the end of the block they are defined in.
-* **Static duration**: variables are created when the program starts (before `main()` begins execution) and destroyed when the program ends
-* Local variables have **automatic duration**.
-* Global variables have **static duration**.
-* Static local variables have **static duration** (like global variables), but have **local scope** (like local variables).
+* *Global variable* là các biến được định nghĩa bên ngoài tất cả các hàm. Chúng cũng có thể được khai báo bên trong một *user-defined namespace*.
+* **Storage duration** quyết định thời điểm và cách thức mà một biến được khởi tạo cũng như bị hủy bỏ.
+    * **Automatic duration**: Biến được tạo ra ngay tại vị trí định nghĩa và sẽ bị giải phóng khi đi ra khỏi khối lệnh (*block*) chứa nó.
+    * **Static duration**: Biến được tạo ra ngay khi chương trình khởi động (trước cả khi hàm `main()` bắt đầu chạy) và chỉ bị hủy khi chương trình kết thúc.
+* Các *local variable* mặc định sẽ có thuộc tính **automatic duration**.
+* Các *global variable* mặc định sẽ có thuộc tính **static duration**.
+* Riêng các *static local variable* thì vừa có **static duration** (giống *global variable*), nhưng đồng thời lại vừa mang **local scope** (giống *local variable*).
 
 
 ## Linkage
 
-* An identifier’s **linkage** determines whether it can be seen and used by other translation units.
-* **Internal linkage**: the identifier can be seen and used within a single **translation unit**, but it is not accessible from other translation units. This means that if 2 source files have identical internal linkage identifiers, they are treated as independent.
-* Global variables with internal linkage are called **internal variables**.
-* Global variables with external linkage are called **external variables**.
-* By default:
-    * Non-constant globals have external linkage: `int g_x1{};`. 
+* Thuộc tính **linkage** của một *identifier* sẽ quyết định xem nó có thể được nhìn thấy và sử dụng bởi các *translation unit* khác hay không.
+* **Internal linkage**: *Identifier* chỉ có thể được nhìn thấy và sử dụng trong phạm vi của một **translation unit** duy nhất, các *translation unit* khác hoàn toàn không thể truy cập được. Điều này đồng nghĩa với việc nếu 2 *source file* cùng sở hữu các *identifier* có *internal linkage* trùng tên nhau, chúng vẫn được xử lý độc lập và không hề xung đột.
+* Các *global variable* mang thuộc tính *internal linkage* được gọi là **internal variable**.
+* Các *global variable* mang thuộc tính *external linkage* được gọi là **external variable**.
+* Các thiết lập mặc định (By default):
+    * Các *non-constant global variable* mặc định sẽ có *external linkage*: `int g_x1{};`. 
         
-        It can be set to internal linkage by using the `static` keyword: `static int g_x1{};`.
-    * `const` globals have internal linkage: `const int g_x2{};`.
+        Bạn có thể chuyển nó sang *internal linkage* bằng cách dùng *keyword* `static`: `static int g_x1{};`.
+    * Các *const global variable* mặc định lại có *internal linkage*: `const int g_x2{};`.
 
-        It can be set to external linkage by using the `extern` keyword: `extern const int g_x2{};`.
-    * `constexpr` globals have internal linkage: `constexpr int g_x3{};`.
+        Bạn có thể ép nó chuyển sang *external linkage* bằng cách dùng *keyword* `extern`: `extern const int g_x2{};`.
+    * Các *constexpr global variable* mặc định cũng có *internal linkage*: `constexpr int g_x3{};`.
     
-        It can be set to external linkage by using the `extern` keyword: `extern constexpr int g_x3{};`.
-    * `inline` variables have external linkage.
-    * Functions have external linkage: `void doSomething();`.
+        Bạn có thể chuyển nó sang *external linkage* bằng cách dùng *keyword* `extern`: `extern constexpr int g_x3{};`.
+    * Các *inline variable* mặc định sẽ có *external linkage*.
+    * Các hàm (*functions*) mặc định sẽ có *external linkage*: `void doSomething();`.
     
-        Functions can be set to internal linkage by using the `static` keyword: `static void doSomething();`.
+        Hàm cũng có thể được chuyển sang *internal linkage* bằng cách thêm *keyword* `static`: `static void doSomething();`.
 
-* To use an external that has been defined in another file:
-    * With external global varibale: you must put a forward declaration of the variable using the `extern` keyword with no initialization value.
-    * With external function: just put a forward declaration of the function without the `extern` keyword.
-* All identifiers inside an unnamed namespace are treated as if they have internal linkage:
+* Để sử dụng một *external identifier* đã được định nghĩa ở một *file* khác:
+    * Đối với *external global variable*: Bạn bắt buộc phải đặt một *forward declaration* cho biến đó bằng cách dùng *keyword* `extern` và không kèm theo giá trị khởi tạo.
+    * Đối với *external function*: Bạn chỉ cần khai báo *forward declaration* cho hàm đó mà không cần thêm *keyword* `extern`.
+* Tất cả các *identifier* nằm bên trong một *unnamed namespace* đều được đối xử như thể chúng mang thuộc tính *internal linkage*:
 
     ```C++
     namespace // unnamed namespace
     {
-        void doA() // can only be accessed in this file
+        void doA() // chỉ có thể truy cập được trong file này
         {
             std::cout << "v1\n";
         }
     }
-    // equivalent to:
+    // tương đương với:
     // static void doA()
     // ...
     ```
 
 
-## Function overhead and inline expansion (historical view)
+## Function overhead và inline expansion (Góc nhìn lịch sử)
 
-* For example,
+* Ví dụ cụ thể:
 
     ```C++
     int min(int x, int y)
@@ -219,52 +217,52 @@
         return (x < y) ? x : y;
     }
     ```
-    1. When a call to `min()` is encountered, the CPU must store the address of the current instruction it is executing along with the values of various CPU registers. Then parameters x and y must be instantiated and then initialized. 
-    2. Then the execution path has to jump to the code in the `min()` function. When the function ends, the program has to jump back to the location of the function call, and the return value has to be copied so it can be output.
-* All of the extra work that must happen to setup, facilitate, and/or cleanup after some task is called **overhead**.
-* For small functions (such as `min()` above), the overhead costs can be larger than the time needed to actually execute the function’s code! If it is called often, it can result in a significant performance penalty over writing the same code in-place.
-* **Inline expansion** is a process where a function call is replaced by the code from the called function’s definition.
-* Historically, compilers were not very good at determining whether it should apply inline expansion, so the `inline` keyword was introduced. However, modern C++ compilers are better than human in most cases, so it will likely ignore the `inline` keyword for this purpose.
+    1. Khi gặp một lời gọi hàm `min()`, CPU bắt buộc phải lưu lại địa chỉ của instruction hiện tại đang thực thi cùng với giá trị của các CPU register khác nhau. Kế tiếp, các parameter x và y mới được cấp phát vùng nhớ (instantiated) và khởi tạo giá trị (initialized).
+    2. Sau đó, luồng thực thi (execution path) phải nhảy đến đoạn code nằm trong hàm `min()`. Khi hàm này kết thúc, chương trình lại phải nhảy ngược trở lại vị trí gọi hàm ban đầu, đồng thời giá trị trả về (return value) phải được copy ra ngoài để sử dụng.
+* Tất cả những công việc phụ phát sinh để thiết lập (setup), hỗ trợ thực thi (facilitate), và/hoặc dọn dẹp (cleanup) sau khi hoàn thành một tác vụ nào đó được gọi chung là **overhead**.
+* Đối với các hàm nhỏ (như hàm `min()` ở trên), chi phí cho phần *overhead* thậm chí có thể lớn hơn cả thời gian thực tế cần để chạy đoạn code bên trong hàm! Nếu hàm này được gọi liên tục, nó sẽ gây sụt giảm hiệu năng đáng kể so với việc bạn viết trực tiếp đoạn code đó tại chỗ (in-place).
+* **Inline expansion** là quá trình mà một lời gọi hàm sẽ được thay thế trực tiếp bằng chính đoạn code định nghĩa (definition) của hàm đó.
+* Về mặt lịch sử, các compiler ngày xưa không quá thông minh trong việc tự quyết định xem có nên áp dụng *inline expansion* hay không, đó là lý do vì sao từ khóa `inline` được ra đời. Tuy nhiên, các C++ compiler hiện đại ngày nay trong phần lớn trường hợp đều tối ưu tốt hơn con người, vì vậy ta thường sẽ ngó lơ mục đích này khi đề cập tới `inline`.
 
 
-## Inline functions and variables (modern view)
+## Inline function và inline variable (Góc nhìn hiện đại)
 
-* The `inline` keyword is now used to suppress the ODR violation: an inline function is one that is allowed to be *defined* in multiple translation units.
-* Requirements of `inline` function:
-    1. Inline functions must have full *definitions* in every translation unit that uses them.
-    2. Every definition of an inline function must be the identical. Otherwise, the program will have undefined behavior.
-* The linker will then de-duplicate the definitions.
-* `constexpr` functions are implicitly inline. Because, the compiler needs its definition in every translation unit that uses it to be able to evaluate it at compile time.
-* `constexpr` variables are not implicitly inline.
-* Member functions defined **inside** the class definition are **implicitly** inline.
-* Member functions defined **outside** the class definition are **not implicitly** inline.
-* constexpr members variables of a class are **implicitly** inline.
+* Từ khóa `inline` ngày nay được sử dụng để loại bỏ lỗi vi phạm quy tắc ODR: một inline function là hàm được phép *định nghĩa* (defined) ở nhiều translation unit khác nhau.
+* Các yêu cầu bắt buộc đối với một `inline` function:
+    1. Inline function bắt buộc phải có phần *definition* đầy đủ trong mọi translation unit có sử dụng nó.
+    2. Mọi bản definition của cùng một inline function bắt buộc phải giống hệt nhau. Nếu không, chương trình sẽ gặp lỗi undefined behavior.
+* Sau đó, linker sẽ tiến hành lọc bỏ các bản trùng lặp (de-duplicate) và chỉ giữ lại một định nghĩa duy nhất.
+* Các `constexpr` function mặc định được xem là inline (implicitly inline). Lý do là vì compiler cần biết rõ phần definition của hàm trong mọi translation unit có sử dụng nó để có thể tính toán và đánh giá dữ liệu ngay tại compile time.
+* Các `constexpr` variable không tự động được xem là inline (not implicitly inline).
+* Các member function được định nghĩa **bên trong** (inside) phần định nghĩa của class sẽ **mặc định** là inline.
+* Các member function được định nghĩa **bên ngoài** (outside) phần định nghĩa của class sẽ **không mặc định** là inline.
+* Các constexpr member variable của một class cũng **mặc định** là inline.
 
 
 ## Exit
 
-* `std::exit()` causes the program to **terminate normally**.
-* Note that "terminate normally" does not mean your program was successful. It can return a non-zero status code, but still have a normal termination.
-* `std::exit()` is called implicitly after function `main()` returns.
-* `std::exit()` performs a number of cleanup functions:
-    * Objects with static storage duration are destroyed.
-    * Miscellaneous file cleanup is done if any files were used.
-    * ⚠️ It does not clean up local variables.
-* `std::atexit` allows you to specify a function that will automatically be called on program termination via `std::exit()`.
-* `std::abort()` function causes your program to terminate "abnormally" (e.g., dividing by 0).
-* `std::abort()` does not do any cleanup.
-* `std::terminate()` often called implicitly when an exception isn’t handled. By default, `std::terminate()` calls `std::abort()`.
+* Hàm `std::exit()` giúp chương trình kết thúc một cách bình thường (**terminate normally**).
+* Lưu ý rằng "terminate normally" không đồng nghĩa với việc chương trình chạy thành công. Nó vẫn có thể trả về một *status code* khác 0 (báo lỗi) nhưng quá trình kết thúc vẫn được tính là diễn ra bình thường.
+* Hàm `std::exit()` thực chất sẽ được gọi ngầm định (*implicitly*) ngay sau khi hàm `main()` return.
+* `std::exit()` sẽ thực hiện một số tác vụ dọn dẹp (*cleanup function*):
+    * Các object có *static storage duration* sẽ bị hủy (*destroyed*).
+    * Tiến hành dọn dẹp và đóng các file liên quan nếu chương trình có thao tác với file.
+    * ⚠️ Nó hoàn toàn không dọn dẹp hay giải phóng các *local variable*.
+* Hàm `std::atexit` cho phép bạn đăng ký một hàm để tự động kích hoạt mỗi khi chương trình kết thúc thông qua `std::exit()`.
+* Hàm `std::abort()` khiến chương trình kết thúc một cách bất thường ("abnormally") — ví dụ điển hình như khi gặp lỗi chia cho 0.
+* Hàm `std::abort()` sẽ kết thúc ngay lập tức và không thực hiện bất kỳ công đoạn dọn dẹp (*cleanup*) nào cả.
+* Hàm `std::terminate()` thường được gọi ngầm định khi có một *exception* không được xử lý (*unhandled exception*). Theo mặc định, `std::terminate()` sẽ gọi trực tiếp đến `std::abort()`.
 
 
-## `assert` and `static_assert`
+## `assert` và `static_assert`
 
-* When assertion fails, the program will terminate via `std::abort()`.
-* C++ comes with a built-in macro `NDEBUG`: if it's defined, the assert macro gets disabled.
+* Khi một *assertion* bị thất bại (*fail*), chương trình sẽ lập tức dừng lại và kết thúc thông qua hàm `std::abort()`.
+* C++ đi kèm một *macro* tích hợp sẵn tên là `NDEBUG`: nếu *macro* này được định nghĩa, tất cả các lệnh `assert` sẽ tự động bị vô hiệu hóa (*disabled*).
 
     ```C++
-    #undef NDEBUG // enable asserts (must be placed before any #includes)
+    #undef NDEBUG // bật lại các lệnh assert (bắt buộc phải đặt trước các dòng #include)
     ```
-* A `static_assert` is checked at compile-time rather than at runtime => the condition must be a constant expression.
+* Lệnh `static_assert` sẽ được kiểm tra ngay từ giai đoạn *compile-time* chứ không phải chờ đến lúc *runtime* => vì vậy, điều kiện truyền vào bắt buộc phải là một *constant expression*.
 
 
 ## Implicit type conversions
