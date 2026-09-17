@@ -24,28 +24,28 @@
 ## Preprocessor
 
 * Trước khi quá trình biên dịch (*compilation*) chính thức diễn ra, mọi *code file* đều phải đi qua một giai đoạn sơ chế gọi là tiền xử lý (*preprocessing*).
-* Một ***translation unit*** chính là trạng thái của một *file* đơn lẻ sau khi đã chạy xong bước *preprocess* và ngay trước khi được đem đi *compile*.
-* Khi hoạt động, *preprocessor* sẽ quét qua *code file* tuần tự từ trên xuống dưới để tìm và xử lý các ***preprocessor directive*** (những dòng lệnh bắt đầu bằng dấu `#`):
-    * `#include`: Tự động thay thế chính dòng *directive* đó bằng toàn bộ nội dung của *file* được chỉ định.
-    * `#define`: Gồm có 2 loại cấu trúc macro chính là *object-like macro* và *function-like macro*.
+* Một ***translation unit*** chính là trạng thái của ***một file đơn lẻ*** sau khi *preprocess* và ***ngay trước khi compile***.
+* Khi hoạt động, *preprocessor* sẽ quét qua *code file* ***tuần tự từ trên xuống dưới*** để xử lý các ***preprocessor directive*** (những dòng bắt đầu bằng `#`):
+    * `#include`: Thay thế chính dòng `#include` đó bằng ***toàn bộ nội dung*** của *file* được chỉ định.
+    * `#define`: Gồm 2 loại chính: *object-like macro* và *function-like macro*.
 
 
 ## Phạm vi hoạt động (Scope) của các directive
 
-* Lệnh `#include` có thể "sao chép" các *directive* khác (chẳng hạn như các lệnh `#include` hoặc `#define` khác) từ *file* được nhúng vào trong *file* hiện tại.
+* `#include` có thể "sao chép" các *directive* khác từ *file* được nhúng vào trong *file* hiện tại.
 
-    => Do đó, nếu bạn `#define` một *macro* trong một *header file*, rồi tiến hành `#include` *header file* đó vào một *source file*, thì *macro* này cũng sẽ khả dụng và dùng được trong *source file* đó.
+    => Nếu bạn `#define` một macro trong một file A, rồi `#include` file A đó vào một file B, thì *macro* này cũng sẽ khả dụng trong file B.
 * Các *directive* chỉ có hiệu lực kể từ vị trí nó được khai báo cho đến hết *file* chứa nó.
     
-    => Hệ quả là, các *directive* được định nghĩa ở *file* này sẽ không ảnh hưởng hay lan sang các *file* khác được biên dịch độc lập (trừ khi chúng được `#include` trực tiếp vào các *file* đó).
+    => Các *directive* được định nghĩa ở file A sẽ không ảnh hưởng hay lan sang file B được biên dịch độc lập (trừ khi A được `#include` vào B).
 
 
-## Quy tắc Một Định Nghĩa (One-Definition Rule - ODR)
+## One-Definition Rule (ODR)
 
-* Một *identifier* của biến hoặc hàm chỉ được phép có duy nhất một *definition* (quy tắc này không áp dụng đối với *declaration*).
-* Tuy nhiên, các kiểu dữ liệu (*types* — bao gồm cả *program-defined types*) sẽ được miễn trừ khỏi một phần của quy tắc ODR này. Ví dụ:
-    * Việc nhúng cùng một *type definition* vào nhiều *translation unit* khác nhau không hề vi phạm ODR, nhưng
-    * Nếu nhúng định nghĩa đó từ hai lần trở lên vào trong cùng một *translation unit* đơn lẻ thì vẫn bị tính là vi phạm ODR (đây chính là lý do vì sao chúng ta vẫn luôn cần đến *header guards*).
+* Một ***identifier*** của biến hoặc hàm chỉ được phép có duy nhất một *definition* (quy tắc này không áp dụng đối với *declaration*).
+* Tuy nhiên, các ***kiểu dữ liệu*** (*types* — bao gồm cả *program-defined types*) sẽ được miễn trừ khỏi một phần của quy tắc ODR này. Ví dụ:
+    * Định nghĩa cùng một *type* vào nhiều *translation unit* khác nhau không vi phạm ODR, nhưng
+    * Định nghĩa cùng một *type* từ hai lần trở lên vào trong cùng một *translation unit* đơn lẻ thì vi phạm ODR (đó là lí do cần đến ***header guards***).
 
 
 ## Kiểu dữ liệu cơ bản (Fundamental data types)
@@ -70,8 +70,8 @@
 
 ## Constant expression
 
-* **Constant expression** là một biểu thức *bắt buộc* phải có thể tính toán và đánh giá được ngay tại compile-time.
-* Từ khóa `constexpr` nghĩa là object đó đủ điều kiện để sử dụng bên trong một constant expression.
+* **Constant expression** là một biểu thức **bắt buộc** phải có thể tính toán và đánh giá được ngay tại compile-time.
+* Từ khóa `constexpr` nghĩa là: object đó đủ điều kiện để sử dụng bên trong một constant expression.
 * **Constexpr variable**:
     * Bắt buộc phải được khởi tạo bằng một constant expression.
     * Mặc định được hiểu là một biến `const` (implicitly const).
@@ -110,10 +110,9 @@
 
 ## C-style string, `std::string`, `std::string_view`
 
-* `std::string` và `std::string_view` không phải là các fundamental type (chúng là các class type).
-* `std::string_view` cung cấp quyền truy cập read-only đến một string sẵn có mà không tạo copy.
-* Cả C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`.
-* Ngược lại, `std::string_view` sẽ không implicitly convert thành `std::string`.
+* `std::string` và `std::string_view` không phải là fundamental type (chúng là các class type).
+* `std::string_view` read-only đến một string sẵn có mà không tạo copy.
+* C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
 * `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
 * Các string literal:
     * `"Hello, world!"`: C-style string literal
@@ -148,18 +147,18 @@
 
 ## Namespace
 
-* **Namespace** được sử dụng để ngăn chặn tình trạng trùng tên (*naming conflicts*).
-* Nếu toán tử `::` được sử dụng mà không đi kèm tên namespace cụ thể (ví dụ: `::doSomething`), hệ thống sẽ hiểu là ta đang chỉ định tìm kiếm *identifier* (`doSomething`) đó trực tiếp trong *global namespace*.
-* Trong trường hợp không dùng `::`, đầu tiên *compiler* sẽ cố gắng tìm một *declaration* phù hợp ngay trong chính *namespace* hiện tại. Nếu không tìm thấy *identifier* nào khớp, nó sẽ lần lượt kiểm tra các *containing namespace* (namespace bao quanh) theo thứ tự từ trong ra ngoài, và *global namespace* sẽ là nơi được kiểm tra cuối cùng.
-* C++ cho phép bạn định nghĩa nhiều khối *namespace* trùng tên (chúng sẽ được gộp lại) cũng như khai báo các *namespace* lồng nhau (*nested namespaces*).
+* **Namespace**: dùng để tránh trùng tên (*naming conflicts*).
+* Nếu `::` được sử dụng mà không đi kèm tên namespace, ví dụ `::doSomething`, hệ thống sẽ tìm kiếm `doSomething` trực tiếp trong *global namespace*.
+* Nếu không dùng `::`, *compiler* sẽ ưu tiên tìm từ trong ra ngoài: *namespace* hiện tại > các namespace bao quanh > *global namespace*.
+* C++ cho phép định nghĩa nhiều khối *namespace* trùng tên, chúng sẽ được gộp lại.
 * **Unnamed namespace**: Tất cả nội dung được khai báo bên trong một *unnamed namespace* (namespace không tên) đều được đối xử như một phần thuộc về *parent namespace*.
 * **Inline namespace**: (Cơ chế rất giống với *unnamed namespace*) Mọi nội dung khai báo bên trong một *inline namespace* cũng được xem như thuộc về *parent namespace*. Điểm khác biệt là *inline namespace* có thể được tận dụng để quản lý các phiên bản mã nguồn (*versioned*).
 
 
 ## Storage duration
 
-* *Global variable* là các biến được định nghĩa bên ngoài tất cả các hàm. Chúng cũng có thể được khai báo bên trong một *user-defined namespace*.
-* **Storage duration** quyết định thời điểm và cách thức mà một biến được khởi tạo cũng như bị hủy bỏ.
+* *Global variable* là các biến được định nghĩa ***bên ngoài tất cả các hàm***. Chúng cũng có thể được khai báo bên trong một *namespace*.
+* **Storage duration** quyết định thời điểm và cách thức mà một biến được khởi tạo và bị hủy bỏ.
     * **Automatic duration**: Biến được tạo ra ngay tại vị trí định nghĩa và sẽ bị giải phóng khi đi ra khỏi khối lệnh (*block*) chứa nó.
     * **Static duration**: Biến được tạo ra ngay khi chương trình khởi động (trước cả khi hàm `main()` bắt đầu chạy) và chỉ bị hủy khi chương trình kết thúc.
 * Các *local variable* mặc định sẽ có thuộc tính **automatic duration**.
