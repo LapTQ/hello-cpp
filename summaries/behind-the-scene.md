@@ -151,8 +151,8 @@
 * Nếu `::` được sử dụng mà không đi kèm tên namespace, ví dụ `::doSomething`, hệ thống sẽ tìm kiếm `doSomething` trực tiếp trong *global namespace*.
 * Nếu không dùng `::`, *compiler* sẽ ưu tiên tìm từ trong ra ngoài: *namespace* hiện tại > các namespace bao quanh > *global namespace*.
 * C++ cho phép định nghĩa nhiều khối *namespace* trùng tên, chúng sẽ được gộp lại.
-* **Unnamed namespace**: Tất cả nội dung được khai báo bên trong một *unnamed namespace* (namespace không tên) đều được đối xử như một phần thuộc về *parent namespace*.
-* **Inline namespace**: (Cơ chế rất giống với *unnamed namespace*) Mọi nội dung khai báo bên trong một *inline namespace* cũng được xem như thuộc về *parent namespace*. Điểm khác biệt là *inline namespace* có thể được tận dụng để quản lý các phiên bản mã nguồn (*versioned*).
+* **Unnamed namespace**: Tất cả nội dung được khai báo bên trong một *unnamed namespace* coi như thuộc về *parent namespace*.
+* **Inline namespace**: (Cơ chế rất giống với *unnamed namespace*) Mọi nội dung khai báo bên trong một *inline namespace* cũng coi như thuộc về *parent namespace*. Điểm khác biệt là *inline namespace* có thể được tận dụng để quản lý các phiên bản mã nguồn (*versioned*).
 
 
 ## Storage duration
@@ -168,7 +168,7 @@
 
 ## Linkage
 
-* Thuộc tính **linkage** của một *identifier* sẽ quyết định xem nó có thể được nhìn thấy và sử dụng bởi các *translation unit* khác hay không.
+* **Linkage** của một *identifier* quyết định xem nó có thể được nhìn thấy và sử dụng bởi các *translation unit* khác hay không.
 * **Internal linkage**: *Identifier* chỉ có thể được nhìn thấy và sử dụng trong phạm vi của một **translation unit** duy nhất, các *translation unit* khác hoàn toàn không thể truy cập được. Điều này đồng nghĩa với việc nếu 2 *source file* cùng sở hữu các *identifier* có *internal linkage* trùng tên nhau, chúng vẫn được xử lý độc lập và không hề xung đột.
 * Các *global variable* mang thuộc tính *internal linkage* được gọi là **internal variable**.
 * Các *global variable* mang thuộc tính *external linkage* được gọi là **external variable**.
