@@ -241,308 +241,309 @@
 ## Exit
 
 * Hàm `std::exit()` giúp chương trình kết thúc một cách bình thường (**terminate normally**).
-* Lưu ý rằng "terminate normally" không đồng nghĩa với việc chương trình chạy thành công. Nó vẫn có thể trả về một *status code* khác 0 (báo lỗi) nhưng quá trình kết thúc vẫn được tính là diễn ra bình thường.
-* Hàm `std::exit()` thực chất sẽ được gọi ngầm định (*implicitly*) ngay sau khi hàm `main()` return.
-* `std::exit()` sẽ thực hiện một số tác vụ dọn dẹp (*cleanup function*):
+* Lưu ý rằng "terminate normally" != chạy thành công. Nó vẫn có thể trả về một *status code* khác 0 (báo lỗi) nhưng quá trình kết thúc vẫn được tính là diễn ra bình thường.
+* Hàm `std::exit()` được ngầm gọi (*implicitly*) ngay sau khi hàm `main()` return.
+* `std::exit()` thực hiện một số tác vụ dọn dẹp (*cleanup function*):
     * Các object có *static storage duration* sẽ bị hủy (*destroyed*).
-    * Tiến hành dọn dẹp và đóng các file liên quan nếu chương trình có thao tác với file.
-    * ⚠️ Nó hoàn toàn không dọn dẹp hay giải phóng các *local variable*.
-* Hàm `std::atexit` cho phép bạn đăng ký một hàm để tự động kích hoạt mỗi khi chương trình kết thúc thông qua `std::exit()`.
-* Hàm `std::abort()` khiến chương trình kết thúc một cách bất thường ("abnormally") — ví dụ điển hình như khi gặp lỗi chia cho 0.
-* Hàm `std::abort()` sẽ kết thúc ngay lập tức và không thực hiện bất kỳ công đoạn dọn dẹp (*cleanup*) nào cả.
+    * Đóng các file liên quan nếu chương trình có thao tác với file.
+    * ⚠️ Nó hoàn toàn không dọn dẹp các *local variable*.
+* Hàm `std::atexit()` dùng để đăng ký một hàm để tự động kích hoạt khi `std::exit()` được gọi.
+* Hàm `std::abort()` khiến chương trình kết thúc một cách bất thường ("abnormally") — ví dụ: lỗi chia cho 0. Nó không thực hiện bất kỳ công đoạn dọn dẹp nào.
 * Hàm `std::terminate()` thường được gọi ngầm định khi có một *exception* không được xử lý (*unhandled exception*). Theo mặc định, `std::terminate()` sẽ gọi trực tiếp đến `std::abort()`.
 
 
 ## `assert` và `static_assert`
 
-* Khi một *assertion* bị thất bại (*fail*), chương trình sẽ lập tức dừng lại và kết thúc thông qua hàm `std::abort()`.
+* Khi một *assertion* thất bại (*fail*), chương trình lập tức kết thúc thông qua hàm `std::abort()`.
 * C++ đi kèm một *macro* tích hợp sẵn tên là `NDEBUG`: nếu *macro* này được định nghĩa, tất cả các lệnh `assert` sẽ tự động bị vô hiệu hóa (*disabled*).
 
     ```C++
     #undef NDEBUG // bật lại các lệnh assert (bắt buộc phải đặt trước các dòng #include)
     ```
-* Lệnh `static_assert` sẽ được kiểm tra ngay từ giai đoạn *compile-time* chứ không phải chờ đến lúc *runtime* => vì vậy, điều kiện truyền vào bắt buộc phải là một *constant expression*.
+* Lệnh `static_assert` được kiểm tra ngay từ *compile-time* chứ không phải chờ đến *runtime* => vì vậy, bắt buộc phải truyền vào một *constant expression*.
 
 
 ## Implicit type conversions
 
-* 4 **standard** conversions:
+* Có 4 loại **standard conversions**:
     * Numeric promotions
     * Numeric conversions
     * Arithmetic conversions 
     * Other conversions
-* When a type conversion is needed, the compiler may apply zero, one, or two standard conversions.
-* **Numeric promotions** includes the following *specific* narrower to wider numeric types:
+* Khi cần chuyển đổi kiểu, compiler có thể áp dụng 0, 1 hoặc 2 standard conversions.
+* **Numeric promotions** áp dụng cho một số trường hợp *cụ thể* từ kiểu nhỏ sang kiểu lớn hơn:
     * `float` -> `double`
     * `signed char`, `signed short` -> `int`
-    * `unsigned char`, `char8_t`, `unsigned short` -> `int` if `int` can represent all values of the original type, otherwise `unsigned int`
-    * `bool` -> `int`, with false becoming `0` and true becoming `1`
+    * `unsigned char`, `char8_t`, `unsigned short` -> `int` (nếu `int` chứa được mọi giá trị của kiểu ban đầu, ngược lại thì thành `unsigned int`)
+    * `bool` -> `int` (`false` thành `0`, `true` thành `1`)
 
-    Not all widening conversions (such as `char` to `short`, or `int` to `long`) are numeric promotions because they do not assist converting *efficiently*.
+    Không phải mọi phép mở rộng (ví dụ: `char` lên `short`, hoặc `int` lên `long`) đều là numeric promotions, vì chúng không giúp chuyển đổi *hiệu quả*.
 
-    ✅ Numeric promotions are value-preserving, and thus “safe” => reduces redundancy. You can define `void printInt(int x)` and pass `short`, `char` to it without having to define `void printShort(short x)`, `void printChar(char x)`.
+    ✅ Numeric promotions bảo toàn giá trị nên rất an toàn, giúp giảm mã thừa. Bạn chỉ cần viết `void printInt(int x)` và có thể truyền `short`, `char` vào mà không cần viết thêm `void printShort(short x)` hay `void printChar(char x)`.
+
 * **Numeric conversions**:
-    * integral type -> any integral type (excluding integral promotions)
-    * floating point type -> any floating point type (excluding floating point promotions)
-    * floating point type -> any integral type
-    * integral type -> any floating point type
-    * integral type or floating point type -> bool
+    * Số nguyên -> Số nguyên bất kỳ (trừ các trường hợp thuộc integral promotions)
+    * Số thực -> Số thực bất kỳ (trừ các trường hợp thuộc floating point promotions)
+    * Số thực -> Số nguyên bất kỳ
+    * Số nguyên -> Số thực bất kỳ
+    * Số nguyên / Số thực -> `bool`
 
-    Numeric conversions fall into 3 categories:
-    * Value-preserving conversions:
-        * ✅ The compiler will not raise warnings.
-        * ✅ The destination type can represent all values of the source type.
-        * ✅ Can be converted back to the source type without loss of information. E.g., `int` -> `long` -> `int`.
-    * Reinterpretive conversions:
-        * ⚠️ The compiler might not raise warnings.
-        * ⚠️ The destination type cannot represent all values of the source type.
-        * ✅ Can be converted back to the source type without loss of information. E.g., `int` -> `unsigned int` -> `int`.
-    * Lossy conversions: E.g., `int` -> `float` -> `int`.
-        * ❌ The compiler will raise warnings.
-        * Strangely, conversion from a floating point type to an integral type is always considered narrowing, even if the value can be represented exactly.
-
+    Numeric conversions chia làm 3 loại:
+    * Bảo toàn giá trị (Value-preserving conversions):
+        * ✅ Compiler không cảnh báo.
+        * ✅ Kiểu đích chứa được toàn bộ dải giá trị của kiểu gốc.
+        * ✅ Có thể ép kiểu ngược lại mà không mất dữ liệu. Ví dụ: `int` -> `long` -> `int`.
+    * Chuyển đổi diễn giải lại (Reinterpretive conversions):
+        * ⚠️ Compiler có thể không cảnh báo.
+        * ⚠️ Kiểu đích không chứa được toàn bộ giá trị của kiểu gốc.
+        * ✅ Có thể ép kiểu ngược lại mà không mất dữ liệu. Ví dụ: `int` -> `unsigned int` -> `int`.
+    * Chuyển đổi mất dữ liệu (Lossy conversions): Ví dụ: `int` -> `float` -> `int`.
+        * ❌ Compiler sẽ cảnh báo.
+        * Lạ một điều, chuyển từ số thực sang số nguyên luôn bị coi là narrowing (thu hẹp), kể cả khi giá trị biểu diễn được chính xác.
             ```C++
-            int n { 5.0 }; // compile error: narrowing conversion
+            int n { 5.0 }; // Lỗi compile: narrowing conversion
             ```
-        * Strangely, conversion from a floating point type to a narrower floating point type is not considered narrowing despite loss of precision.
-        
+        * Và cũng lạ là, chuyển từ số thực lớn sang số thực nhỏ hơn lại không bị coi là narrowing, dù có mất mát độ chính xác.
             ```C++
             constexpr double d { 0.1 };
-            float f { d }; // not narrowing, even though loss of precision results
+            float f { d }; // Không phải narrowing, dù độ chính xác bị giảm
             ```
-* **Arithmetic conversions**: e.g., `??? y { 2 + 3.5 };`
-    * In C++, certain operators require that their operands be of the same type. One or both of the operands will be implicitly converted to **common type** using **usual arithmetic conversions**.
-    * The compiler has a ranked list of types (simplified):
-        1. long double (highest rank)
-        2. double
-        3. float
-        4. long long
-        5. long
-        6. int (lowest rank)
-    * Rules to find a **matching type**:
-        1. Step 1:
-            * If one operand is an **integral type** and the other a **floating point type**, the integral operand is converted to the type of the floating point operand (no integral promotion takes place).
-            * Otherwise, any integral operands are numerically promoted.
-        2. Step 2:
-            * After promotion, if one operand is signed and the other unsigned, special rules apply:
-                * If the rank of the unsigned operand is greater than or equal to the rank of the signed operand, the signed operand is converted to the type of the unsigned operand.
-                * If the type of the signed operand can represent all the values of the type of the unsigned operand, the type of the unsigned operand is converted to the type of the signed operand.
-                * Otherwise both operands are converted to the corresponding unsigned type of the signed operand.
-            * Otherwise, the operand with lower rank is converted to the type of the operand with higher rank.
+
+* **Arithmetic conversions**: ví dụ: `??? y { 2 + 3.5 };`
+    * Một số toán tử yêu cầu các operand phải cùng kiểu. Một (hoặc cả hai) operand sẽ được implicit convert sang **common type** thông qua quá trình **usual arithmetic conversions**.
+    * Compiler xếp hạng các kiểu như sau (rút gọn):
+        1. `long double` (cao nhất)
+        2. `double`
+        3. `float`
+        4. `long long`
+        5. `long`
+        6. `int` (thấp nhất)
+    * Quy tắc tìm **matching type**:
+        1. Bước 1:
+            * Nếu có 1 operand kiểu **nguyên** và 1 operand kiểu **thực**, operand kiểu nguyên sẽ chuyển sang kiểu của operand thực (không có integral promotion).
+            * Nếu không, mọi operand kiểu nguyên sẽ được promote (numeric promotion).
+        2. Bước 2:
+            * Sau khi promote, nếu có 1 operand signed và 1 unsigned, áp dụng quy tắc đặc biệt:
+                * Nếu rank của kiểu unsigned >= rank của kiểu signed: operand signed sẽ được convert sang kiểu unsigned.
+                * Nếu kiểu signed chứa được mọi giá trị của kiểu unsigned: operand unsigned sẽ được convert sang kiểu signed.
+                * Nếu không: Cả hai được convert sang kiểu unsigned tương ứng của kiểu signed.
+            * Nếu không thuộc các trường hợp trên, operand rank thấp sẽ convert sang kiểu của operand rank cao.
+
 * Other conversion:
-    * See **converting constructor** below.
+    * Xem phần **converting constructor** bên dưới.
 
 
 ## Function overloading
 
-* **Function overloading**: multiple functions with the same name, each has different number/type of parameters. Each function is called an **overloaded function** (or **overload**).
-* **Signature**: = function name + number of parameters + parameter type + function-level qualifiers.
-* **Overload resolution**: The process of matching function calls to a specific overloaded function. Steps:
-    1. The compiler tries to find an exact match (this includes **trivial conversions**). For examples:
+* **Function overloading**: Nhiều hàm cùng tên nhưng khác nhau về số tham số hoặc kiểu tham số. Mỗi hàm như vậy được gọi là một **overloaded function** (hoặc **overload**).
+* **Signature** (Chữ ký hàm) = Tên hàm + Số lượng tham số + Kiểu tham số + Các function-level qualifiers.
+* **Overload resolution**: là quá trình compiler chọn đúng overload phù hợp nhất với lời gọi hàm. Thứ tự ưu tiên:
+    1. Hàm khớp chính xác (exact match), bao gồm cả việc cho phép các **trivial conversions** (như chuyển thành `const` hoặc reference). Ví dụ:
 
         ```C++
         void foo(int);
         void foo(double);
-        foo(5); // exact match with foo(int)
-        foo(5.0); // exact match with foo(double)
+        foo(5); // exact match với foo(int)
+        foo(5.0); // exact match với foo(double)
         ```
 
         ```C++
         void foo(const int);
         void foo(const double&); // reference
-        foo(5); // exact match with foo(const int) via trivial conversion
-        foo(5.0); // exact match with foo(const double&) via trivial conversion
+        foo(5); // exact match với foo(const int) qua trivial conversion
+        foo(5.0); // exact match với foo(const double&) qua trivial conversion
         ```
 
         ```C++
         void foo(int);
         void foo(const int&);
 
-        foo(5); // ambiguous match
+        foo(5); // ambiguous match (lỗi do tối nghĩa, compiler không biết chọn hàm nào)
         ```
-    2. If no exact match is found, the compiler tries to match by applying numeric promotion to the argument(s).
-    3. If no match is found, the compiler tries to match by numeric conversion.
-    4. If no match is found, the compiler tries to match by applying user-defined conversions.
-    5. If no match is found, the compiler will use ellipsis.
-    6. If no match is found, the compiler will report an error.
-* Matching for functions with multiple arguments: 
-    * The compiler applies the matching rules to each argument *in turn*.
-    * The function chosen must provide a better match than all the other candidate functions for at least one parameter, and no worse for all of the other parameters.
+    2. Thử **numeric promotion**.
+    3. Thử **numeric conversion**.
+    4. Thử **user-defined conversions**.
+    5. Thử ellipsis (`...`).
+    6. Nếu tất cả đều thất bại, compiler sẽ báo lỗi.
+* Nguyên tắc khớp cho hàm có nhiều tham số: 
+    * Compiler áp dụng các quy tắc trên cho *lần lượt từng* đối số.
+    * Hàm chiến thắng phải khớp tốt hơn mọi hàm ứng viên khác ở ít nhất 1 tham số, và không được kém hơn ở tất cả các tham số còn lại.
 
 
 ## Templates
 
-* Function templates are not actually functions. They generate functions.
-* The process of creating functions from function templates is called **instantiation**.
-* A **function instance** is only instantiated **once**, by the first time a function call is made in each translation unit. Further calls to the function are routed to the already instantiated function.
-* ⚠️ Beware function templates with **modifiable static local variables**: each function instantiated from that template will have a separate version of the static local variable.
-* Function templates can be overloaded.
-* A **non-type template parameter**: a template parameter with a fixed type that serves as a placeholder for a constexpr value.
-* Functions implicitly instantiated from templates are implicitly inline.
-* There are cases where you may want to provide a slightly different implementation for a specific type:
-    1. Solution 1 (does not work for class type): define a non-template function for that specific type. That function will take precedence over the template function during overload resolution.
-    2. Solution 2: use **template specialization**. This solution achieves the same effect. (see code in github lesson).
+* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
+* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
+* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
+* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
+* Function templates có thể được overload.
+* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
+* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
+* Khi cần viết một implementation riêng cho một specific type:
+    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
+    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
     
-    Partial template specialization: as of the time of writing (C++23) functions cannot be partially specialized, only classes can be partially specialized. (see code in github lesson)
+    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
 
 
 ## Value categories 
 
-* All expressions in C++ have two properties: a type and a value category.
-* An **lvalue** is an expression that evaluates to an **identifiable** object.
-* A **rvalue** is not identifiable (meaning they have to be used immediately), and only exist within the scope of the expression in which they are used. 
+* Mọi expression trong C++ đều có 2 thuộc tính: type và value category.
+* **lvalue**: là expression trỏ tới một object có thể định danh/xác định được (identifiable).
+* **rvalue**: không identifiable (nghĩa là phải dùng ngay lập tức), và chỉ tồn tại bên trong scope của expression chứa nó. 
     ```C++
-    int x { 5 };    // 5 is an rvalue
-    int y { x };    // x is an lvalue
-    int z { x + 1 }; // x + 1 is an rvalue
-    int t{ return5() }; // return5() is an rvalue
+    int x { 5 };     // 5 là rvalue
+    int y { x };     // x là lvalue
+    int z { x + 1 }; // (x + 1) là rvalue
+    int t{ return5() }; // return5() là rvalue
     ```
-* **Lvalue-to-rvalue conversion**: assignment operations `=` expects the right operand to be an rvalue. But `x = y;` is still valid because the lvalue `y` is implicitly converted to an rvalue.
-* Unlike the other **literals** (which are rvalues), a C-style string **literal** is an lvalue because C-style strings decay to a pointer.
+* **Lvalue-to-rvalue conversion**: Phép gán `=` yêu cầu vế phải phải là một rvalue. Tuy nhiên lệnh `x = y;` vẫn hợp lệ do lvalue `y` sẽ được implicit convert thành rvalue.
+* Khác với các **literals** thông thường (vốn là rvalue), C-style string **literal** lại là một lvalue vì nó sẽ decay thành một pointer.
 
 
 ## References and Pointers
 
-* A **reference** is an **alias** for an existing object.
-* References aren’t objects. So, you can't have a reference to a reference.
-* An **lvalue reference** is an alias to an existing lvalue. We can read or modify the value of the object being referenced to via the reference.
-* ⚠️ An **lvalue reference to a const**: treat the object being referenced to as const (regardless of the object being referenced to is const or not):
-* ⚠️ Nomenclature:
-    * An **lvalue reference to a non-const** is commonly just called:
+* **Reference** là một **alias** của một object đã tồn tại.
+* Reference không phải là object. Do đó, không có khái niệm reference trỏ tới một reference (reference to reference).
+* **Lvalue reference** là alias của một lvalue đã tồn tại. Có thể đọc/ghi giá trị của object thông qua reference.
+* ⚠️ **Lvalue reference to a const**: coi object mà nó trỏ tới là `const` (bất kể bản thân object đó có phải là `const` hay không).
+* ⚠️ Cách gọi tên (Nomenclature):
+    * **Lvalue reference to a non-const** thường được gọi tắt là:
         * **lvalue reference to non-const**
         * **non-const lvalue reference**
-        * **lvalue reference** (!!!)
-    * An **lvalue reference to a const** is commonly just called:
+        * **lvalue reference** (!!! - lưu ý cách gọi tắt này)
+    * **Lvalue reference to a const** thường được gọi tắt là:
         * **lvalue reference to const**
         * **const lvalue reference**
-* Reference initialization:
-    * All references **must** be initialized. 
-    * Once initialized, references **can’t be reseated** (changed to refer to another object)
-    * ⚠️ An **lvalue reference to const** can be initialized with an rvalue. C++ has a special rule: When a **const lvalue reference** is **directly** bound to a **temporary** object, the lifetime of the temporary object is extended to match the lifetime of the reference.
-  		```C++
-    	const int& ref_rvalue { 5 }; // okay, lvalue reference to const can be initialized with an rvalue
-    	```
-    * ⚠️ When you initialize an **lvalue reference to const** with a value of a **different** type, the compiler will create a temporary object of the same type as the reference and bind the reference to that temporary object.
-      	```C++
-       	const double& r1 { 5 };
-	    std::cout << r1 << '\n'; // prints 5
+* Khởi tạo reference:
+    * Bắt buộc **phải khởi tạo** khi khai báo. 
+    * Sau khi khởi tạo, **không thể reseat** (không thể gán lại để trỏ sang object khác).
+    * ⚠️ **Lvalue reference to const** có thể được khởi tạo bằng một rvalue. Luật đặc biệt trong C++: Khi một **const lvalue reference** bind **trực tiếp** vào một object **temporary** (tạm thời), lifetime của object tạm sẽ được kéo dài bằng với lifetime của reference.
+        ```C++
+        const int& ref_rvalue { 5 }; // Hợp lệ, lvalue reference to const có thể khởi tạo từ rvalue
+        ```
+    * ⚠️ Nếu khởi tạo **lvalue reference to const** bằng một giá trị **khác kiểu** (different type), compiler sẽ tạo ra một temporary object có cùng kiểu với reference và bind reference vào object tạm đó.
+        ```C++
+        const double& r1 { 5 };
+        std::cout << r1 << '\n'; // in ra 5
        
-	    char c { 'a' };
-	    const int& r2 { c };     
-	    std::cout << r2 << '\n'; // prints 97
+        char c { 'a' };
+        const int& r2 { c };     
+        std::cout << r2 << '\n'; // in ra 97
        
-	    short s { 6 };
-	    const int& r3 { s };
-	    s--;          // modification not reflected in r3, because r3 is bound to a temporary copy
-	    std::cout << s << r3 << '\n'; // 56
-       	```
-        This is an example of case when reference is not identical to the object it is bound to.
-* Assign a reference to a non-reference variable will **copy** the value.
-  	```C++
+        short s { 6 };
+        const int& r3 { s };
+        s--;          // r3 không bị đổi giá trị, vì r3 đang bind vào một bản copy tạm thời (temporary copy)
+        std::cout << s << r3 << '\n'; // 56
+        ```
+        Đây là ví dụ cho thấy reference không phải lúc nào cũng bind trực tiếp vào đúng object ban đầu.
+* Gán một reference cho một biến non-reference sẽ tạo **copy**.
+    ```C++
     int x { 5 };
     int& ref { x };
-    int y { ref }; // y is now a copy of x
+    int y { ref }; // y bây giờ là bản copy của x
     std::cout << &x << '\n';    // 0x7ffc70904a60
-    std::cout << &ref << '\n';  // 0x7ffc70904a60 (same as x)
-    std::cout << &y << '\n';    // 0x7ffc70904a64 (different from x)
+    std::cout << &ref << '\n';  // 0x7ffc70904a60 (giống x)
+    std::cout << &y << '\n';    // 0x7ffc70904a64 (khác x)
     ```
-* Binding a reference is always cheap.
-* A **pointer** is an **object** that holds a memory address as its value.
-* The address-of operator (`&`) does not return a literal. Instead, it returns a pointer, whose type is derived from the argument.
-* The dereference operator (`*`) accesses the object stored at an address. It returns an **lvalue**.
-* Pointers behave much like lvalue references. The primary difference:
-    * References must be initialized, while pointers do not.
-    * References are not objects, while pointers are.
-    * References can not be reassigned, while pointers can.
-    * References must always be bound to an object, while pointers can point to nothing.
-    * References are safer to use than pointers.
-* The size of pointers is always the same. It is dependent upon the architecture.
-* ⚠️ Nomenclature:
-    * A **pointer to const** treats the object being pointed to as const (regardless of the object being pointed to is const or not).
-    * A *const pointer** is a pointer that can’t be reseated (changed to point to another object).
-    * You can have a **const pointer to a const**.
-* Actually, references are normally implemented by the compiler using pointers. Therefore, we can conclude that C++ really passes everything by value!
-* Pointer arithmetic:
-    * Given some pointer `ptr` that is an `int*`, and assume `int` is 4 bytes:
-        * `ptr + 1` will return the address that is 4 bytes after `ptr`.
-        * `ptr - 1` will return the address that is 4 bytes before `ptr`.
-        * `ptr[n]` is the syntax equivalent to the expression `*((ptr) + (n))`
+* Thao tác bind một reference rất nhẹ về mặt hiệu năng.
+* **Pointer** là một **object** lưu trữ địa chỉ bộ nhớ.
+* Toán tử:
+	* address-of (`&`) không trả về literal, mà trả về một pointer có type suy ra từ toán hạng.
+	* dereference (`*`) truy cập vào object tại địa chỉ đó. Nó trả về một **lvalue**.
+* Pointer có hành vi khá giống lvalue reference. Khác ở chỗ:
+    * Reference bắt buộc phải khởi tạo; Pointer thì không.
+    * Reference không phải là object; Pointer là object.
+    * Reference không thể gán lại (reseat); Pointer có thể trỏ đi nơi khác.
+    * Reference luôn phải bind vào một object; Pointer có thể không trỏ đi đâu (`nullptr`).
+    * Reference an toàn hơn khi sử dụng so với Pointer.
+* Kích thước (size) của mọi pointer là như nhau, phụ thuộc vào kiến trúc hệ thống (32-bit hoặc 64-bit).
+* ⚠️ Phân biệt tên gọi:
+    * **Pointer to const**: Coi object mà nó trỏ tới là `const` (bất kể object đó có `const` thật hay không).
+    * **Const pointer**: Bản thân pointer là `const`, không thể reseat (không thể đổi địa chỉ mà nó đang trỏ).
+    * Có thể kết hợp thành **const pointer to a const**.
+* Thực tế, sâu bên dưới, compiler thường implement reference bằng pointer. Do đó, bản chất C++ luôn truyền dữ liệu theo kiểu pass-by-value!
+* Pointer arithmetic (Tính toán con trỏ):
+    * Giả sử `ptr` có kiểu `int*`, và `int` chiếm 4 bytes:
+        * `ptr + 1`: Trả về địa chỉ nằm sau `ptr` 4 bytes.
+        * `ptr - 1`: Trả về địa chỉ nằm trước `ptr` 4 bytes.
+        * Cú pháp `ptr[n]` tương đương với biểu thức `*((ptr) + (n))`
         
-        => this is why C-style array allow signed integer to be used as index. For example: `ptr[-1]`.
-* ✅ **Void pointer** (aka **generic pointer**): a special type of pointer that can be pointed at objects of any data type!
-    * must first be cast to another pointer type before the dereference.
+        => Đây là lý do C-style array cho phép dùng số nguyên âm làm index. Ví dụ: `ptr[-1]`.
+* ✅ **Void pointer** (hay **generic pointer**): loại pointer đặc biệt có thể trỏ tới object thuộc bất kỳ kiểu dữ liệu nào!
+    * Bắt buộc phải cast sang kiểu pointer cụ thể trước khi dùng toán tử dereference.
     ```C++
     int nValue {};
     double dValue { 5.5 };
 
     void* pValue {};
-    pValue = &nValue;   // okay
-    pValue = &dValue;   // okay 
+    pValue = &nValue;   // hợp lệ
+    pValue = &dValue;   // hợp lệ 
 
-    std::cout << *(static_cast<double*>(pValue)) << '\n';   // okay, must cast before dereference
+    std::cout << *(static_cast<double*>(pValue)) << '\n';   // hợp lệ, phải cast trước khi dereference
     ```
 * **R-value references**:
-    * is a reference that is initialized with an r-value. It **cannot** be initialized with l-values:
+    * Là reference được khởi tạo bằng một r-value. **Không thể** khởi tạo bằng l-value:
         ```C++
         int x{ 5 };
         int& lref{ x }; // l-value reference
         int&& rref{ 5 }; // r-value reference
         ```
-    * It extends the lifespan of the object the are initialized with to its lifespan.
-    * Non-const r-value references allow you to modify the r-value.
-    * You can have overloaded functions for l-values and r-values:
+    * Kéo dài lifetime của object (r-value) bằng với lifetime của nó.
+    * Non-const r-value reference cho phép thay đổi giá trị của r-value.
+    * Cho phép overload hàm riêng rẽ cho l-value và r-value:
         ```C++
         void func2(int& x)  { std::cout << "l-value reference" << '\n'; }
         void func2(int&& x) { std::cout << "r-value reference" << '\n'; }
 
         int x{ 5 };
-        func2(x); // print "l-value reference"
-        func2(5); // print "r-value reference"
+        func2(x); // in "l-value reference"
+        func2(5); // in "r-value reference"
         ```
-    * Rvalue reference ***variables*** are **lvalues**.
+    * Bản thân các ***biến*** (variables) mang kiểu rvalue reference lại được tính là **lvalues**.
         ```C++
         int&& ref{ 5 }; // r-value reference
-        func2(ref); // print "l-value reference"!!!
+        func2(ref); // in "l-value reference"!!!
         ```
 
 
 ## Function pointer
 
-* Much like variables, functions live at an assigned address in memory (making them lvalues)
+* Giống như variables, các function cũng được lưu tại một địa chỉ nhớ (memory address) cụ thể, nên chúng được tính là các lvalues.
     ```C++
-    // code for foo starts at memory address 0x002717f0
+    // code của foo bắt đầu tại địa chỉ 0x002717f0
     int foo() { return 5; }
 
-    foo(); // jump to address 0x002717f0
+    foo(); // nhảy tới địa chỉ 0x002717f0
     ```
-* Pointers to functions (⚠️ ugly syntax):
+* Khai báo pointer trỏ tới function (⚠️ cú pháp khá xấu):
     ```C++
     int goo() { return 6; }
     int hoo(int x) { return x; }
 
     int (*fcnPtr)();
-    int (*fcnPtr2)(){ &foo };       // fcnPtr2 points to function foo
-    int (*fcnPtr4)(int) { &hoo };   // fcnPtr4 points to function hoo
+    int (*fcnPtr2)(){ &foo };       // fcnPtr2 trỏ tới function foo
+    int (*fcnPtr4)(int) { &hoo };   // fcnPtr4 trỏ tới function hoo
 
     auto fcnPtr9 { &hoo };  // int (*)(int)
     ```
-* Type of the function pointer must match the type of the function:
+* Type của function pointer bắt buộc phải khớp tuyệt đối với type của function:
     ```C++
     int hoo(int x) { return x; }
 
-    int (*fcnPtr3)() { &hoo }; // error
-    int (*fcnPtr4)(int) { &hoo }; // okay
+    int (*fcnPtr3)() { &hoo }; // lỗi
+    int (*fcnPtr4)(int) { &hoo }; // hợp lệ
     ```
-* When a function is referred to by name (without parenthesis), C++ will implicitly convert it into a function pointer:
+* Khi gọi tên một function (không kèm dấu ngoặc `()`), C++ sẽ tự động (implicitly) convert nó thành một function pointer:
     ```C++
     int hoo(int x) { return x; }
 
-    int (*fcnPtr5)(int) { hoo }; // okay, automatically convert hoo to a function pointer
-    void* fcnPtr6 { hoo };        // error
+    int (*fcnPtr5)(int) { hoo }; // hợp lệ, tự động convert hoo thành function pointer
+    void* fcnPtr6 { hoo };       // lỗi
     ```
-* Calling a function using a function pointer: 2 ways: explicitly dereference and implicitly dereference
+* Gọi function thông qua function pointer có 2 cách: explicitly dereference và implicitly dereference:
     ```C++
-    int (*fcnPtr2)(){ &foo }; // fcnPtr2 points to function foo
+    int (*fcnPtr2)(){ &foo }; // fcnPtr2 trỏ tới foo
 
     (*fcnPtr2)(); // explicitly dereference
     fcnPtr2();    // implicitly dereference
@@ -550,24 +551,24 @@
 * Callback functions:
     ```C++
     void loo(int x, int y, bool (*fcnPtr)(int, int))
-    // void loo(int x, int y, bool fcnPtr(int, int))     equivalent, but less preferred
+    // void loo(int x, int y, bool fcnPtr(int, int))    tương đương, nhưng ít được khuyên dùng hơn
     {
         fcnPtr(x, y);
     }
 
     bool moo(int x, int y) { return x > y; }
 
-    loo(3, 4, &moo); // okay
-    loo(3, 4, moo);  // okay
+    loo(3, 4, &moo); // hợp lệ
+    loo(3, 4, moo);  // hợp lệ
     ```
-* Making function pointers prettier:
-    * Type alias:
+* Làm gọn cú pháp khai báo function pointer:
+    * Dùng Type alias:
         ```C++
         using fcnPtrType = bool (*)(int, int);
 
         void loo2(int x, int y, fcnPtrType fcnPtr) {}
         ```
-    * Using `std::function`:
+    * Dùng `std::function`:
         ```C++
         void loo3(int x, int y, std::function<bool(int, int)> fcnPtr) {}
         ```
@@ -576,34 +577,34 @@
         int soo() {}
         int zoo(int x) {}
 
-        std::function<int()> fcnPtr7 { &soo }; // function pointer that return in int and takes no arguments
-        std::function fcnPtr8 { &zoo }; // okay, CTAD
+        std::function<int()> fcnPtr7 { &soo }; // function pointer trả về int, không nhận tham số
+        std::function fcnPtr8 { &zoo }; // hợp lệ nhờ CTAD (Class Template Argument Deduction)
         ```
 
         ```C++
         using fcnPtrType2 = std::function<bool(int, int)>;  // type alias
         ```
         
-        Note that `std::function` only allows calling the function via implicit dereference (e.g. `fcnPtr()`), not explicit dereference (e.g. `(*fcnPtr)()`).
+        Lưu ý: `std::function` chỉ cho phép gọi hàm bằng implicitly dereference (VD: `fcnPtr()`), không hỗ trợ explicitly dereference (VD: `(*fcnPtr)()`).
 
 
 
-## Low-level const and top-level const
+## Low-level const và top-level const
 
-* **Low-level const** applies to the object being pointed to or referenced to.
-* **Top-level const** applies to the object itself.
+* **Low-level const**: Áp dụng cho object mà pointer trỏ tới hoặc reference tham chiếu tới.
+* **Top-level const**: Áp dụng cho chính bản thân object đó.
 
     ```C++
-    const int* ptr; // low-level const, apply to the int
-    const int& ref; // low-level const, apply to the int
+    const int* ptr; // low-level const, áp dụng cho int
+    const int& ref; // low-level const, áp dụng cho int
 
-    const int x; // top-level const, apply to the int
-    int* const ptr; // top-level const, apply to the pointer
-    int& ref; // reference are implicitly top-level const
+    const int x; // top-level const, áp dụng cho int
+    int* const ptr; // top-level const, áp dụng cho pointer
+    int& ref; // bản thân reference ngầm định (implicitly) luôn là top-level const
 
-    constexpr const int& ref; // constexpr applies to the reference (top-level), const applies to the int (low-level)
+    constexpr const int& ref; // constexpr áp dụng cho reference (top-level), const áp dụng cho int (low-level)
     ```
-* ⚠️ Dropping a reference may change a low-level const to a top-level const. For example:
+* ⚠️ Việc loại bỏ reference (dropping a reference) có thể biến một low-level const thành top-level const. Ví dụ:
     
     ```C++
     const int&  // low-level const
@@ -613,58 +614,58 @@
 
 ## Type deduction
 
-* Type deduction does not include `const`/`constexpr`. If you want them, you must explicitly specify them:
+* Type deduction không bao gồm `const`/`constexpr`. Nếu muốn, phải khai báo tường minh (explicitly):
 
     ```C++
     const int a { 5 };
-    auto b { a };      // b has type int, not const int
-    const auto e { a }; // must explicitly specify const
+    auto b { a };      // b có kiểu int, không phải const int
+    const auto e { a }; // phải chỉ định const tường minh
     ```
-* Type deduction also drops references. If you want them, you must explicitly specify them:
+* Type deduction cũng loại bỏ (drop) references. Nếu muốn giữ reference, phải khai báo tường minh:
 
     ```C++
     int& getRef();
-    auto x { getRef() }; // x has type int, not int&
-    auto& y { getRef() }; // must explicitly specify reference
+    auto x { getRef() }; // x có kiểu int, không phải int&
+    auto& y { getRef() }; // phải chỉ định reference tường minh
     ```
-* ⚠️ Type deduction only drops top-level const, not low-level const.
-* If the initializer is a **reference to const**:
-    1. the reference is dropped first (and "then" reapplied if applicable), 
-    2. then any top-level const is dropped
+* ⚠️ Type deduction chỉ drop top-level const, KHÔNG drop low-level const.
+* Nếu initializer là một **reference to const**:
+    1. Drop reference trước (có thể reapply ở bước sau nếu khai báo tường minh).
+    2. Sau đó, drop các top-level const.
 
     ```C++
-    const int& x { ... }; // x is a "reference to const" int, low-level const
+    const int& x { ... }; // x là "reference to const" int, low-level const
 
-    auto ref1 { x }; // int. Because: const int&  -> const int (drop reference) -> int (drop top-level const)
-    const auto ref2 { x }; // const int. Because: const int& -> const int (drop reference) -> int (drop top-level const) -> const int (reapply const)
-    auto& ref2 { x }; //  const int&. Because: const int& -> const int (drop reference) -> const int& (reapply reference) 
+    auto ref1 { x }; // int. Giải thích: const int&  -> const int (drop reference) -> int (drop top-level const)
+    const auto ref2 { x }; // const int. Giải thích: const int& -> const int (drop reference) -> int (drop top-level const) -> const int (reapply const)
+    auto& ref2 { x }; //  const int&. Giải thích: const int& -> const int (drop reference) -> const int& (reapply reference) 
     ```
 
     ```C++
-    constexpr const int& x { ... }; // constexpr is top-level, const is low-level
+    constexpr const int& x { ... }; // constexpr là top-level, const là low-level
 
-    auto ref1 { x }; // int. Because: constexpr const int& -> constexpr const int (drop reference, now both constexpr and const are top-level) -> int (drop top-level const)
-    auto& ref2 { x }; // const int&. Because: constexpr const int& -> constexpr const int (drop reference) -> constexpr const int& (reapply reference, only constexpr is top-level) -> const int& (drop top-level const)
+    auto ref1 { x }; // int. Giải thích: constexpr const int& -> constexpr const int (drop reference, lúc này cả constexpr và const đều thành top-level) -> int (drop top-level const)
+    auto& ref2 { x }; // const int&. Giải thích: constexpr const int& -> constexpr const int (drop reference) -> constexpr const int& (reapply reference, lúc này chỉ constexpr là top-level) -> const int& (drop top-level const)
     ```
-* Type deduction does not drop pointers (Unlike references).
+* Type deduction KHÔNG drop pointers (khác với references).
 
     ```C++
     int* x;
 
-    auto y { x }; // int*, also a pointer
-    auto* z { x }; // int*, also a pointer (same, but more clear)
+    auto y { x }; // int*, là pointer
+    auto* z { x }; // int*, là pointer (tương tự như y nhưng cú pháp rõ ràng hơn)
 
-    auto y { *x }; // int, not a pointer
-    auto* z { *x }; // compile error: initializer not a pointer
+    auto y { *x }; // int, không phải pointer
+    auto* z { *x }; // lỗi compile: initializer không phải là pointer
     ```
-* C-style string type deduction:
+* Type deduction cho C-style string:
     ```C++
     auto s1{ "Alex" };  // const char*
     auto* s2{ "Alex" }; // const char*
     auto& s3{ "Alex" }; // const char(&)[5]
     ```
     
-* A function with `auto` return type needs to be fully defined before it can be called (a forward declaration is not enough). If we need a function that can be forward declared we have to be explicit about the return type:
+* Function có return type là `auto` phải được fully defined (định nghĩa hoàn chỉnh) trước khi được gọi, chỉ forward declaration là không đủ. Nếu muốn forward declare, ta phải khai báo return type một cách tường minh:
     ```C++
     auto add(int x, double y) -> std::common_type_t<decltype(x), decltype(y)>;
     ```
@@ -677,32 +678,32 @@
 ## Program-defined types: Enumerated types
 
 * **Unscoped enumerations**:
-    * Implicitly constexpr.
-    * Its enumerators are in the same scope as the enumeration itself => an enumerator name can’t be used in multiple enumerations within the same scope.
-    * Unscoped enumerations will **implicitly** convert to integral values. By default, the first enumerator is given the integral value 0, but you can explicitly define the value.
+    * Mặc định (implicitly) là `constexpr`.
+    * Các enumerators nằm cùng scope với bản thân enumeration => Không thể dùng trùng tên enumerator cho nhiều enumerations khác nhau trong cùng một scope.
+    * **Implicitly convert** (tự động chuyển) sang số nguyên (integral values). Mặc định enumerator đầu tiên mang giá trị 0, nhưng có thể gán giá trị tường minh (explicitly).
 
         ```C++
         enum Animal
         {
-            cat = -3,    // values can be negative
+            cat = -3,    // giá trị có thể âm
             dog,         // -2
             horse = 5,
-            giraffe = 5, // shares same value as horse
+            giraffe = 5, // dùng chung giá trị với horse
             chicken,     // 6
         };
         ```
-    * Integers will **not implicitly** convert to an enumeration:
+    * Số nguyên **không** implicitly convert ngược lại thành enumeration:
 
         ```C++
-        Animal a1 { -3 };                       // error: 2 is not an enumerator of Animal
-        Animal a2 { static_cast<Animal>(-3) };  // okay
+        Animal a1 { -3 };                       // lỗi: không tự động convert
+        Animal a2 { static_cast<Animal>(-3) };  // hợp lệ, ép kiểu tường minh
         ```
-    * ⚠️ If an enumeration is **zero-initialized**, the enumeration will be given value 0, even if there is no corresponding enumerator with that value:
+    * ⚠️ Nếu dùng **zero-initialized**, enumeration sẽ nhận giá trị 0, kể cả khi không có enumerator nào mang giá trị 0:
 
         ```C++
-        Animal a {}; // a is initialized to 0
+        Animal a {}; // a được gán bằng 0
         ```
-    * Most compilers will use `int` as the underlying type for an enumeration. But you explicitly specify a different one:
+    * Hầu hết compiler mặc định dùng `int` làm underlying type (kiểu cơ sở). Nhưng ta có thể chỉ định rõ kiểu khác:
         
         ```C++
         enum Foo : std::int8_t
@@ -712,66 +713,66 @@
         };
         ```
 * **Scoped enumerations** (`enum class`):
-    * Do not implicitly convert to integers.
-    * Enumerators are only placed into the scope region of the enumeration.
+    * KHÔNG implicitly convert sang số nguyên.
+    * Các enumerators bị đóng gói hoàn toàn bên trong scope của chính enumeration đó.
 
 
 ## Program-defined types: Class types
 
 * **Aggregate**:
-    * In general programming: any type that can contain multiple data members.
-    * In C++: a bit narrower and more complicated:
-        * No user-declared constructors.
-        * No private or protected non-static data members.
-        * No virtual functions.
-* Aggregate initialization 
-    * using **initializer list**: 
-        * It does a **memberwise** initialization. Each member in the struct is initialized **in the order of declaration**
-	
+    * Trong lập trình nói chung: Là bất kỳ type nào chứa nhiều data members.
+    * Trong C++: Định nghĩa khắt khe và hẹp hơn:
+        * Không có user-declared constructors.
+        * Không có private hoặc protected non-static data members.
+        * Không có virtual functions.
+* **Aggregate initialization** 
+    * Dùng **initializer list**: 
+        * Thực hiện khởi tạo **memberwise** (từng member một). Các member được khởi tạo **theo đúng thứ tự khai báo** trong struct.
+    
             ```C++
-            truct Employee
+            struct Employee // đã sửa lỗi typo 'truct'
             {
-                // data members (or member variables)
+                // data members (hoặc member variables)
                 int id {};
                 int age {};
                 double wage {};
             };
 
-            Employee frank = { 1, 32, 60000.0 }; // initialization list, (copy-list initialization)
-            Employee alice { 2, 28, 45000.0 };     // initialization list (list initialization (preferred))
+            Employee frank = { 1, 32, 60000.0 }; // copy-list initialization
+            Employee alice { 2, 28, 45000.0 };     // list initialization (được khuyên dùng)
 
-            // assigment
+            // gán (assignment)
             alice = { 2, 30, 4000.0 };
 
             Employee dummyEmployee() { return Employee { 1, 32, 60000.0 };}
-            Employee dummyEmployee2() { return { 1, 32, 60000.0 }; }  // can omit the type
-            Employee dummyEmployee3() { return { }; } // value-initialize all members
+            Employee dummyEmployee2() { return { 1, 32, 60000.0 }; }  // có thể bỏ qua tên type
+            Employee dummyEmployee3() { return { }; } // value-initialize tất cả members
             ```
-        * Initialization possibilities:
-            * If an aggregate is defined with no initialization list:
-                * If a default member initializer exists, the default is used.
-                * If no default member initializer exists, the member remains uninitialized (**default-initialization**).
-            * If an aggregate is defined with an initialization list:
-                * If an explicit initialization value exists, that explicit value is used.
-                * If an initializer is missing and a default member initializer exists, the default is used.
-                * If an initializer is missing and no default member initializer exists, **value-initialization** occurs.
-        * You cannot use aggregate initialization for a non-aggregate type.
+        * Các kịch bản khởi tạo:
+            * Nếu **KHÔNG** dùng initialization list:
+                * Có default member initializer -> Dùng default.
+                * Không có default member initializer -> Member không được khởi tạo (**default-initialization**).
+            * Nếu **CÓ** dùng initialization list:
+                * Có giá trị khởi tạo tường minh (explicit) -> Dùng giá trị đó.
+                * Bị thiếu giá trị khởi tạo + CÓ default member initializer -> Dùng default.
+                * Bị thiếu giá trị khởi tạo + KHÔNG CÓ default member initializer -> Thực hiện **value-initialization** (thường gán bằng 0/empty).
+        * Không thể dùng aggregate initialization cho các non-aggregate type.
 
             ```C++
-            class CDate // now a class instead of a struct
+            class CDate // bây giờ là class thay vì struct
             {
-                int m_year {};     // private by default
-                int m_month {};    // private by default
+                int m_year {};     // mặc định là private
+                int m_month {};    // mặc định là private
             };
 
             void func1()
             {
-                CDate today { 2020, 10 }; // compile error: this is not aggregate initialization (CDate does not qualify as an aggregate because it has private members) and CDate does not have a constructor to handle.
+                CDate today { 2020, 10 }; // Lỗi compile: Không phải aggregate initialization (CDate không thoả mãn điều kiện aggregate do có private members) và CDate cũng không có constructor tương ứng để xử lý.
 
-                CDate today2 {};   // okay, calling implicit default constructor
+                CDate today2 {};   // Hợp lệ, gọi implicit default constructor
             }
             ```
-    * Using another struct of the same type:
+    * Khởi tạo từ một struct khác cùng type:
 
         ```C++
         struct Foo
@@ -783,18 +784,18 @@
         
         Foo f3 { 1, 2, 3};
 
-        // The followings are not aggregate initialization:
+        // Các cách dưới đây KHÔNG phải là aggregate initialization:
         Foo f4 = f3;    // copy initialization
         Foo f5 { f3 };  // direct-list initialization
         Foo f6(f3);     // direct-initialization
         ```
 
 * **Constructors**:
-    * Constructors do not create the objects. The compiler sets up the memory allocation for the object prior to the constructor call.
-    * ✅ If the constructor is aborted for some reason, then all class members which have **already** been created and initialized **prior to** the **body** of the constructor executing are destructed as per usual.
+    * Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
+    * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
         
-        This is part of the [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors) principle.
-    * **Default constructor**: a constructor that accepts no arguments.
+        Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
+    * **Default constructor**: là constructor không nhận bất kỳ argument nào.
 
         ```C++
         class Foo6
@@ -806,8 +807,8 @@
             }
         };
         ```
-    * **Implicit default constructor**: If a non-aggregate class type object has no user-declared constructors, the compiler will generate a public default constructor (with no member initializer list, no statements in the body of the constructor).
-    * If all of the parameters in a constructor have default arguments, the constructor is a default constructor.
+    * **Implicit default constructor**: Nếu một non-aggregate class không có bất kỳ user-declared constructor nào, compiler sẽ tự động sinh ra một public default constructor (không có member initializer list, phần body rỗng).
+    * Nếu tất cả parameter của một constructor đều có sẵn default arguments, nó cũng được tính là một default constructor.
         ```C++
         class Foo6
         {
@@ -817,19 +818,19 @@
             }
         };
         ```
-    * ⚠️ Both **value-initialization** and **default-initialization** will call default constructor.
+    * ⚠️ Cả **value-initialization** và **default-initialization** đều sẽ gọi default constructor.
 
         ```C++
-        Foo6 foo6{}; // value-initialization, call default constructor
-        Foo6 foo6; // default-initialization, also call default constructor
+        Foo6 foo6{}; // value-initialization, gọi default constructor
+        Foo6 foo6;   // default-initialization, cũng gọi default constructor
         ```
-    * Delegating constructors: Steps:
-        1. Initialization is delegated to another constructor:
-            1. The member initializer list of the delegated constructor initializes the members.
-            2. The body of the delegated constructor is executed.
-        2. The body of the delegating constructor is executed.
-* Non-aggregate initialization:
-    * Using **member initializer list**: ⚠️ Attention: the members are always initialized in the order in which they are defined inside the class, not from left to right in the list.
+    * **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
+        1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
+            1. Chạy member initializer list của delegated constructor để khởi tạo các members.
+            2. Chạy body của delegated constructor.
+        2. Chạy body của delegating constructor (constructor gốc).
+* **Non-aggregate initialization**:
+    * Dùng **member initializer list**: ⚠️ Lưu ý: các members luôn được khởi tạo theo đúng **thứ tự khai báo** bên trong class, chứ không phải theo thứ tự từ trái sang phải trong list.
 
         ```C++
         class Foo3
@@ -840,7 +841,7 @@
 
         public:
             Foo3(int x, int y)
-                : m_y { std::max(x, y) }, m_x { m_y } // issue on this line
+                : m_y { std::max(x, y) }, m_x { m_y } // Lỗi logic ở dòng này do m_x được khởi tạo trước m_y
             {
             }
 
@@ -853,69 +854,68 @@
             foo3.print();       // Foo(6, 7)
         }
         ```
-    * Initialization possibilities:
-        * If a member is listed in the member initializer list, that initialization value is used.
-        * Otherwise, if the member has a default member initializer, that initialization value is used.
-        * Otherwise, the member is default-initialized.
-* List constructor:
-    * Containers (such as `std::vector`) typically have a special constructor called a **list constructor** that allows us to construct an instance of the container using an **initializer list**.
+    * Các kịch bản khởi tạo:
+        * Có mặt trong member initializer list -> Dùng giá trị đó.
+        * Không có, nhưng có default member initializer -> Dùng giá trị default.
+        * Không có cả hai -> Thực hiện **default-initialization**.
+* **List constructor**:
+    * Các containers (như `std::vector`) thường có một constructor đặc biệt gọi là **list constructor**, cho phép tạo instance bằng một **initializer list**.
         ```C++
         std::vector<int> primes{ 2, 3, 5, 7 };
         ```
-    * It does three things:
-        * Ensures the container has enough storage to hold all the initialization values (if needed).
-        * Sets the length of the container to the number of elements in the initializer list (if needed).
-        * Initializes the elements to the values in the initializer list (in sequential order).
+    * Nó thực hiện 3 công việc (nếu cần):
+        * Đảm bảo container được cấp phát đủ bộ nhớ (storage) để chứa tất cả giá trị khởi tạo.
+        * Cài đặt chiều dài (length) của container bằng với số phần tử trong initializer list.
+        * Khởi tạo các phần tử theo đúng thứ tự (sequential order).
 
         ```C++
-        std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; //  Uses CTAD (C++17) to deduce element type char (preferred).
+        std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; //  Dùng CTAD (C++17) để tự suy luận (deduce) type là char (được khuyên dùng).
         ```
-    * C++ has a special rule:
-        * If the initializer list is empty, the default constructor is preferred over the list constructor.
-        * If the initializer list is non-empty, a matching list constructor is preferred over other constructors.
+    * Luật ưu tiên đặc biệt của C++:
+        * Nếu initializer list rỗng (`{}`) -> Ưu tiên gọi **default constructor** hơn list constructor.
+        * Nếu initializer list có phần tử -> Ưu tiên gọi một **list constructor** phù hợp hơn các constructors khác.
 * **Implicit object**:
     
     ```C++
     CDate today { 2020, 10, 14 };
     today.print();
     ```
-    * when we call `today.print()`, today is the **implicit object**, and it is implicitly passed to the `print()`.
-    * Inside every member function, `this` is a const pointer that holds the address of the current implicit object.
+    * Khi gọi `today.print()`, `today` chính là **implicit object**, và nó được implicitly truyền (pass) vào hàm `print()`.
+    * Bên trong mọi member function, `this` là một const pointer lưu trữ địa chỉ của implicit object hiện tại.
         
         ```C++
-        void print() const { std::cout << m_id; }       // implicit use of this
-        void print() const { std::cout << this->m_id; } // explicit use of this
+        void print() const { std::cout << m_id; }       // dùng this kiểu implicit (ngầm định)
+        void print() const { std::cout << this->m_id; } // dùng this kiểu explicit (tường minh)
         ```
-    * In Java and C#, `this` is implemented as a reference instead of a pointer.
-* **Const member function**: is a member function that guarantees it will not modify the object or call any non-const member functions.
-    * Const objects may not call non-const member functions, even if the member function does not modify the object.
-    * It is possible to overload a member function to have a const 
-  and non-const version of the same function.
-* Member functions can be defined in any order. Because, when the compiler encounters a member function definition:
-    1. The member function is implicitly forward declared.
-    2. The member function definition is moved immediately after the end of the class definition.
+    * Trong Java và C#, `this` được implement dưới dạng reference thay vì pointer.
+* **Const member function**: là member function cam kết không thay đổi (modify) object và không gọi các non-const member functions khác.
+    * Const objects không thể gọi non-const member functions, kể cả khi hàm đó thực tế không modify object.
+    * Có thể overload để tạo ra 2 phiên bản const và non-const cho cùng một member function.
+* Các member functions có thể được define (định nghĩa) theo thứ tự bất kỳ. Lý do là vì khi compiler đọc thấy một member function definition:
+    1. Hàm đó sẽ được ngầm (implicitly) forward declared.
+    2. Phần definition của hàm sẽ được dời xuống ngay sau khi kết thúc class definition.
 * Access levels:
-    * By default, members of a struct are `public`.
-    * By default, members of a class are `private`.
-    * ⚠️ C++ access levels work on a per-class basis, not per-object.
+    * Mặc định, các members của một `struct` là `public`.
+    * Mặc định, các members của một `class` là `private`.
+    * ⚠️ C++ access levels hoạt động theo phạm vi class (per-class), không phải theo object (per-object). (Nghĩa là các object cùng class có thể truy cập private member của nhau).
 * **Converting constructor**:
-    * **Implicit** conversion: in the below example, the `printFoo` function accepts a `Foo` parameter, but we're passing an `int` value. When compiler sees `printFoo(5);`, it will find a function that lets it convert an `int` to a `Foo`. That function is the `Foo(int)` constructor.
+    * **Implicit conversion**: Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `int`. Khi compiler thấy `printFoo(5);`, nó sẽ tìm một hàm cho phép convert từ `int` sang `Foo`. Hàm đó chính là constructor `Foo(int)`.
         ```C++
         class Foo
         {
         private:
             int m_x{};
         public:
-            Foo(int x)  // allow implicit conversion from int to Foo
+            Foo(int x)  // cho phép implicit conversion từ int sang Foo
                 : m_x{ x }
             { }
         };
 
         void printFoo(Foo f) { }
 
-        printFoo(5); // conversion from `5` to `Foo { 5 }`
+        printFoo(5); // convert từ `5` thành `Foo { 5 }`
         ```
-    * The compiler might allow **only one** implicit user-defined conversion: in the below example, `printEmployee("Joe");` will not compile because it requires two user-defined conversions: C-style string literal -> std::string_view -> Employee.
+    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion. Trong ví dụ dưới, `printEmployee("Joe");` sẽ báo lỗi vì nó cần tới 2 bước user-defined conversions: C-style string literal -> `std::string_view` -> `Employee`.
         ```C++
         class Employee
         {
@@ -930,11 +930,11 @@
 
         void printEmployee(Employee e) { }
 
-        printEmployee("Joe");   // compile error: requires 2 user-defined conversions
-        printEmployee( "Joe"sv);    // okay, only 1 user-defined conversion from std::string_view to Employee
-        printEmployee(Employee{ "Joe" }); // okay, only 1 user-defined conversion from C-style string literal to std::string_view
+        printEmployee("Joe");   // Lỗi compile: yêu cầu tới 2 user-defined conversions
+        printEmployee( "Joe"sv);    // Hợp lệ, chỉ cần 1 user-defined conversion từ std::string_view sang Employee
+        printEmployee(Employee{ "Joe" }); // Hợp lệ, chỉ cần 1 user-defined conversion từ C-style string literal sang std::string_view
         ```
-    * To prevent such implicit conversion, we can use `explicit` keyword to tell the compiler that a constructor should not be used as a converting constructor:
+    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor:
         ```C++
         class Dollars2
         {
@@ -942,21 +942,21 @@
             int m_dollars{};
 
         public:
-            explicit Dollars2(int d) // now explicit
+            explicit Dollars2(int d) // đánh dấu explicit
                 : m_dollars{ d }
             { }
         };
 
         void print2(Dollars2 d) { }
 
-        print2(5); // compile error: cannot convert int to Dollars2
-        print2(static_cast<Dollars2>(5)); // okay, explicit conversion
+        print2(5); // Lỗi compile: không thể convert int sang Dollars2
+        print2(static_cast<Dollars2>(5)); // Hợp lệ, ép kiểu explicit (tường minh)
         ```
 
 
 ## Program-defined types and header files
 
-* Note that this is a full definition, not a forward declaration:
+* Lưu ý đoạn code sau là một full definition, không phải forward declaration:
     ```C++
     struct Fraction
     {
@@ -964,18 +964,18 @@
         int denominator {};
     };
     ```
-* Unlike functions, which only need a forward declaration to be used, header files usually contain the full definition of a class. This is because the compiler needs to understand how members are declared in order to ensure they are used properly, and it needs to be able to calculate how large objects of that type are in order to instantiate them.
-* With non-template classes, the common procedure is to put the class definition in a header file, and the member function definitions in a similarly named .cpp file. However, with templates, this does not work, we’ll get a linker error. Briefly, the reason is that:
-    1. remember that C++ compiles files individually, and
-    2. the compiler will only instantiate a class template if the class template is used (i.e., the compiler must see both the full class template definition (not just a declaration) and the specific template type(s) needed).
+* Khác với functions (chỉ cần forward declaration là dùng được), header files thường phải chứa full definition của một class. Lý do: compiler cần biết cấu trúc khai báo của các members để đảm bảo chúng được sử dụng đúng cách, đồng thời cần tính toán chính xác kích thước object của type đó để tiến hành instantiate.
+* Với non-template classes, quy chuẩn chung là đặt class definition vào header file, và phần member function definitions vào file `.cpp` cùng tên. Tuy nhiên, nếu áp dụng cách này cho templates, bạn sẽ gặp linker error. Lý do tóm tắt:
+    1. C++ compile từng file một cách độc lập.
+    2. Compiler chỉ instantiate một class template nếu nó thực sự được sử dụng (nghĩa là: compiler bắt buộc phải nhìn thấy đồng thời cả full class template definition chứ không chỉ declaration, VÀ các specific template type(s) đang cần dùng tới).
 
-    => the compiler will not instantiate it in the .cpp file to be linked with the call from the main.cpp file. More details [here](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes)
-* With template specialization: the compiler must be able to see the full definition of both the non-specialized class and the specialized class in order to use a template specialization. => If can only see the definition of the non-specialized class, it will use that instead of the specialization.
+    => Do đó, compiler sẽ không instantiate template bên trong file `.cpp` để link với lời gọi từ `main.cpp`. Chi tiết xem [tại đây](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes).
+* Với template specialization: compiler phải nhìn thấy full definition của CẢ non-specialized class VÀ specialized class thì mới dùng được template specialization. => Nếu compiler chỉ nhìn thấy definition của bản non-specialized, nó sẽ dùng luôn bản đó thay vì bản specialization.
  
 
 ## Nested types
 
-- A nested class does not have access to the `this` pointer of the outer (containing) class. But can access any private members of the outer class that are in scope:
+- Một nested class KHÔNG có quyền truy cập vào `this` pointer của outer class (class chứa nó). Tuy nhiên, nó CÓ THỂ truy cập mọi private members của outer class miễn là nằm trong scope:
 
     ```C++
     #include <string>
@@ -984,15 +984,15 @@
     class Employee2
     {
     public:
-        using IDType = int;     // Nested typedefs and type aliases
+        using IDType = int;     // Nested typedefs và type aliases
 
         class Printer   // Nested types
         {
         public:
             void print(const Employee2& e) const
             {
-                // Printer can't access Employee's `this` pointer
-                // but we can access private members e.m_name and e.m_id that are in scope
+                // Printer không thể truy cập `this` pointer của Employee
+                // nhưng có thể truy cập các private members e.m_name và e.m_id đang nằm trong scope
                 std::cout << e.m_name << " has id: " << e.m_id << '\n';
             }
         };
@@ -1012,21 +1012,21 @@
     void func3()
     {
         const Employee2 john2{ "John", 1, 45000 };
-        const Employee2::Printer p{}; // instantiate an object of the inner class
+        const Employee2::Printer p{}; // instantiate một object của inner class
         p.print(john2);
     }
     ```
 
 ## Destructor
 
-* Destructor: a special class member function that is executed when an object of that class is destroyed. For example:
-    * when an object goes out of scope normally
-    * when a dynamically allocated object is explicitly deleted using the `delete` keyword
-* If a constructor is aborted for some reason, the class’s destructor is never called (because the object never finished construction).
-* The destructor must have the same name as the class, preceded by a tilde (`~`).
-* The destructor can not take arguments.
-* The destructor has no return type.
-* ⚠️ `std::exit()` can be used to terminate your program immediately. But it does not clean up local variables => no destructors will be called. Be wary if you’re relying on your destructors to do necessary cleanup work (closing a file, releasing memory, writing to a log file, etc.).
+* **Destructor**: là một class member function đặc biệt, được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
+    * Khi một object rơi vào trạng thái out of scope một cách bình thường.
+    * Khi một dynamically allocated object (object cấp phát động) bị xóa tường minh bằng từ khóa `delete`.
+* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
+* Quy tắc khai báo: Tên destructor bắt buộc phải giống hệt tên class, thêm dấu ngã (`~`) ở phía trước.
+* Destructor KHÔNG nhận arguments.
+* Destructor KHÔNG có return type.
+* ⚠️ Lệnh `std::exit()` sẽ terminate (kết thúc) chương trình ngay lập tức, nhưng nó lại bỏ qua việc dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Hết sức cẩn thận nếu hệ thống của bạn đang phụ thuộc vào destructor để thực hiện các tác vụ dọn dẹp quan trọng (như đóng file, giải phóng bộ nhớ, ghi log...).
 
 
 
@@ -1753,102 +1753,103 @@
 
 ## Memory allocation
 
-* Overview of memory:
-    * The memory that a program uses is typically divided into areas, called ***segments***:
-        * code segment (text segment): stores compiled program
-        * bss segment (uninitialized data segment): stores zero-initialized global and static variables
-        * data segment (initialized data segment): stores initialized global and static variables
-        * heap: stores dynamically allocated variables
-        * call stack: stores function parameters, local variables, and other function-related information
-    * The call stack:
-        * When the program encounters a function call:
-            1. A **stack frame** is constructed and pushed on the stack. The stack frame consists of:
-                * The address of the instruction beyond the function call (called the **return address**) => where to return to after the called function exits.
-                * All function arguments.
-                * Memory for any local variables.
-                * Saved copies of any registers modified by the function that need to be restored when the function returns.
-            2. The CPU jumps to the function’s start point.
-            3. The instructions inside of the function begin executing.
-        * When the function terminates:
-            1. Registers are restored from the call stack
-            2. The stack frame is popped off the stack. This frees the memory for all local variables and arguments.
-            3. The return value is handled.
-            4. The CPU resumes execution at the return address.
-        * All memory allocated on the stack is known at compile time. Consequently, this memory can be accessed directly through a variable.
-        * ⚠️ Stack overflow:
-            * The stack has a limited size. E.g., default 1MB on Visual Studio, 8MB with g++/Clang for Unix.
-            * Stack overflow is generally due to allocating too many variables or nested function calls on the stack.
-            ```C++
-            int stack[10000000];
-            std::cout << "hi" << stack[0];
-            // Segmentation fault, tries to allocate a huge (likely 40MB) array on the stack
-            ```
-* C++ supports three basic types of memory allocation:
-    * **Static** memory allocation: happens for static and global variables.
-        * allocated once when your program is run, and persists throughout the life of your program.
-    * **Automatic** memory allocation: happens for function parameters and local variables.
-        * allocated when the relevant block is entered, and freed when the block is exited.
-
-        Both static and automatic allocation have things in common:
-            * The size of the variable must be known at compile time.
-            * 👍 Memory allocation and deallocation happens **automatically**.
-            * most normal variables are allocated in **stack** memory (quite small).
-    * **Dynamic** memory allocation:
-        * a way to request memory from the OS when needed.
-        * ⚠️ we must dispose the allocated memory by ourselves.
-        * use **heap** memory (generally slower than stack memory).
-* Dynamic memory allocation:
-    * allocating "single" variables:
+* Tổng quan về memory:
+    * Memory mà chương trình sử dụng thường được chia thành các vùng (areas), gọi là các ***segments***:
+        * **code segment** (hay text segment): Lưu trữ compiled program (mã lệnh đã biên dịch).
+        * **bss segment** (uninitialized data segment): Lưu trữ các global và static variables được zero-initialized.
+        * **data segment** (initialized data segment): Lưu trữ các global và static variables đã được khởi tạo giá trị.
+        * **heap**: Lưu trữ các dynamically allocated variables (biến cấp phát động).
+        * **call stack**: Lưu trữ function parameters, local variables và các thông tin quản lý function khác.
+* **Call stack**:
+    * Khi chương trình chạy đến một function call:
+        1. Một **stack frame** được tạo ra và push vào stack. Stack frame chứa:
+            * **Return address** (địa chỉ của instruction ngay sau function call) => cho biết CPU cần nhảy về đâu sau khi function chạy xong.
+            * Toàn bộ function arguments.
+            * Memory dành cho các local variables.
+            * Bản sao lưu của các registers (thanh ghi) bị function thay đổi, dùng để restore lại khi function return.
+        2. CPU jump tới điểm bắt đầu của function.
+        3. Các instructions bên trong function bắt đầu được execute (thực thi).
+    * Khi function kết thúc (terminates):
+        1. Các registers được restore từ call stack.
+        2. Stack frame được pop khỏi stack. Bước này sẽ free (giải phóng) memory của toàn bộ local variables và arguments.
+        3. Xử lý return value.
+        4. CPU tiếp tục execute từ vị trí return address.
+    * Toàn bộ memory cấp phát trên stack đều được xác định rõ kích thước từ lúc **compile time**. Do đó, ta có thể access trực tiếp vào memory này thông qua variable.
+    * ⚠️ **Stack overflow**:
+        * Stack có giới hạn dung lượng khá nhỏ (VD: mặc định 1MB trên Visual Studio, 8MB với g++/Clang trên Unix).
+        * Lỗi stack overflow thường xảy ra do cấp phát memory cho variables quá lớn hoặc gọi nested function (hàm lồng nhau/đệ quy) quá sâu trên stack.
+        
         ```C++
-        int* ptr{ new int };    // dynamically allocate an integer and assign the address to ptr
-        delete ptr;     // return the memory to the OS
+        int stack[10000000];
+        std::cout << "hi" << stack[0];
+        // Segmentation fault, do cố gắng cấp phát một array khổng lồ (tầm 40MB) ngay trên stack
+        ```
+* C++ hỗ trợ 3 loại memory allocation cơ bản:
+    * **Static** memory allocation: dùng cho static và global variables.
+        * Chỉ cấp phát 1 lần duy nhất khi chạy chương trình, và tồn tại suốt vòng đời của chương trình.
+    * **Automatic** memory allocation: dùng cho function parameters và local variables.
+        * Được cấp phát khi đi vào block tương ứng, và được free (giải phóng) khi thoát khỏi block.
+
+        Điểm chung của static và automatic allocation:
+            * Kích thước variable phải được xác định rõ từ lúc compile time.
+            * 👍 Quá trình allocation và deallocation diễn ra hoàn toàn **tự động**.
+            * Hầu hết các variables thông thường được cấp phát trên **stack** memory (dung lượng khá nhỏ).
+    * **Dynamic** memory allocation:
+        * Là cách request memory từ OS khi cần thiết (lúc runtime).
+        * ⚠️ Lập trình viên phải tự tay dispose (giải phóng) memory đã cấp phát.
+        * Sử dụng **heap** memory (thường chậm hơn stack memory).
+* Dynamic memory allocation:
+    * Cấp phát biến đơn ("single" variables):
+        ```C++
+        int* ptr{ new int };    // dynamically allocate một số nguyên và gán địa chỉ cho ptr
+        delete ptr;     // trả lại memory cho OS
         ptr = nullptr;
 
-        // dynamically allocate and initialize
-        int* ptr1{ new int (5) }; // direct initialization
+        // dynamically allocate và khởi tạo (initialize)
+        int* ptr1{ new int (5) };   // direct initialization
         int* ptr2{ new int { 6 } }; // uniform initialization
         delete ptr1;
         ptr1 = nullptr;
         delete ptr2;
         ptr2 = nullptr;
         ```
-    * allocating arrays (demo with C-style arrays):
+    * Cấp phát arrays (demo bằng C-style arrays):
         ```C++
-        std::size_t length{ 10 };   // not constepxr
+        std::size_t length{ 10 };   // không bắt buộc phải là constexpr
         int* array{ new int[length]{} }; 
         delete[] array;
 
-        // dynamically allocate and initialize
+        // dynamically allocate và khởi tạo
         int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
         auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
-        int* array4{ new int[]{ 9, 7, 5, 3, 1 } }; // Explicitly stating the size of the array is optional.
+        int* array4{ new int[]{ 9, 7, 5, 3, 1 } };      // Không bắt buộc phải ghi rõ size của array.
         delete[] array2;
         delete[] array3;
         delete[] array4;
         ```
-    * ⚠️ Deallocating memory may create multiple dangling pointers:
+    * ⚠️ Deallocate memory có thể vô tình tạo ra nhiều dangling pointers:
         ```C++
         int* ptr3{ new int{} };
-        int* otherPtr{ ptr3 }; // otherPtr is now pointed at that same memory location
-        delete ptr3; // ptr3 and otherPtr are now dangling pointers.
+        int* otherPtr{ ptr3 }; // otherPtr lúc này trỏ tới cùng một địa chỉ memory với ptr3
+        delete ptr3; // vùng nhớ bị xóa => ptr3 và otherPtr giờ đều trở thành dangling pointers.
         ptr3 = nullptr;
-        // however, otherPtr is still a dangling pointer!
+        // tuy nhiên, otherPtr vẫn đang là một dangling pointer!
         ```
-    * ⚠️ allocation can fail: in rare circumstances, the OS may not have any memory to grant. By default, a bad_alloc exception is thrown and the program will crash. ✅ Alternatively, we can return a null pointer by adding `std::nothrow`:
+    * ⚠️ Quá trình allocate có thể thất bại: Trong vài trường hợp hiếm, OS không còn memory để cấp phát. Mặc định, một exception `bad_alloc` sẽ bị throw và chương trình sẽ crash. ✅ Để tránh điều này, ta có thể yêu cầu trả về null pointer (thay vì crash) bằng cách thêm `std::nothrow`:
         ```C++
         int* value { new (std::nothrow) int };
         ```
-    * We don't actually delete the `ptr` variable, it can be assigned a new value (e.g., nullptr) just like any other variable.
-    * ⚠️ **Memory leaks**: when your program loses the address of the memory before giving it back to the OS => The OS cannot use this memory.
+    * Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
+    * ⚠️ **Memory leaks**: Xảy ra khi chương trình làm mất địa chỉ memory trước khi kịp trả nó về cho OS => OS sẽ vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
         ```C++
         {
             int* ptr{ new int{} };
-        } // ptr goes out of scope, we lost the address of the memory
+        } // ptr rơi vào out of scope, ta mất luôn địa chỉ của vùng nhớ vừa allocate => memory leak
 
         {
             int value = 5;
             int* ptr{ new int{} }; // allocate memory
-            ptr = &value; // old address lost
+            ptr = &value; // gán con trỏ sang địa chỉ mới => mất địa chỉ memory cũ => memory leak
         }
         ```
 
@@ -1857,11 +1858,13 @@
         {
             int* ptr = new int;
 
-            return; // the function returns early, and ptr won’t be deleted!
+            return; // hàm return sớm, ptr chưa kịp delete!
 
             delete ptr;
         } // => memory leak
-        => ✅ See **smart pointer**.
+        
+        => ✅ Giải pháp: Xem phần **smart pointer**.
+        ```
 
 
 ## Copy constructors and Copy assignment
