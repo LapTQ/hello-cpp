@@ -354,22 +354,6 @@
     * Hàm chiến thắng phải khớp tốt hơn mọi hàm ứng viên khác ở ít nhất 1 tham số, và không được kém hơn ở tất cả các tham số còn lại.
 
 
-## Templates
-
-* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
-* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
-* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
-* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
-* Function templates có thể được overload.
-* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
-* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
-* Khi cần viết một implementation riêng cho một specific type:
-    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
-    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
-    
-    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
-
-
 ## Value categories 
 
 * Mọi expression trong C++ đều có 2 thuộc tính: type và value category.
@@ -936,6 +920,22 @@
         print2(5); // Lỗi compile: không thể convert int sang Dollars2
         print2(static_cast<Dollars2>(5)); // Hợp lệ, ép kiểu explicit (tường minh)
         ```
+
+
+## Templates
+
+* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
+* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
+* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
+* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
+* Function templates có thể được overload.
+* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
+* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
+* Khi cần viết một implementation riêng cho một specific type:
+    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
+    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
+    
+    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
 
 
 ## Program-defined types and header files
