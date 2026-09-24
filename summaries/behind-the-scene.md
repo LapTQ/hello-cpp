@@ -371,7 +371,7 @@
 * Khác với các **literals** thông thường (vốn là rvalue), C-style string **literal** lại là một lvalue vì nó sẽ decay thành một pointer.
 
 
-## References and Pointers
+## References
 
 * **Reference** là một **alias** của một object đã tồn tại.
 * Reference không phải là object. Do đó, không có khái niệm reference trỏ tới một reference (reference to reference).
@@ -470,6 +470,9 @@
 	func2(x); // => "l-value reference"
 	func2(5); // => "r-value reference"
 	```
+
+
+# Pointers
 
 * **Pointer** là một **object** lưu trữ địa chỉ bộ nhớ.
 * Toán tử:
