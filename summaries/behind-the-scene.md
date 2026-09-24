@@ -378,6 +378,7 @@
 * Khai báo reference:
     * Bắt buộc **phải khởi tạo** khi khai báo. 
     * Sau khi khởi tạo, **không thể reseat** (không thể gán lại để trỏ sang object khác).
+* Thao tác bind một reference rất nhẹ về mặt hiệu năng.
 * Gán một reference cho một biến non-reference sẽ tạo **copy**.
     ```C++
     int x { 5 };
@@ -393,7 +394,7 @@
 	   	* **Lvalue reference to (a) non-const** có thể được gọi bằng cái tên khác là:
 	        * **non-const lvalue reference**
 	        * ⚠️ **lvalue reference**
-	    * **Lvalue reference to (a) const**  có thể được gọi bằng cái tên khác là:
+	    * **Lvalue reference to (a) const** có thể được gọi bằng cái tên khác là:
 	        * **const lvalue reference**
 	* **Lvalue reference to const**:
    		* coi object mà nó trỏ tới là `const` (bất kể bản thân object đó có phải là `const` hay không).
@@ -429,7 +430,6 @@
 	        std::cout << s << r3 << '\n'; // 56
 	        ```
 	        => reference không phải lúc nào cũng bind trực tiếp vào đúng object ban đầu.
-* Thao tác bind một reference rất nhẹ về mặt hiệu năng.
 
 * **R-value references**:
     * Là reference được khởi tạo bằng một r-value. **Không thể** được khởi tạo bằng l-value:
@@ -438,39 +438,43 @@
         int& lref{ x }; // l-value reference
         int&& rref{ 5 }; // r-value reference
         ```
-    * Kéo dài lifetime của object (r-value) bằng với lifetime của nó.
-    * Non-const r-value reference cho phép thay đổi giá trị của r-value.
-    * Cho phép overload hàm riêng rẽ cho l-value và r-value:
-        ```C++
-        void func2(int& x)  { std::cout << "l-value reference" << '\n'; }
-        void func2(int&& x) { std::cout << "r-value reference" << '\n'; }
-
-        int x{ 5 };
-        func2(x); // in "l-value reference"
-        func2(5); // in "r-value reference"
-        ```
     * Bản thân các ***biến*** (variables) mang kiểu rvalue reference lại được tính là **lvalues**.
         ```C++
         int&& ref{ 5 }; // r-value reference
         func2(ref); // in "l-value reference"!!!
         ```
+  	* So sánh với "**lvalue reference to const** được khởi tạo bằng một rvalue":
+  		```C++
+		const int& lref { 5 };	// **lvalue reference to const** được khởi tạo bằng một rvalue
+		int&& rref{ 5 }; 		// r-value reference
+
+  	 	// Cơ chế diễn giải của compiler cho *rvalue reference* y hệt **lvalue reference to const**, chỉ khác là bỏ `const` đi
+  	 	// int __temp = 100;
+  	 	// int& rref = __temp;
+  	 	```
+  	 	* Giống: kéo dài vòng đời.
+  	  	* Khác:
+  	  		* **l-value reference to const**:
+  	  	 		* có thể khởi tạo bằng cả l-value và r-value.
+  	  	 		* ✅ không thể sửa đổi giá trị
+  	  	   	* **r-value references**:
+  				* chỉ có thể khởi tạo bằng r-value.
+  	  	   		* ✅ non-const **r-value reference** có thể sửa đổi giá trị
+
+* Cho phép overload hàm riêng rẽ cho l-value và r-value:
+	```C++
+	void func2(int& x)  { std::cout << "l-value reference" << '\n'; }
+	void func2(int&& x) { std::cout << "r-value reference" << '\n'; }
+
+	int x{ 5 };
+	func2(x); // => "l-value reference"
+	func2(5); // => "r-value reference"
+	```
 
 * **Pointer** là một **object** lưu trữ địa chỉ bộ nhớ.
 * Toán tử:
 	* address-of (`&`) trả về một pointer có type suy ra từ toán hạng.
 	* dereference (`*`) một **lvalue** biểu diễn đối tượng mà con trỏ đang trỏ tới.
-* Pointer và `const`:
-    * **Pointer to const**: Coi object mà nó trỏ tới là `const` (bất kể object đó có `const` thật hay không).
-    * **Const pointer**: Bản thân pointer là `const`, không thể reseat (không thể đổi địa chỉ mà nó đang trỏ).
-    * Có thể kết hợp thành **const pointer to a const**.
-* Pointer có hành vi khá giống lvalue reference. Khác ở chỗ:
-    * Reference bắt buộc phải khởi tạo; Pointer thì không.
-    * Reference không phải là object; Pointer là object.
-    * Reference không thể gán lại (reseat); Pointer có thể trỏ đi nơi khác.
-    * Reference luôn phải bind vào một object; Pointer có thể không trỏ đi đâu (`nullptr`).
-    * Reference an toàn hơn khi sử dụng so với Pointer.
-* Kích thước (size) của mọi pointer là như nhau, phụ thuộc vào kiến trúc hệ thống (32-bit hoặc 64-bit).
-* Thực tế, sâu bên dưới, compiler thường implement reference bằng pointer. Do đó, bản chất C++ luôn truyền dữ liệu theo kiểu pass-by-value!
 * ✅ **Void pointer** (hay **generic pointer**): loại pointer đặc biệt có thể trỏ tới object thuộc bất kỳ kiểu dữ liệu nào!
     * Bắt buộc phải cast sang kiểu pointer cụ thể trước khi dùng toán tử dereference.
     ```C++
@@ -483,6 +487,18 @@
 
     std::cout << *(static_cast<double*>(pValue)) << '\n';   // hợp lệ, phải cast trước khi dereference
     ```
+* Pointer và `const`:
+    * **Pointer to const**: Coi object mà nó trỏ tới là `const` (bất kể object đó có `const` thật hay không).
+    * **Const pointer**: Bản thân pointer là `const`, không thể reseat (không thể đổi địa chỉ mà nó đang trỏ).
+    * Có thể kết hợp thành **const pointer to a const**.
+* Pointer có hành vi khá giống lvalue reference. Khác ở chỗ:
+    * Reference bắt buộc phải khởi tạo; Pointer thì không.
+    * Reference không phải là object; Pointer là object.
+    * Reference không thể gán lại (reseat); Pointer có thể trỏ đi nơi khác.
+    * Reference luôn phải bind vào một object; Pointer có thể không trỏ đi đâu (`nullptr`).
+    * Reference an toàn hơn khi sử dụng so với Pointer.
+* Kích thước (size) của mọi pointer là như nhau, phụ thuộc vào kiến trúc hệ thống (32-bit hoặc 64-bit).
+* Thực tế, sâu bên dưới, compiler thường implement reference bằng pointer. Do đó, bản chất C++ luôn truyền dữ liệu theo kiểu pass-by-value!
 * Pointer arithmetic (Tính toán con trỏ):
     * Giả sử `ptr` có kiểu `int*`, và `int` chiếm 4 bytes:
         * `ptr + 1`: Trả về địa chỉ nằm sau `ptr` 4 bytes.
