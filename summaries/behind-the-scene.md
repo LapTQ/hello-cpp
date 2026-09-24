@@ -13,59 +13,29 @@
 4. Cuối cùng, những ký tự chưa được đọc (bao gồm cả ký tự *newline*) vẫn nằm chờ trong *input buffer* và sẵn sàng cho lần gọi `std::cin >>` tiếp theo.
 
 
-## Xung đột tên gọi (Naming collision) trong quá trình build
+## Switch-case
 
-* Nếu các *identifier* trùng tên xuất hiện trong cùng một *file*, hệ thống sẽ ngay lập tức báo lỗi biên dịch (*compiler error*).
-* Nếu các *identifier* trùng tên nằm ở các *file* khác nhau trong cùng một chương trình (*program*), kết quả sẽ dẫn đến lỗi liên kết (*linker error*).
-    * Khi biên dịch, *compiler* sẽ xử lý từng *file* (ví dụ: `a.cpp` và `main.cpp`) một cách độc lập, do đó quá trình *compile* từng *file* riêng lẻ vẫn diễn ra suôn sẻ và không gặp lỗi gì.
-    * Tuy nhiên, khi chuyển sang giai đoạn linking, *linker* sẽ kết nối tất cả các *definition* từ `a.cpp` và `main.cpp` lại với nhau. Lúc này, nó sẽ phát hiện ra sự xung đột do có các *definition* trùng tên.
+* Bạn được phép khai báo (*declaration*) nhưng không được phép khởi tạo giá trị (*initialization*) cho biến ngay phía dưới một `case` label. Tuy nhiên, việc khởi tạo này lại hoàn toàn hợp lệ nếu đặt bên trong một *explicit block* (sử dụng cặp ngoặc nhọn `{}`).
 
 
-## Preprocessor
+## `goto` statement
 
-* Trước khi quá trình biên dịch (*compilation*) chính thức diễn ra, mọi *code file* đều phải đi qua một giai đoạn sơ chế gọi là tiền xử lý (*preprocessing*).
-* Một ***translation unit*** chính là trạng thái của ***một file đơn lẻ*** sau khi *preprocess* và ***ngay trước khi compile***.
-* Khi hoạt động, *preprocessor* sẽ quét qua *code file* ***tuần tự từ trên xuống dưới*** để xử lý các ***preprocessor directive*** (những dòng bắt đầu bằng `#`):
-    * `#include`: Thay thế chính dòng `#include` đó bằng ***toàn bộ nội dung*** của *file* được chỉ định.
-    * `#define`: Gồm 2 loại chính: *object-like macro* và *function-like macro*.
+* Nếu thực hiện nhảy cóc về phía trước (*jump forward*), bạn không được phép nhảy qua vị trí *initialization* của bất kỳ biến nào 
+  mà biến đó vẫn đang còn nằm trong *scope* tại điểm đích được nhảy đến.
 
 
-## Phạm vi hoạt động (Scope) của các directive
+## `for` loop
 
-* `#include` có thể "sao chép" các *directive* khác từ *file* được nhúng vào trong *file* hiện tại.
+* Thứ tự thực thi (*order of execution*) cụ thể như sau:
 
-    => Nếu bạn `#define` một macro trong một file A, rồi `#include` file A đó vào một file B, thì *macro* này cũng sẽ khả dụng trong file B.
-* Các *directive* chỉ có hiệu lực kể từ vị trí nó được khai báo cho đến hết *file* chứa nó.
-    
-    => Các *directive* được định nghĩa ở file A sẽ không ảnh hưởng hay lan sang file B được biên dịch độc lập (trừ khi A được `#include` vào B).
-
-
-## One-Definition Rule (ODR)
-
-* Một ***identifier*** của biến hoặc hàm chỉ được phép có duy nhất một *definition* (quy tắc này không áp dụng đối với *declaration*).
-* Tuy nhiên, các ***kiểu dữ liệu*** (*types* — bao gồm cả *program-defined types*) sẽ được miễn trừ khỏi một phần của quy tắc ODR này. Ví dụ:
-    * Định nghĩa cùng một *type* vào nhiều *translation unit* khác nhau không vi phạm ODR, nhưng
-    * Định nghĩa cùng một *type* từ hai lần trở lên vào trong cùng một *translation unit* đơn lẻ thì vi phạm ODR (đó là lí do cần đến ***header guards***).
-
-
-## Kiểu dữ liệu cơ bản (Fundamental data types)
-
-* Chuẩn C++ không quy định kích thước chính xác (tính theo bit) cho bất kỳ fundamental type nào.
-* WARNING: `std::int8_t` và `std::uint8_t` thường có hành vi hoạt động giống hệt như các kiểu `char`.
-* Các fixed-width integer thực chất không định nghĩa loại type mới — chúng chỉ là các alias cho các integral type sẵn có.
-* Các type tốn ít memory hơn chưa chắc đã chạy nhanh hơn các type tốn nhiều memory. CPU thường được tối ưu hóa để xử lý dữ liệu ở một kích thước nhất định (ví dụ: 32 bit).
-* Phân biệt giữa **integer** và **integral**:
-    * **integer**: Chỉ một nhóm rộng bao gồm `short`, `int`, `long`, `long long`.
-    * **integral**: Nghĩa là “dạng như số nguyên”, bao gồm một tập hợp rộng hơn các type được lưu trữ trong memory dưới dạng số nguyên, tính cả `bool` và `char`.
-* Các kiểu fast và least integral types. Ví dụ:
-    * `std::int_fast32_t`: Trả về signed integer type nhanh nhất (được CPU xử lý tối ưu nhất) có kích thước tối thiểu là 32-bit.
-    * `std::int_least32_t`: Trả về signed integer type tốn ít memory nhất có kích thước tối thiểu là 32-bit.
-* Lệnh `sizeof()` trả về một giá trị thuộc kiểu `std::size_t` — đây thực chất là một **alias** cho một *implementation-defined* **unsigned** integral type.
-* Các floating point number:
-    * `float`: Hầu như luôn được triển khai bằng định dạng single-precision IEEE 754 chuẩn 4-byte.
-    * `double`: Hầu như luôn được triển khai bằng định dạng double-precision IEEE 754 chuẩn 8-byte.
-    * `long double`: Trên các platform khác nhau, kích thước của nó có thể biến động từ 8 đến 16 byte hoặc có thể không dùng định dạng chuẩn IEEE 754.
-* Các giá trị Boolean được **lưu trữ** và **xem như là** (evaluated to) các integral value: là 0 và 1, chứ không phải `true` hay `false`.
+    ```
+    for (init-statement; condition; end-expression)
+        statement;
+    ```
+    1. Init-statement: Chỉ diễn ra duy nhất một lần khi vòng lặp bắt đầu được khởi tạo.
+    2. Condition: Với mỗi lần lặp (*loop iteration*), điều kiện này sẽ được kiểm tra và đánh giá. Nếu kết quả là `true`, phần lệnh (*statement*) mới được thực thi.
+    3. Loop body: Phần thân vòng lặp (tức là lệnh *statement*) chính thức được chạy.
+    4. End-expression: Được thực thi ngay sau khi *statement* chạy xong, sau đó luồng xử lý sẽ quay ngược trở lại bước kiểm tra điều kiện (*condition*).
 
 
 ## Constant expression
@@ -108,41 +78,46 @@
 * Khi một constexpr function được gọi bên trong một biểu thức non-constant expression, compiler có quyền tự quyết định xem có tính toán hàm đó tại compile-time hay không. Từ khóa `consteval` (C++20) ra đời để ép buộc compiler bắt buộc phải xử lý hàm tại compile-time.
 
 
-## C-style string, `std::string`, `std::string_view`
+## Storage duration
 
-* `std::string` và `std::string_view` không phải là fundamental type (chúng là các class type).
-* `std::string_view` read-only đến một string sẵn có mà không tạo copy.
-* C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
-* `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
-* Các string literal:
-    * `"Hello, world!"`: C-style string literal
-    * `"Hello, world!"s`: `std::string` literal
-    * `"Hello, world!"sv`: `std::string_view` literal.
-
-
-## Switch-case
-
-* Bạn được phép khai báo (*declaration*) nhưng không được phép khởi tạo giá trị (*initialization*) cho biến ngay phía dưới một `case` label. Tuy nhiên, việc khởi tạo này lại hoàn toàn hợp lệ nếu đặt bên trong một *explicit block* (sử dụng cặp ngoặc nhọn `{}`).
+* *Global variable* là các biến được định nghĩa ***bên ngoài tất cả các hàm***. Chúng cũng có thể được khai báo bên trong một *namespace*.
+* **Storage duration** quyết định thời điểm và cách thức mà một biến được khởi tạo và bị hủy bỏ.
+    * **Automatic duration**: Biến được tạo ra ngay tại vị trí định nghĩa và sẽ bị giải phóng khi đi ra khỏi khối lệnh (*block*) chứa nó.
+    * **Static duration**: Biến được tạo ra ngay khi chương trình khởi động (trước cả khi hàm `main()` bắt đầu chạy) và chỉ bị hủy khi chương trình kết thúc.
+* Các *local variable* mặc định sẽ có thuộc tính **automatic duration**.
+* Các *global variable* mặc định sẽ có thuộc tính **static duration**.
+* Riêng các *static local variable* thì vừa có **static duration** (giống *global variable*), nhưng đồng thời lại vừa mang **local scope** (giống *local variable*).
 
 
-## `goto` statement
+## Preprocessor
 
-* Nếu thực hiện nhảy cóc về phía trước (*jump forward*), bạn không được phép nhảy qua vị trí *initialization* của bất kỳ biến nào 
-  mà biến đó vẫn đang còn nằm trong *scope* tại điểm đích được nhảy đến.
+* Trước khi quá trình biên dịch (*compilation*) chính thức diễn ra, mọi *code file* đều phải đi qua một giai đoạn sơ chế gọi là tiền xử lý (*preprocessing*).
+* Một ***translation unit*** chính là trạng thái của ***một file đơn lẻ*** sau khi *preprocess* và ***ngay trước khi compile***.
+* Khi hoạt động, *preprocessor* sẽ quét qua *code file* ***tuần tự từ trên xuống dưới*** để xử lý các ***preprocessor directive*** (những dòng bắt đầu bằng `#`):
+    * `#include`: Thay thế chính dòng `#include` đó bằng ***toàn bộ nội dung*** của *file* được chỉ định.
+    * `#define`: Gồm 2 loại chính: *object-like macro* và *function-like macro*.
 
 
-## `for` loop
+## Phạm vi hoạt động (Scope) của các directive
 
-* Thứ tự thực thi (*order of execution*) cụ thể như sau:
+* `#include` có thể "sao chép" các *directive* khác từ *file* được nhúng vào trong *file* hiện tại.
 
-    ```
-    for (init-statement; condition; end-expression)
-        statement;
-    ```
-    1. Init-statement: Chỉ diễn ra duy nhất một lần khi vòng lặp bắt đầu được khởi tạo.
-    2. Condition: Với mỗi lần lặp (*loop iteration*), điều kiện này sẽ được kiểm tra và đánh giá. Nếu kết quả là `true`, phần lệnh (*statement*) mới được thực thi.
-    3. Loop body: Phần thân vòng lặp (tức là lệnh *statement*) chính thức được chạy.
-    4. End-expression: Được thực thi ngay sau khi *statement* chạy xong, sau đó luồng xử lý sẽ quay ngược trở lại bước kiểm tra điều kiện (*condition*).
+    => Nếu bạn `#define` một macro trong một file A, rồi `#include` file A đó vào một file B, thì *macro* này cũng sẽ khả dụng trong file B.
+* Các *directive* chỉ có hiệu lực kể từ vị trí nó được khai báo cho đến hết *file* chứa nó.
+    
+    => Các *directive* được định nghĩa ở file A sẽ không ảnh hưởng hay lan sang file B được biên dịch độc lập (trừ khi A được `#include` vào B).
+
+
+## One-Definition Rule (ODR)
+
+* Một ***identifier*** của biến hoặc hàm chỉ được phép có duy nhất một *definition* (quy tắc này không áp dụng đối với *declaration*):
+	* Nếu các *identifier* trùng tên xuất hiện trong cùng một *file*, hệ thống sẽ ngay lập tức báo lỗi biên dịch (*compiler error*).
+	* Nếu các *identifier* trùng tên nằm ở các *file* khác nhau trong cùng một chương trình (*program*) => sẽ gây ra lỗi liên kết (*linker error*):
+	    * Khi biên dịch, *compiler* sẽ xử lý từng *file* (ví dụ: `a.cpp` và `main.cpp`) một cách độc lập, do đó quá trình *compile* từng *file* riêng lẻ vẫn diễn ra suôn sẻ và không gặp lỗi gì.
+	    * Tuy nhiên, khi sang giai đoạn linking, *linker* sẽ kết nối tất cả các *definition* từ `a.cpp` và `main.cpp` lại với nhau. Lúc này, nó sẽ phát hiện ra sự xung đột do có các *definition* trùng tên.
+* Tuy nhiên, các ***kiểu dữ liệu*** (*types* — bao gồm cả *program-defined types*) sẽ được miễn trừ khỏi một phần của quy tắc ODR này. Ví dụ:
+    * Định nghĩa cùng một *type* vào nhiều *translation unit* khác nhau không vi phạm ODR, nhưng
+    * Định nghĩa cùng một *type* từ hai lần trở lên vào trong cùng một *translation unit* đơn lẻ thì vi phạm ODR (đó là lí do cần đến ***header guards***).
 
 
 ## Namespace
@@ -153,17 +128,6 @@
 * C++ cho phép định nghĩa nhiều khối *namespace* trùng tên, chúng sẽ được gộp lại.
 * **Unnamed namespace**: Tất cả nội dung được khai báo bên trong một *unnamed namespace* coi như thuộc về *parent namespace*.
 * **Inline namespace**: (Cơ chế rất giống với *unnamed namespace*) Mọi nội dung khai báo bên trong một *inline namespace* cũng coi như thuộc về *parent namespace*. Điểm khác biệt là *inline namespace* có thể được tận dụng để quản lý các phiên bản mã nguồn (*versioned*).
-
-
-## Storage duration
-
-* *Global variable* là các biến được định nghĩa ***bên ngoài tất cả các hàm***. Chúng cũng có thể được khai báo bên trong một *namespace*.
-* **Storage duration** quyết định thời điểm và cách thức mà một biến được khởi tạo và bị hủy bỏ.
-    * **Automatic duration**: Biến được tạo ra ngay tại vị trí định nghĩa và sẽ bị giải phóng khi đi ra khỏi khối lệnh (*block*) chứa nó.
-    * **Static duration**: Biến được tạo ra ngay khi chương trình khởi động (trước cả khi hàm `main()` bắt đầu chạy) và chỉ bị hủy khi chương trình kết thúc.
-* Các *local variable* mặc định sẽ có thuộc tính **automatic duration**.
-* Các *global variable* mặc định sẽ có thuộc tính **static duration**.
-* Riêng các *static local variable* thì vừa có **static duration** (giống *global variable*), nhưng đồng thời lại vừa mang **local scope** (giống *local variable*).
 
 
 ## Linkage
@@ -261,6 +225,26 @@
     #undef NDEBUG // bật lại các lệnh assert (bắt buộc phải đặt trước các dòng #include)
     ```
 * Lệnh `static_assert` được kiểm tra ngay từ *compile-time* chứ không phải chờ đến *runtime* => vì vậy, bắt buộc phải truyền vào một *constant expression*.
+
+
+## Kiểu dữ liệu cơ bản (Fundamental data types)
+
+* Chuẩn C++ không quy định kích thước chính xác (tính theo bit) cho bất kỳ fundamental type nào.
+* WARNING: `std::int8_t` và `std::uint8_t` thường có hành vi hoạt động giống hệt như các kiểu `char`.
+* Các fixed-width integer thực chất không định nghĩa loại type mới — chúng chỉ là các alias cho các integral type sẵn có.
+* Các type tốn ít memory hơn chưa chắc đã chạy nhanh hơn các type tốn nhiều memory. CPU thường được tối ưu hóa để xử lý dữ liệu ở một kích thước nhất định (ví dụ: 32 bit).
+* Phân biệt giữa **integer** và **integral**:
+    * **integer**: Chỉ một nhóm rộng bao gồm `short`, `int`, `long`, `long long`.
+    * **integral**: Nghĩa là “dạng như số nguyên”, bao gồm một tập hợp rộng hơn các type được lưu trữ trong memory dưới dạng số nguyên, tính cả `bool` và `char`.
+* Các kiểu fast và least integral types. Ví dụ:
+    * `std::int_fast32_t`: Trả về signed integer type nhanh nhất (được CPU xử lý tối ưu nhất) có kích thước tối thiểu là 32-bit.
+    * `std::int_least32_t`: Trả về signed integer type tốn ít memory nhất có kích thước tối thiểu là 32-bit.
+* Lệnh `sizeof()` trả về một giá trị thuộc kiểu `std::size_t` — đây thực chất là một **alias** cho một *implementation-defined* **unsigned** integral type.
+* Các floating point number:
+    * `float`: Hầu như luôn được triển khai bằng định dạng single-precision IEEE 754 chuẩn 4-byte.
+    * `double`: Hầu như luôn được triển khai bằng định dạng double-precision IEEE 754 chuẩn 8-byte.
+    * `long double`: Trên các platform khác nhau, kích thước của nó có thể biến động từ 8 đến 16 byte hoặc có thể không dùng định dạng chuẩn IEEE 754.
+* Các giá trị Boolean được **lưu trữ** và **xem như là** (evaluated to) các integral value: là 0 và 1, chứ không phải `true` hay `false`.
 
 
 ## Implicit type conversions
@@ -1619,6 +1603,18 @@
     * Much like `std::string_view`, `std::initializer_list` is a view. 
         * ✅ => `std::initializer_list` is often passed by value
         * ⚠️ => Copying a `std::initializer_list` does not copy the elements in the list.
+
+
+## C-style string, `std::string`, `std::string_view`
+
+* `std::string` và `std::string_view` không phải là fundamental type (chúng là các class type).
+* `std::string_view` read-only đến một string sẵn có mà không tạo copy.
+* C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
+* `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
+* Các string literal:
+    * `"Hello, world!"`: C-style string literal
+    * `"Hello, world!"s`: `std::string` literal
+    * `"Hello, world!"sv`: `std::string_view` literal.
 
 
 ## Command line arguments
