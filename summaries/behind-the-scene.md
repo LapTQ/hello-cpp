@@ -404,7 +404,7 @@
 	        ```
        	 	Khi đó:
        	  	* Vòng đời của rvalue được kéo dài bằng vòng đời của reference `ref_rvalue`.
-       	  	* Địa chỉ của nó lộ ra:
+       	  	* Địa chỉ của rvalue đó lộ ra:
        	  		```C++
        	  	 	const int& ref_rvalue { 5 };
 
@@ -476,8 +476,8 @@
 
 * **Pointer** là một **object** lưu trữ địa chỉ bộ nhớ.
 * Toán tử:
-	* address-of (`&`) trả về một pointer có type suy ra từ toán hạng.
-	* dereference (`*`) một **lvalue** biểu diễn đối tượng mà con trỏ đang trỏ tới.
+	* address-of (`&obj`) trả về một pointer có type suy ra từ `obj`.
+	* dereference (`*ptr`) một **lvalue** biểu diễn đối tượng mà con trỏ `ptr` đang trỏ tới.
 * ✅ **Void pointer** (hay **generic pointer**): loại pointer đặc biệt có thể trỏ tới object thuộc bất kỳ kiểu dữ liệu nào!
     * Bắt buộc phải cast sang kiểu pointer cụ thể trước khi dùng toán tử dereference.
     ```C++
@@ -500,8 +500,8 @@
     * Reference không thể gán lại (reseat); Pointer có thể trỏ đi nơi khác.
     * Reference luôn phải bind vào một object; Pointer có thể không trỏ đi đâu (`nullptr`).
     * Reference an toàn hơn khi sử dụng so với Pointer.
-* Kích thước (size) của mọi pointer là như nhau, phụ thuộc vào kiến trúc hệ thống (32-bit hoặc 64-bit).
 * Thực tế, sâu bên dưới, compiler thường implement reference bằng pointer. Do đó, bản chất C++ luôn truyền dữ liệu theo kiểu pass-by-value!
+* Kích thước (size) của mọi pointer là như nhau, phụ thuộc vào kiến trúc hệ thống (32-bit hoặc 64-bit).
 * Pointer arithmetic (Tính toán con trỏ):
     * Giả sử `ptr` có kiểu `int*`, và `int` chiếm 4 bytes:
         * `ptr + 1`: Trả về địa chỉ nằm sau `ptr` 4 bytes.
@@ -590,7 +590,6 @@
         ```
         
         Lưu ý: `std::function` chỉ cho phép gọi hàm bằng implicitly dereference (VD: `fcnPtr()`), không hỗ trợ explicitly dereference (VD: `(*fcnPtr)()`).
-
 
 
 ## Low-level const và top-level const
@@ -723,18 +722,21 @@
 
 ## Program-defined types: Class types
 
-* **Aggregate**:
-    * Trong lập trình nói chung: Là bất kỳ type nào chứa nhiều data members.
-    * Trong C++: Định nghĩa khắt khe và hẹp hơn:
+* **Aggregate** vs **Non-aggregate**:
+    * Trong lập trình nói chung: Aggregate là bất kỳ type nào chứa nhiều data members.
+    * Trong C++: Aggregate khắt khe và hẹp hơn:
         * Không có user-declared constructors.
         * Không có private hoặc protected non-static data members.
         * Không có virtual functions.
-* **Aggregate initialization** 
-    * Dùng **initializer list**: 
-        * Thực hiện khởi tạo **memberwise** (từng member một). Các member được khởi tạo **theo đúng thứ tự khai báo** trong struct.
-    
+
+* Các cách khởi tạo 1 **aggregate**:
+	* Cách 1: Không khởi tạo (**default-initialization**):
+		* Nếu có default member initializer => dùng default.
+		* Nếu Không có default member initializer => member mang giá trị rác (**default-initialization**).
+    * Cách 2: Dùng **initializer list**: 
+        * Khởi tạo từng member một **theo đúng thứ tự khai báo** trong struct.
             ```C++
-            struct Employee // đã sửa lỗi typo 'truct'
+            struct Employee
             {
                 // data members (hoặc member variables)
                 int id {};
@@ -742,8 +744,8 @@
                 double wage {};
             };
 
-            Employee frank = { 1, 32, 60000.0 }; // copy-list initialization
-            Employee alice { 2, 28, 45000.0 };     // list initialization (được khuyên dùng)
+            Employee frank = { 1, 32, 60000.0 }; 	// copy-list initialization
+            Employee alice { 2, 28, 45000.0 };     	// list initialization (khuyến khích)
 
             // gán (assignment)
             alice = { 2, 30, 4000.0 };
@@ -752,31 +754,10 @@
             Employee dummyEmployee2() { return { 1, 32, 60000.0 }; }  // có thể bỏ qua tên type
             Employee dummyEmployee3() { return { }; } // value-initialize tất cả members
             ```
-        * Các kịch bản khởi tạo:
-            * Nếu **KHÔNG** dùng initialization list:
-                * Có default member initializer -> Dùng default.
-                * Không có default member initializer -> Member không được khởi tạo (**default-initialization**).
-            * Nếu **CÓ** dùng initialization list:
-                * Có giá trị khởi tạo tường minh (explicit) -> Dùng giá trị đó.
-                * Bị thiếu giá trị khởi tạo + CÓ default member initializer -> Dùng default.
-                * Bị thiếu giá trị khởi tạo + KHÔNG CÓ default member initializer -> Thực hiện **value-initialization** (thường gán bằng 0/empty).
-        * Không thể dùng aggregate initialization cho các non-aggregate type.
-
-            ```C++
-            class CDate // bây giờ là class thay vì struct
-            {
-                int m_year {};     // mặc định là private
-                int m_month {};    // mặc định là private
-            };
-
-            void func1()
-            {
-                CDate today { 2020, 10 }; // Lỗi compile: Không phải aggregate initialization (CDate không thoả mãn điều kiện aggregate do có private members) và CDate cũng không có constructor tương ứng để xử lý.
-
-                CDate today2 {};   // Hợp lệ, gọi implicit default constructor
-            }
-            ```
-    * Khởi tạo từ một struct khác cùng type:
+			* Nếu có giá trị khởi tạo tường minh (explicit) => dùng giá trị đó.
+			* Nếu thiếu giá trị khởi tạo + CÓ default member initializer => dùng default.
+			* Nếu thiếu giá trị khởi tạo + KHÔNG CÓ default member initializer => **value-initialization** (thường gán bằng 0/empty).
+    * Cách 3: Khởi tạo từ một struct khác cùng type:
 
         ```C++
         struct Foo
@@ -793,47 +774,52 @@
         Foo f5 { f3 };  // direct-list initialization
         Foo f6(f3);     // direct-initialization
         ```
+* Không thể dùng aggregate initialization cho các non-aggregate:
+
+	```C++
+	struct Date
+	{
+	private:	// => Date không phải là Aggregate
+		int m_year {};     
+		int m_month {};
+	};
+
+	Date today { 2020, 10 }; // Lỗi compile: Không phải aggregate initialization và Date cũng không có constructor tương ứng để xử lý.
+
+	Date today2 {};   // Hợp lệ, gọi implicit default constructor
+	```
 
 * **Constructors**:
-    * Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
-    * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
-        
-        Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
-    * **Default constructor**: là constructor không nhận bất kỳ argument nào.
-
+    * **Default constructor**:
+    	* là constructor không có bất kỳ tham số nào, **HOẶC** có tham số và tất cả chúng đều có giá trị mặc định:
         ```C++
-        class Foo6
+        struct Foo6
         {
-        public:
-            Foo6() // default constructor
-            {
-                std::cout << "Foo default constructed\n";
-            }
+            Foo6() 						// default constructor
+        	// Foo6(int x=0, int y=0) 	// default constructor, tất cả đều có giá trị mặc định
+            {}
         };
         ```
-    * **Implicit default constructor**: Nếu một non-aggregate class không có bất kỳ user-declared constructor nào, compiler sẽ tự động sinh ra một public default constructor (không có member initializer list, phần body rỗng).
-    * Nếu tất cả parameter của một constructor đều có sẵn default arguments, nó cũng được tính là một default constructor.
-        ```C++
-        class Foo6
-        {
-        public:
-            Foo6(int x=0, int y=0) // default constructor
-            {
-            }
-        };
-        ```
-    * ⚠️ Cả **value-initialization** và **default-initialization** đều sẽ gọi default constructor.
+	    * **Implicit default constructor**: là **default constructor** do compiler tự động sinh ra. Nó không có member initializer list và có phần body rỗng.
+      		* Với aggregate: luôn luôn có.
+        	* Với non-aggregate: nếu không có bất kỳ user-declared constructor nào.
 
-        ```C++
-        Foo6 foo6{}; // value-initialization, gọi default constructor
-        Foo6 foo6;   // default-initialization, cũng gọi default constructor
-        ```
+| Kiểu khởi tạo | Ví dụ | Aggregate | Non-aggregate |
+| :--- | :--- | :--- | :--- |
+| **default-initialization** | `Foo foo;` | Gọi default constructor [1] | Gọi default constructor [2] |
+| **value-initialization** | `Foo foo{};` | ~ Aggregate Initialization với list rỗng [3] | Gọi default constructor |
+
     * **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
         1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
             1. Chạy member initializer list của delegated constructor để khởi tạo các members.
             2. Chạy body của delegated constructor.
         2. Chạy body của delegating constructor (constructor gốc).
-* **Non-aggregate initialization**:
+    * Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
+    * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
+        
+        Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
+
+* Các cách khởi tạo 1 **non-aggregate**:
     * Dùng **member initializer list**: ⚠️ Lưu ý: các members luôn được khởi tạo theo đúng **thứ tự khai báo** bên trong class, chứ không phải theo thứ tự từ trái sang phải trong list.
 
         ```C++
@@ -878,6 +864,8 @@
     * Luật ưu tiên đặc biệt của C++:
         * Nếu initializer list rỗng (`{}`) -> Ưu tiên gọi **default constructor** hơn list constructor.
         * Nếu initializer list có phần tử -> Ưu tiên gọi một **list constructor** phù hợp hơn các constructors khác.
+
+
 * **Implicit object**:
     
     ```C++
