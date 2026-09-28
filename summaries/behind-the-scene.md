@@ -1796,6 +1796,7 @@
         delete[] array3;
         delete[] array4;
         ```
+    * Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
     * ⚠️ Deallocate memory có thể vô tình tạo ra nhiều dangling pointers:
         ```C++
         int* ptr3{ new int{} };
@@ -1808,7 +1809,6 @@
         ```C++
         int* value { new (std::nothrow) int };
         ```
-    * Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
     * ⚠️ **Memory leaks**: Xảy ra khi ta làm mất địa chỉ memory trước khi trả nó về cho OS => OS vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
         ```C++
         {
@@ -1902,61 +1902,49 @@
         a = b; // gọi operator=
         a = a; // self-assignment (tự gán cho chính nó)
         ```
-    * ⚠️ **Self-assignment**: Hầu hết trường hợp chỉ gây lãng phí thời gian. Tuy nhiên, nó cực kỳ nguy hiểm nếu class có xử lý dynamic memory:
+    * ⚠️ **Self-assignment**: Hầu hết trường hợp chỉ gây lãng phí thời gian. Tuy nhiên, nó cực kỳ nguy hiểm nếu class có xử lý dynamic memory (cấp phát động):
         ```C++
-        class MyArray
+        class IntBox
         {
-        private:
-            int* m_data {};
-            int m_len {};
+            int* m_data;
 
         public:
-            MyArray(const int* data = nullptr, int len = 0 )
-                : m_len { len }
-            {
-                m_data = new int[static_cast<std::size_t>(len)];
-                std::copy_n(data, len, m_data); // copy len phần tử từ data sang m_data
+            IntBox(int val) {
+                m_data = new int { val }; // Cấp phát động
             }
-            ~MyArray()
-            {
-                delete[] m_data;
+            
+            ~IntBox() {
+                delete m_data;
             }
 
-            // Overloaded assignment   (Đừng dùng phiên bản này)
-            MyArray& operator= (const MyArray& str)
+            // Overloaded assignment (Phiên bản LỖI - Đừng dùng)
+            IntBox& operator= (const IntBox& other)
             {
-                // nếu đã có data thì delete đi
-                if (m_data) delete[] m_data;        // Nếu xảy ra self-assignment, m_data sẽ biến thành dangling pointer ngay lập tức
-
-                m_len = str.m_len;
-                m_data = nullptr;
-
-                m_data = new int[static_cast<std::size_t>(str.m_len)];
-
-                std::copy_n(str.m_data, m_len, m_data);
+                // Giải phóng bộ nhớ hiện tại
+                delete m_data; // 🚨 Nếu self-assignment, ta vừa xóa luôn dữ liệu của `other`!
+                
+                m_data = new int { *other.m_data }; // Lỗi (Undefined Behavior) vì *other.m_data đã bị xóa ở dòng trên
 
                 return *this;
             }
         };
-
-        MyArray alex("Alex", 5);
-        alex = alex;        // self-assignment -> Gây lỗi bộ nhớ
         ```
 
-        ✅ Giải pháp: Chỉ cần thêm một **self-assignment guard** (chặn tự gán) ngay đầu assignment operator:
+    * ✅ **Giải pháp**: Chỉ cần thêm một **self-assignment guard** để thoát sớm nếu phát hiện tự gán:
         ```C++
-        MyString& MyString::operator= (const MyString& str)
+        IntBox& operator= (const IntBox& other)
         {
-            if (this == &str)
+            // self-assignment guard
+            if (this == &other)
                 return *this;
             
-            // ...
+            //...
         }
         ```
     * **Implicit copy assignment operator**:
-        * ⚠️ Khác với các operators khác, compiler sẽ tự sinh ra một implicit `operator=` nếu bạn không khai báo bản user-defined.
+        * ⚠️ Compiler sẽ tự sinh ra một implicit `operator=` nếu bạn không khai báo bản user-defined.
         * Có thể cấm copy assignment bằng cách set thành `private` hoặc dùng từ khóa `delete`.
-        * Nếu class có chứa `const` members, compiler sẽ mặc định mark implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
+        * Nếu class có chứa `const` members, compiler sẽ mặc định đánh dấu implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
 
 
 ## Shallow copy and deep copy
