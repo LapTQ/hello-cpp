@@ -806,8 +806,15 @@
 
 | Kiểu khởi tạo | Ví dụ | Aggregate | Non-aggregate |
 | :--- | :--- | :--- | :--- |
-| **default-initialization** | `Foo foo;` | Gọi default constructor [1] | Gọi default constructor [2] |
-| **value-initialization** | `Foo foo{};` | ~ Aggregate Initialization với list rỗng [3] | Gọi default constructor |
+| **default-initialization** (không khởi tạo) | `Foo foo;` | Member nào có default initializer thì dùng, không thì mang giá trị rác. | Gọi default constructor [3] |
+| **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor [3] |
+| **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] |  |
+| **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };` | Gọi Copy Constructor? |  |
+|  | `Foo f4 = f3;    // copy initialization` | ? |  |
+|  | `Foo f6(f3);     // direct-initialization` | ? |  |
+Trong đó:
+	* [1] 
+
 
     * **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
         1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
