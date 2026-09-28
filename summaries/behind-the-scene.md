@@ -877,58 +877,34 @@
     * Mặc định, các members của một `class` là `private`.
     * ⚠️ C++ access levels hoạt động theo phạm vi class (per-class), không phải theo object (per-object). (Nghĩa là các object cùng class có thể truy cập private member của nhau).
 * **Converting constructor**:
-    * **Implicit conversion**: Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `int`. Khi compiler thấy `printFoo(5);`, nó sẽ tìm một hàm cho phép convert từ `int` sang `Foo`. Hàm đó chính là constructor `Foo(int)`.
+    * **Implicit conversion**: Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `std::string_view`. Khi compiler thấy lệnh gọi `printFoo("hello"sv);`, nó sẽ tìm một hàm cho phép convert từ `std::string_view` sang `Foo`. Hàm đó chính là constructor `Foo(std::string_view)`.
         ```C++
-        class Foo
-        {
-        private:
-            int m_x{};
+        class Foo {
+            std::string_view m_value{};
+
         public:
-            Foo(int x)  // cho phép implicit conversion từ int sang Foo
-                : m_x{ x }
+            Foo(std::string_view value)  // cho phép implicit conversion từ std::string_view sang Foo
+                : m_value{ value }
             { }
         };
 
         void printFoo(Foo f) { }
 
-        printFoo(5); // convert từ `5` thành `Foo { 5 }`
+		printFoo("hello"sv); // convert 1 bước từ `std::string_view` thành `Foo`
         ```
-    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion. Trong ví dụ dưới, `printEmployee("Joe");` sẽ báo lỗi vì nó cần tới 2 bước user-defined conversions: C-style string literal -> `std::string_view` -> `Employee`.
+    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion.
         ```C++
-        class Employee
-        {
-        private:
-            std::string m_name{};
-
-        public:
-            Employee(std::string_view name)
-                : m_name{ name }
-            { }
-        };
-
-        void printEmployee(Employee e) { }
-
-        printEmployee("Joe");   // Lỗi compile: yêu cầu tới 2 user-defined conversions
-        printEmployee( "Joe"sv);    // Hợp lệ, chỉ cần 1 user-defined conversion từ std::string_view sang Employee
-        printEmployee(Employee{ "Joe" }); // Hợp lệ, chỉ cần 1 user-defined conversion từ C-style string literal sang std::string_view
+		printFoo("hello");   // Lỗi compile: cần 2 user-defined conversions (C-style string literal -> std::string_view -> Foo)
         ```
-    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor:
+    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor. Ta nâng cấp class `Foo` như sau:
         ```C++
-        class Dollars2
-        {
-        private:
-            int m_dollars{};
+        class Foo
+		// ...
+            explicit Foo(std::string_view value) // Đánh dấu explicit
+        // ...
 
-        public:
-            explicit Dollars2(int d) // đánh dấu explicit
-                : m_dollars{ d }
-            { }
-        };
-
-        void print2(Dollars2 d) { }
-
-        print2(5); // Lỗi compile: không thể convert int sang Dollars2
-        print2(static_cast<Dollars2>(5)); // Hợp lệ, ép kiểu explicit (tường minh)
+		printFoo("hello"sv); // Lỗi compile: không thể tự động convert std::string_view sang Foo
+		printFoo(static_cast<Foo>("hello"sv)); // Hợp lệ, ép kiểu explicit (tường minh)            
         ```
 
 
