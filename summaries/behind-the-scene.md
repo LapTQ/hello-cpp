@@ -747,7 +747,7 @@
 | :--- | :--- | :--- | :--- |
 | **default-initialization** | `Foo foo;` | [1] | Gọi default constructor |
 | **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor |
-| **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] | Gọi constructor phù hợp nhất với list |
+| **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] | Gọi constructor **phù hợp** với list |
 | **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };` | Gọi Copy Constructor? |  |
 |  | `Foo f4 = f3;    // copy initialization` | ? |  |
 |  | `Foo f6(f3);     // direct-initialization` | ? |  |
@@ -795,7 +795,7 @@
 			Date today2 {};   // Hợp lệ, gọi implicit default constructor
 			```
    	* [3]
-   		* Dùng để gán giá trị cho các member sau khi 1 constructor được gọi.
+   		* Dùng để gán giá trị cho các member **sau khi** constructor **phù hợp** được chọn.
    	 	* ⚠️ Các members được khởi tạo theo **thứ tự khai báo** bên trong class, không phải theo thứ tự từ trái sang phải trong list.
 
         ```C++
