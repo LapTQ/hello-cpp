@@ -728,67 +728,6 @@
         * Không có user-declared constructors.
         * Không có private hoặc protected non-static data members.
         * Không có virtual functions.
-
-* Các cách khởi tạo 1 **aggregate**:
-	* Cách 1: Không khởi tạo (**default-initialization**):
-		* Nếu có default member initializer => dùng default.
-		* Nếu Không có default member initializer => member mang giá trị rác (**default-initialization**).
-    * Cách 2: Dùng **initializer list**: 
-        * Khởi tạo từng member một **theo đúng thứ tự khai báo** trong struct.
-            ```C++
-            struct Employee
-            {
-                // data members (hoặc member variables)
-                int id {};
-                int age {};
-                double wage {};
-            };
-
-            Employee frank = { 1, 32, 60000.0 }; 	// copy-list initialization
-            Employee alice { 2, 28, 45000.0 };     	// list initialization (khuyến khích)
-
-            // gán (assignment)
-            alice = { 2, 30, 4000.0 };
-
-            Employee dummyEmployee() { return Employee { 1, 32, 60000.0 };}
-            Employee dummyEmployee2() { return { 1, 32, 60000.0 }; }  // có thể bỏ qua tên type
-            Employee dummyEmployee3() { return { }; } // value-initialize tất cả members
-            ```
-			* Nếu có giá trị khởi tạo tường minh (explicit) => dùng giá trị đó.
-			* Nếu thiếu giá trị khởi tạo + CÓ default member initializer => dùng default.
-			* Nếu thiếu giá trị khởi tạo + KHÔNG CÓ default member initializer => **value-initialization** (thường gán bằng 0/empty).
-    * Cách 3: Khởi tạo từ một struct khác cùng type:
-
-        ```C++
-        struct Foo
-        {
-            int a {};
-            int b {};
-            int c {};
-        };
-        
-        Foo f3 { 1, 2, 3};
-
-        // Các cách dưới đây KHÔNG phải là aggregate initialization:
-        Foo f4 = f3;    // copy initialization
-        Foo f5 { f3 };  // direct-list initialization
-        Foo f6(f3);     // direct-initialization
-        ```
-* Không thể dùng aggregate initialization cho các non-aggregate:
-
-	```C++
-	struct Date
-	{
-	private:	// => Date không phải là Aggregate
-		int m_year {};     
-		int m_month {};
-	};
-
-	Date today { 2020, 10 }; // Lỗi compile: Không phải aggregate initialization và Date cũng không có constructor tương ứng để xử lý.
-
-	Date today2 {};   // Hợp lệ, gọi implicit default constructor
-	```
-
 * **Constructors**:
     * **Default constructor**:
     	* là constructor không có bất kỳ tham số nào, **HOẶC** có tham số và tất cả chúng đều có giá trị mặc định:
@@ -806,28 +745,58 @@
 
 | Kiểu khởi tạo | Ví dụ | Aggregate | Non-aggregate |
 | :--- | :--- | :--- | :--- |
-| **default-initialization** (không khởi tạo) | `Foo foo;` | Member nào có default initializer thì dùng, không thì mang giá trị rác. | Gọi default constructor [3] |
-| **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor [3] |
-| **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] |  |
+| **default-initialization** | `Foo foo;` | [1] | Gọi default constructor |
+| **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor |
+| **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] | Gọi constructor phù hợp nhất với list |
 | **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };` | Gọi Copy Constructor? |  |
 |  | `Foo f4 = f3;    // copy initialization` | ? |  |
 |  | `Foo f6(f3);     // direct-initialization` | ? |  |
-Trong đó:
-	* [1] 
+| **Constructor Member Initializer List** | `: m_y { std::max(x, y) }, m_x { m_y }` |  | [3] |
 
-
-    * **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
-        1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
-            1. Chạy member initializer list của delegated constructor để khởi tạo các members.
-            2. Chạy body của delegated constructor.
-        2. Chạy body của delegating constructor (constructor gốc).
-    * Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
-    * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
-        
-        Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
-
-* Các cách khởi tạo 1 **non-aggregate**:
-    * Dùng **member initializer list**: ⚠️ Lưu ý: các members luôn được khởi tạo theo đúng **thứ tự khai báo** bên trong class, chứ không phải theo thứ tự từ trái sang phải trong list.
+* Trong đó:
+	* [1]
+		* Nếu CÓ default member initializer => dùng default.
+	 	* Nếu KHÔNG CÓ default member initializer => **default-initialization** (mang giá trị rác).
+	* [2] **Aggregate Initialization**: 
+		* Khởi tạo từng member một **theo đúng thứ tự khai báo** trong struct.
+			```C++
+			struct Foo
+			{
+				// data members (hoặc member variables)
+				int a {};
+				int b {};
+				double c {};
+			};
+			
+			Foo f1 = { 1, 32, 60000.0 }; 	// copy-list initialization
+			Foo f2 { 2, 28, 45000.0 };     	// list initialization (khuyến khích)
+	
+			// gán (assignment)
+			f2 = { 2, 30, 4000.0 };
+	
+			Foo createFoo1() { return Foo { 1, 32, 60000.0 };}
+			Foo createFoo2() { return { 1, 32, 60000.0 }; }  // có thể bỏ qua tên type
+			Foo createFoo3() { return { }; } // value-initialize tất cả members
+			```
+			* Nếu có giá trị khởi tạo tường minh (explicit) => dùng giá trị đó.
+			* Nếu thiếu giá trị khởi tạo + CÓ default member initializer => dùng default.
+			* Nếu thiếu cả 2 => **value-initialization** (thường gán bằng 0/empty).
+		* Không thể dùng aggregate initialization cho các non-aggregate:
+			```C++
+			struct Date
+			{
+			private:	// => Date không phải là Aggregate
+				int m_year {};     
+				int m_month {};
+			};
+		
+			Date today { 2020, 10 }; // Lỗi compile: Không phải aggregate initialization và Date cũng không có constructor tương ứng để xử lý.
+		
+			Date today2 {};   // Hợp lệ, gọi implicit default constructor
+			```
+   	* [3]
+   		* Dùng để gán giá trị cho các member sau khi 1 constructor được gọi.
+   	 	* ⚠️ Các members được khởi tạo theo **thứ tự khai báo** bên trong class, không phải theo thứ tự từ trái sang phải trong list.
 
         ```C++
         class Foo3
@@ -851,10 +820,20 @@ Trong đó:
             foo3.print();       // Foo(6, 7)
         }
         ```
-    * Các kịch bản khởi tạo:
-        * Có mặt trong member initializer list -> Dùng giá trị đó.
-        * Không có, nhưng có default member initializer -> Dùng giá trị default.
-        * Không có cả hai -> Thực hiện **default-initialization**.
+        * Nếu member có mặt trong list => dùng giá trị đó.
+        * Nếu không có mặt trong list + CÓ default member initializer => dùng default.
+        * Nếu thiếu cả 2 => **default-initialization** (mang giá trị rác).
+
+* **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
+	1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
+		1. Chạy member initializer list của delegated constructor để khởi tạo các members.
+		2. Chạy body của delegated constructor.
+	2. Chạy body của delegating constructor (constructor gốc).
+* Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
+* ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
+	
+	Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
+
 * **List constructor**:
     * Các containers (như `std::vector`) thường có một constructor đặc biệt gọi là **list constructor**, cho phép tạo instance bằng một **initializer list**.
         ```C++
