@@ -989,32 +989,30 @@
 
 ## Destructor
 
-* **Destructor**: là một class member function đặc biệt, được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
-    * Khi một object rơi vào trạng thái out of scope một cách bình thường.
-    * Khi một dynamically allocated object (object cấp phát động) bị xóa tường minh bằng từ khóa `delete`.
+* **Destructor**:
+	* được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
+    	* khi nó out of scope một cách bình thường.
+    	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
 * Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
-* Quy tắc khai báo: Tên destructor bắt buộc phải giống hệt tên class, thêm dấu ngã (`~`) ở phía trước.
-* Destructor KHÔNG nhận arguments.
-* Destructor KHÔNG có return type.
-* ⚠️ Lệnh `std::exit()` sẽ terminate (kết thúc) chương trình ngay lập tức, nhưng nó lại bỏ qua việc dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Hết sức cẩn thận nếu hệ thống của bạn đang phụ thuộc vào destructor để thực hiện các tác vụ dọn dẹp quan trọng (như đóng file, giải phóng bộ nhớ, ghi log...).
-
+* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
 
 
 ## Static members
 
-* Static member variables:
-    * are shared by all objects of the class.
-    * exists independently of any class objects.
-    * are global variables that live inside the scope region of the class.
-* ⚠️ You **must explicitly** define (and optionally initialize) the static member **outside** of the class, in the **global scope**.
+* **Static member variables**:
+    * Được dùng chung (share) bởi tất cả các objects của class.
+    * Tồn tại độc lập, không phụ thuộc vào việc có object nào được tạo ra hay không.
+    * Bản chất là các global variables nhưng được đặt gọn bên trong scope của class.
+* ⚠️ **Bắt buộc** phải define (và có thể initialize) các static member một cách tường minh (**explicitly**) ở **bên ngoài** class, tức là tại **global scope**.
+    
     ```C++
     class Something
     {
     public:
-        static int s_value; // declare
+        static int s_value; // declare (khai báo)
     };
 
-    int Something::s_value{ 1 }; // define and initialize
+    int Something::s_value{ 1 }; // define và initialize
 
     void func1()
     {
@@ -1022,34 +1020,35 @@
     }
     ```
 
-    2 exceptions:
-    * when the static member variables is a constant integral type or const enum, or
-    * when the static member variables is inline. (Note: constexpr members variables are implicitly inline)
+    Có 2 ngoại lệ được define & initialize trực tiếp ngay bên trong class):
+    * Khi static member variable có kiểu **constant integral** (số nguyên hằng) hoặc `const enum`.
+    * Khi static member variable được đánh dấu `inline`. (Lưu ý: `constexpr` member variables tự động là implicitly `inline`).
+    
     ```C++
     class Whatever
     {
     public:
-        static const int s_value1{ 4 }; // okay, constant integral type or const enum
-        static inline int s_value2{ 4 }; // okay, inline
-        static constexpr int s_value3{ 4 }; // okay, constexpr members are implicitly inline
+        static const int s_value1{ 4 }; // Hợp lệ, vì là constant integral
+        static inline int s_value2{ 4 }; // Hợp lệ, vì dùng inline
+        static constexpr int s_value3{ 4 }; // Hợp lệ, constexpr ngầm định là implicitly inline
     };
     ```
-* If no initializer is provided, static member variables are zero-initialized by default.
-* Static member function
-    * can be useful when we need to access a **private** static member variable.
-    * cannot directly access other non-static members.
-    * have no `this` pointer.
+* Nếu không cung cấp giá trị khởi tạo (no initializer), static member variables sẽ tự động được **zero-initialized** theo mặc định.
+* **Static member function**:
+    * Thường dùng khi cần truy cập (access) vào một **private** static member variable.
+    * KHÔNG THỂ truy cập trực tiếp vào các non-static members.
+    * KHÔNG có `this` pointer.
 
 
 ## Friend
 
-* A ***friend*** is a class or function (member or non-member) that has been granted full access to the private and protected members of another class.
-* Friend non-member function:
-    * ⚠️ A friend non-member function defined inside a class is treated as a non-member function.
-* Friend classes:
-    * class A is a friend of class B does not mean class B is also a friend of class A.
-    * Nor is friendship inherited. If class A makes B a friend, classes derived from B are not friends of A.
-    * A friend class declaration acts as a forward declaration for the class being friended. This means we do not need to forward declare the class being friended before friending it:
+* **Friend**: là một class hoặc function (member hoặc non-member) được cấp quyền truy cập vào các `private` và `protected` members của một class khác.
+* **Friend non-member function**:
+    * ⚠️ Nếu một friend non-member function được define ngay bên trong class, nó vẫn được xử lý như một non-member function độc lập.
+* **Friend classes**:
+    * Tính chất một chiều: Class A là friend của class B không có nghĩa B cũng là friend của A.
+    * Không có tính kế thừa: Nếu A cấp quyền friend cho B, các class kế thừa từ B không tự động trở thành friend của A.
+    * Khai báo friend class kiêm luôn vai trò forward declaration cho class đó. Do vậy, ta không cần forward declare trước khi khai báo friend:
 
         ```C++
         class Storage
@@ -1061,7 +1060,7 @@
             : m_nValue { nValue }
             { }
 
-            // Make the Display class a friend of Storage
+            // Cấp quyền friend cho class Display
             friend class Display;
         };
 
@@ -1070,81 +1069,69 @@
             // ...
         };
         ```
-* Friend member functions: instead of making an entire class a friend, you can make a single member function a friend.
+* **Friend member functions**: Thay vì cấp quyền friend cho toàn bộ class, ta có thể chỉ định cấp quyền friend cho duy nhất một member function cụ thể.
 
 
 ## Containers and arrays
 
-* Array: 
-    * a container data type that stores a sequence of values contiguously (in an adjacent memory location, with no gaps).
-    * 3 primary C++ array types:
-        * ⚠️ (C-style) arrays, behave strangely and they are dangerous.
-        * `std::vector`, most flexible.
-        * `std::array`: introduced in C++11 as a direct replacement for C-style arrays. More limited than `std::vector`, but can also be more efficient, especially for smaller arrays.
-* Length and subscript problem:
-    * ⚠️ when the container classes in the C++ standard library was being designed, the **length** and **subscripts** were decided to be **unsigned**. However, in retrospect, this is a wrong choice. Previously, we discussed the reasons why we prefer to use signed values to hold quantities.
+* **Array**: 
+    * Là một container data type lưu trữ một chuỗi các giá trị **liên tiếp nhau** trong memory.
+    * Có 3 loại array chính trong C++:
+        * ⚠️ **C-style arrays**: Hành vi khá bất thường và nguy hiểm.
+        * `std::vector`: Linh hoạt nhất.
+        * `std::array`: Hạn chế hơn so với `std::vector`, nhưng hiệu năng có thể tốt hơn, đặc biệt với các arrays kích thước nhỏ.
+* Vấn đề về **length** và **subscript**:
+    * ⚠️ Khi thiết kế các container classes trong C++ standard library, người ta đã quyết định gán kiểu **unsigned** cho **length** và **subscripts**. Tuy nhiên nhìn nhận lại, đây là một lựa chọn sai lầm. Thực tế (như đã bàn trước đây), ta nên ưu tiên dùng signed values để lưu trữ số lượng (quantities).
 * `std::vector`
-    * is a template class.
+    * KHÔNG THỂ là `constexpr`.
+    * ⚠️ Length và indices của `std::vector` mang kiểu `size_type` (thường là alias của `std::size_t`). Thực chất `std::size_t` là một typedef của một kiểu `unsigned integral` lớn (thường là `unsigned long` hoặc `unsigned long long`).
         ```C++
-        void passByRef(const std::vector<int>& arr) // we must explicitly specify <int> here
-        {
-            // ...
-        }
-
-        template <typename T>       // use a template
-        void passByRef2(const std::vector<T>& arr)
-        {
-            // ...
-        }
+        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index là unsigned
         ```
-    * cannot be made constexpr.
-    * ⚠️ The length and indices of `std::vector` have type `size_type`. `size_type` is almost always an alias for `std::size_t`. `std::size_t` is a typedef for some large unsigned integral type, usually `unsigned long` or `unsigned long long`.
-        ```C++
-        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index is unsigned
-        ```
-    * Under the hood, `std::vector` holds its elements in a C-style array. 👍  C-style arrays allow indexing with both signed and unsigned types (see: *Pointer arithmetic*).
-    * Accessing array elements:
-        * ⚠️ using operator[] does no bounds checking.
-        * 👍 using the `.at()` member function does runtime bounds checking, but slower than operator[].
+    * Bên dưới, `std::vector` lưu trữ các elements bằng một C-style array. 👍 C-style array cho phép indexing bằng cả `signed` và `unsigned` types (xem lại phần *Pointer arithmetic*).
+    * Truy cập array elements (Accessing elements):
+        * ⚠️ Dùng `operator[]`: KHÔNG kiểm tra bounds (no bounds checking).
+        * 👍 Dùng hàm `.at()`: CÓ kiểm tra bounds lúc runtime, nhưng tốc độ chậm hơn `operator[]`.
             ```C++
             std::vector<int> primes{ 2, 3, 5, 7 };
 
-            std::cout << primes[9]; // undefined behavior
-            std::cout << primes.at(9); // throws exception
+            std::cout << primes[9]; // undefined behavior (lỗi không xác định)
+            std::cout << primes.at(9); // throws exception (ném ra ngoại lệ)
             ```
-        * 👍 Indexing with a constexpr signed int is not a narrowing conversion.
+        * 👍 Indexing bằng một `constexpr signed int`: KHÔNG bị coi là narrowing conversion (do compiler tự ngầm định chuyển sang `std::size_t` một cách an toàn).
             ```C++
             constexpr int index { 3 };         // constexpr
-            std::cout << primes[index] << '\n'; // okay, constexpr index implicitly converted to std::size_t, not a narrowing conversion
+            std::cout << primes[index] << '\n'; // Hợp lệ, không bị tính là narrowing conversion
             ```
-        * 👍 Indexing with a non-constexpr `std::size_t` value is not a narrowing conversion
+        * 👍 Indexing bằng một `non-constexpr std::size_t`: KHÔNG bị coi là narrowing conversion (vì đã đúng kiểu).
             ```C++
-            std::size_t index2 { 3 };           // non-constexpr of type std::size_t
-            std::cout << primes[index2] << '\n'; // okay, no conversion required
-        * ⚠️ Indexing with a non-constexpr signed value is a narrowing conversion.
+            std::size_t index2 { 3 };           // non-constexpr kiểu std::size_t
+            std::cout << primes[index2] << '\n'; // Hợp lệ, không cần convert
+            ```
+        * ⚠️ Indexing bằng một `non-constexpr signed value`: SẼ bị coi là narrowing conversion (compiler có thể văng warning).
             ```C++
             int index3 { 3 };                   // non-constexpr signed value
-            std::cout << primes[index3] << '\n'; // possible warning: index implicitly converted to std::size_t, narrowing conversion
+            std::cout << primes[index3] << '\n'; // Có thể sinh warning: implicit convert sang std::size_t gây narrowing conversion
             ```
-        * 👍 Indexing the result of the `.data()` member function with signed values is not a narrowing conversion.
+        * 👍 Indexing vào kết quả của hàm `.data()` bằng `signed value`: KHÔNG bị coi là narrowing conversion.
 
-             The `.data()` member function returns a pointer to the underlying C-style array => we don’t run into any sign conversion issues.
+             Hàm `.data()` trả về một pointer trỏ trực tiếp tới C-style array bên dưới => Tránh được hoàn toàn các vấn đề cảnh báo ép kiểu (sign conversion issues).
 
             ```C++
             int index3 { 3 };                   // non-constexpr signed value
-            std::cout << primes.data()[index] << '\n'; // okay: no sign conversion warnings
+            std::cout << primes.data()[index] << '\n'; // Hợp lệ: không có warning về sign conversion
             ```
     * `std::vector<bool>`:
-        * ⚠️ It's not a real container and can breaks generic code. The C++ standard explicitly calls out `vector<bool>` as a special container where each bool uses only one bit of space rather than one byte as a normal bool would.
-            * 👎️ => you can't take the address of a bit within a byte.
-            * 👎️ => things such as operator[] can't return a bool&.
-            * 👎️ => you can't assign its address to a bool* like you could with the other "normal" container.
+        * ⚠️ Đây KHÔNG PHẢI là một real container và có thể làm hỏng (break) generic code. Theo chuẩn C++, `vector<bool>` là một special container được tối ưu hóa: mỗi phần tử `bool` chỉ chiếm 1 **bit** thay vì 1 **byte** như `bool` thông thường. Hệ lụy:
+            * 👎️ KHÔNG THỂ lấy địa chỉ (take address) của một bit riêng lẻ bên trong 1 byte.
+            * 👎️ Các thao tác như `operator[]` KHÔNG THỂ trả về `bool&`.
+            * 👎️ KHÔNG THỂ gán địa chỉ của nó cho một `bool*` như các containers bình thường khác.
             ```C++
             std::vector<bool> v_bool = {true, false, true};
-            bool& ref = v_bool[0];  // error
-            bool* ptr = &v_bool[0]; // error
+            bool& ref = v_bool[0];  // Lỗi
+            bool* ptr = &v_bool[0]; // Lỗi
             ```
-        * Performance depends heavily on how well the implementation is optimized. Some implementations can be slower than alternatives.
+        * Hiệu năng của nó phụ thuộc rất nhiều vào mức độ optimize của từng implementation (trình biên dịch). Một số bản implement thực tế có thể chậm hơn các cấu trúc dữ liệu thay thế.
 * Fixed-size arrays vs dynamic arrays:
     * `std::array` and C-style arrays are fixed-size array types.
     * `std::vector` is a dynamic array.
