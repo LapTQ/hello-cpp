@@ -1723,7 +1723,7 @@
 ## Memory allocation
 
 * Tổng quan về memory:
-    * Memory mà chương trình sử dụng thường được chia thành các vùng (areas), gọi là các ***segments***:
+    * Memory mà chương trình sử dụng thường được chia thành các vùng, gọi là các ***segments***:
         * **code segment** (hay text segment): Lưu trữ compiled program (mã lệnh đã biên dịch).
         * **bss segment** (uninitialized data segment): Lưu trữ các global và static variables được zero-initialized.
         * **data segment** (initialized data segment): Lưu trữ các global và static variables đã được khởi tạo giá trị.
@@ -1756,7 +1756,7 @@
 * C++ hỗ trợ 3 loại memory allocation cơ bản:
     * **Static** memory allocation: dùng cho static và global variables.
         * Chỉ cấp phát 1 lần duy nhất khi chạy chương trình, và tồn tại suốt vòng đời của chương trình.
-    * **Automatic** memory allocation: dùng cho function parameters và local variables.
+    * **Automatic** memory allocation: dùng cho tham số hàm và biến local.
         * Được cấp phát khi đi vào block tương ứng, và được free (giải phóng) khi thoát khỏi block.
 
         Điểm chung của static và automatic allocation:
@@ -1809,7 +1809,7 @@
         int* value { new (std::nothrow) int };
         ```
     * Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
-    * ⚠️ **Memory leaks**: Xảy ra khi chương trình làm mất địa chỉ memory trước khi kịp trả nó về cho OS => OS sẽ vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
+    * ⚠️ **Memory leaks**: Xảy ra khi ta làm mất địa chỉ memory trước khi trả nó về cho OS => OS vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
         ```C++
         {
             int* ptr{ new int{} };
@@ -1836,114 +1836,73 @@
         ```
 
 
-## Copy constructors and Copy assignment
+## Copy constructors và Copy assignment
 
 * **Copy constructor**:
-    * It's a constructor that is used to initialize an object with an existing object of the same type. The copy constructor’s parameter must be a **reference**.
+    * Dùng để khởi tạo một object mới từ một object đã có (cùng kiểu). Parameter của copy constructor BẮT BUỘC phải là một **reference**.
 
         ```C++
-        class Fraction2
+        class Point
         {
         private:
-            int m_numerator{ 0 };
-            int m_denominator{ 1 };
+            int m_x{ 0 };
+            int m_y{ 1 };
 
         public:
-            Fraction2(int numerator=0, int denominator=1)
-                : m_numerator{numerator}, m_denominator{denominator}
+            Point(int x=0, int y=1)
+                : m_x{x}, m_y{y}
             {
             }
 
             // Copy constructor
-            Fraction2(const Fraction2& fraction)
-                : m_numerator{ fraction.m_numerator }
-                , m_denominator{ fraction.m_denominator }
+            Point(const Point& p)
+                : m_x{ p.m_x }
+                , m_y{ p.m_y }
             {
             }
         };
+
+        Point p { 5, 3 };
+		Point pCopy { p }; // => gọi copy constructor
         ```
-    * **Implicit copy constructor**: 
-        * If you do not provide a copy constructor for your classes, C++ will create a public implicit copy constructor. 
-        * By default, the implicit copy constructor will do memberwise initialization.
-
-            ```C++
-            class Fraction
-            {
-            private:
-                int m_numerator{ 0 };
-                int m_denominator{ 1 };
-
-            public:
-                // Default constructor
-                Fraction(int numerator=0, int denominator=1)
-                    : m_numerator{numerator}, m_denominator{denominator}
-                {
-                }
-            };
-
-            void func1()
-            {
-                Fraction f { 5, 3 };
-                Fraction fCopy { f }; // => implicit copy constructor
-            }
-            ```
-    * **Pass by value**, **return by value**, **initialization** of the same class type will implicitly invoke the copy constructor:
+    * **Implicit copy constructor**: C++ sẽ tự động sinh ra một public implicit copy constructor nếu không có user-defined copy constructor:
+        * Nó sẽ thực hiện **memberwise initialization** (copy từng member một).
+    * Các trường hợp **Pass by value**, **return by value**, và **initialization** cùng một class type sẽ tự động (implicitly) gọi copy constructor:
 
         ```C++
-        void printFraction(Fraction2 f) // f is pass by value
-        {
+        void printPoint(Point p) // pass by value
+        {}
+
+        Point generatePoint() {
+            return Point{ 1, 2 };	// return by value
         }
 
-        void func2()
-        {
-            Fraction2 f2 { 5, 3 };
-            printFraction(f2); // f is copied using copy constructor
-
-        }
+		Point p3 { generatePoint() }; // Gọi 2 copy constructors ở đây: 1 cho giá trị return và 1 để khởi tạo p3
         ```
-
-        ```C++
-        Fraction2 generateFraction(int n, int d)
-        {
-            return Fraction2{ n, d };
-        }
-
-        void func3()
-        {
-            Fraction2 f3 { generateFraction(5, 3) }; // 2 copy constructors are called here, one for the return value and one for the initialization of f3
-        }
-        ```
-    * **Copy elision**: the compiler can optimize away the unnecessary copy constructor calls. We say the constructor has been **elided**.
+    * **Copy elision**: Compiler có khả năng tối ưu hóa để loại bỏ (optimize away) các lời gọi copy constructor không cần thiết. Khi đó ta nói constructor đã bị **elided**.
 * **Copy assignment**:
-    * Overloading `operator=` is fairly straightforward, with one specific caveat:
+    * Việc overload `operator=` khá đơn giản. Nhưng cẩn thận với self-assignment:
         ```C++
-        class Fraction
-        {
-        private:
-            int m_num { 0 };
-            int m_den { 1 };
-        public:
-            Fraction(int num = 0, int den = 1)
-                : m_num{ num }, m_den{ den }
-            { }
+        class Point {
+        // ...
 
-            // Overload assignment operator (don't use this version in real code. See Self-assignment)
-            Fraction& operator=(const Fraction& other)
+            // Overload operator= (Đừng dùng phiên bản này. Xem phần Self-assignment)
+            Point& operator=(const Point& other)
             {
-                m_num = other.m_num;
-                m_den = other.m_den;
+                m_x = other.m_x;
+                m_y = other.m_y;
 
                 return *this;
             }
         };
 
-        Fraction a{ 1, 2 };
-        Fraction b{ 3, 4 };
+        Point a{ 1, 2 };
+        Point b{ 3, 4 };
 
-        a = b; // uses overloaded assignment operator
-        a = a; // self-assignment
+        a = b; // gọi operator=
+        a = a; // self-assignment (tự gán cho chính nó)
         ```
-    * ⚠️ Self-assignment: In most cases, self-assignment has no overall impact, other than wasting time. However, it can actually be dangerous if it needs to handle dynamic memory:
+    * ⚠️ **Self-assignment**: Hầu hết trường hợp chỉ gây lãng phí thời gian. Tuy nhiên, nó cực kỳ nguy hiểm nếu class có xử lý dynamic memory:
         ```C++
         class MyArray
         {
@@ -1956,18 +1915,18 @@
                 : m_len { len }
             {
                 m_data = new int[static_cast<std::size_t>(len)];
-                std::copy_n(data, len, m_data); // copy len elements of data into m_data
+                std::copy_n(data, len, m_data); // copy len phần tử từ data sang m_data
             }
             ~MyArray()
             {
                 delete[] m_data;
             }
 
-            // Overloaded assignment    (don't use this version)
+            // Overloaded assignment   (Đừng dùng phiên bản này)
             MyArray& operator= (const MyArray& str)
             {
-                // if data exists in the current string, delete it
-                if (m_data) delete[] m_data;        // m_data will be dangling if self-assignment occurs
+                // nếu đã có data thì delete đi
+                if (m_data) delete[] m_data;        // Nếu xảy ra self-assignment, m_data sẽ biến thành dangling pointer ngay lập tức
 
                 m_len = str.m_len;
                 m_data = nullptr;
@@ -1981,10 +1940,10 @@
         };
 
         MyArray alex("Alex", 5);
-        alex = alex;        // self-assignment
+        alex = alex;        // self-assignment -> Gây lỗi bộ nhớ
         ```
 
-        ✅ Simply add a **self-assignment guard** at the start of your assignment operator:
+        ✅ Giải pháp: Chỉ cần thêm một **self-assignment guard** (chặn tự gán) ngay đầu assignment operator:
         ```C++
         MyString& MyString::operator= (const MyString& str)
         {
@@ -1994,10 +1953,10 @@
             // ...
         }
         ```
-    * **Implicit** copy assignment operator:
-        * ⚠️ Unlike other operators, the compiler will provide an implicit `operator=` if you do not provide a user-defined one.
-        * You can prevent assignments by making it private or using the `delete` keyword.
-        * If your class has const members, the compiler will define the implicit `operator=` as deleted. If you that class to be assignable (for all members that aren’t const), you will need to explicitly overload `operator=`.
+    * **Implicit copy assignment operator**:
+        * ⚠️ Khác với các operators khác, compiler sẽ tự sinh ra một implicit `operator=` nếu bạn không khai báo bản user-defined.
+        * Có thể cấm copy assignment bằng cách set thành `private` hoặc dùng từ khóa `delete`.
+        * Nếu class có chứa `const` members, compiler sẽ mặc định mark implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
 
 
 ## Shallow copy and deep copy
