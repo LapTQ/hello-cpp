@@ -1947,154 +1947,87 @@
         * Nếu class có chứa `const` members, compiler sẽ mặc định đánh dấu implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
 
 
-## Shallow copy and deep copy
+## Shallow copy và deep copy
 
-* The default copy constructor and default assignment operators use **shallow copy**. When classes are simple, this works very well. ⚠️ However, if it handles dynamically allocated memory, shallow copy just copies the address of the pointer:
+* Copy constructor và Assignment operator mặc định mặc định sử dụng **shallow copy**. Cách này không có vấn đề gì với các class đơn giản. ⚠️ Nhưng nếu class có dynamically allocated memory, shallow copy sẽ chỉ copy địa chỉ của pointer:
     ```C++
-    class MyString
-    {
-    private:
-        char* m_data{}; // pointer to a dynamically allocated array
-        int m_length{};
+    class IntBox {
+        int* m_data;
 
     public:
-        MyString(const char* source = "")
-        {
-            assert(source); // make sure source isn't a null string
-
-            m_length = std::strlen(source) + 1;
-            m_data = new char[m_length];
-
-            for (int i{ 0 }; i < m_length; ++i)
-                m_data[i] = source[i];
+        IntBox(int val) {
+            m_data = new int { val };
         }
 
-        ~MyString() { delete[] m_data; }
+        ~IntBox() { delete m_data; }
     };
 
-    MyString hello{ "Hello, world!" };
-    {
-        MyString copy{ hello }; // shallow copy, use default copy constructor
-    } // `copy` gets destroyed here => make `hello` with a dangling pointer
+	IntBox box1 { 10 };
+	{
+		IntBox box2{ box1 }; // shallow copy, gọi default copy constructor
+	} // `box2` bị destroy tại đây => m_data của `box1` trở thành dangling pointer
     ```
-* **Deep copy** requires that we write our own copy constructors and overloaded assignment operators:
+* Để thực hiện **Deep copy**, ta bắt buộc phải tự tự viết copy constructors và overload assignment operators:
     ```C++
-    class MyString2
-    {
-    private:
-        char* m_data{}; // pointer to a dynamically allocated array
-        int m_length{};
+    class IntBox {
+    // ...
 
-    public:
-        MyString2(const char* source = "" )
+        // 1. User-defined Copy Constructor (Deep copy)
+        IntBox(const IntBox& source)
         {
-            // ... same as above
+            // Cấp phát vùng nhớ mới và chép giá trị (không chép địa chỉ)
+            m_data = new int { *source.m_data }; 
         }
 
-        ~MyString2() { delete[] m_data; }
-
-        MyString2(const MyString2& source);
-        MyString2& operator=(const MyString2& source);
-        void deepCopy(const MyString2& source);
-    };
-
-    void MyString2::deepCopy(const MyString2& source)
-    {
-        // deallocate first
-        delete[] m_data;
-
-        m_length = source.m_length;
-
-        // if m_data is non-null
-        if (source.m_data)
+        // 2. Overloaded Assignment Operator (Deep copy)
+        IntBox& operator=(const IntBox& source)
         {
-            m_data = new char[m_length];
-            for (int i{ 0 }; i < m_length; ++i)
-                m_data[i] = source.m_data[i];
-        }
-        else
-            m_data = nullptr;
-    }
+            if (this == &source)    // self-assignment guard
+                return *this;
 
-    MyString2::MyString2(const MyString2& source) { deepCopy(source); }
-
-    MyString2& MyString2::operator=(const MyString2& source)
-    {
-        if (this == &source)    // self-assignment guard
+            delete m_data;          // giải phóng vùng nhớ cũ của đích đến trước
+            m_data = new int { *source.m_data }; // cấp phát và chép giá trị mới
+            
             return *this;
-
-        deepCopy(source);
-        return *this;
-    }
-
-    MyString2 hello2{ "Hello, world!" };
-    {
-        MyString2 copy{ hello2 };
-    } // `copy` gets destroyed here => `hello2` is still valid
+        }
+    };
     ```
-* ✅ Classes in the standard library (such as `std::string` and `std::vector`) do proper deep copying.
-* ⚠️ **Rule of Three**: If your class needs any of
-    1. a copy constructor,
-    2. a assignment operator,
-    3. a destructor,
-    defined explictly, then it is likely to need **all three** of them, or you should delete the copy constructor.
+* ✅ Các class trong standard library (như `std::string` và `std::vector`) đều được implement cơ chế **deep copying** chuẩn chỉnh.
+* ⚠️ **Rule of Three**: Nếu bạn tự định nghĩa bất kỳ cái nào trong:
+    1. Destructor
+    2. Copy constructor
+    3. Copy assignment operator
+    
+    => Thì nhiều khả năng bạn sẽ cần định nghĩa **cả 3**. Nếu không, hãy chặn việc sao chép lại bằng cách dùng `= delete`.
 
-    Consider the following code:
+    Xét đoạn code sau:
     ```C++
-    class IntArray2
-    {
-    private:
-        int m_length{};
-        int* m_data{};
+    class IntBox {
+    // ...
 
-    public:
-        IntArray2() = default;
-
-        IntArray2(int length)
-            : m_length{ length }
-            , m_data{ new int[static_cast<std::size_t>(length)] {} }
-        {
-
+        ~IntBox() {			// CÓ DESTRUCTOR
+            delete m_data;
         }
 
-        IntArray2(std::initializer_list<int> list)
-            : IntArray2(static_cast<int>(list.size()))
-        {
-            std::copy(list.begin(), list.end(), m_data);
-        }
-
-        ~IntArray2()
-        {
-            delete[] m_data;
-        }
-
-    //	IntArray2(const IntArray2&) = delete; // to avoid shallow copies
-    //	IntArray2& operator=(const IntArray2& list) = delete; // to avoid shallow copies
-
-        int& operator[](int index)
-        {
-            assert(index >= 0 && index < m_length);
-            return m_data[index];
-        }
-
-        int getLength() const { return m_length; }
+        // 🚨 NHƯNG QUÊN CẢ HAI HÀM DƯỚI ĐÂY
+        // IntBox(const IntBox&) = delete; 
+        // IntBox& operator=(const IntBox&) = delete; 
+        
+        void print() const { std::cout << *m_data << '\n'; }
     };
 
-    void func2()
-    {
-        IntArray2 array{};
-        array = { 1, 3, 5, 7, 9, 11 }; // assignment
 
-        for (int count{ 0 }; count < array.getLength(); ++count)
-            std::cout << array[count] << ' '; // undefined behavior
-    }
+	IntBox box { 10 };
+	box = IntBox { 20 }; // nguy hiểm
+
+	box.print();      // Undefined behavior
     ```
-    ⚠️ Here is what happens:
-    1. the compiler sees that an assignment function taking a `std::initializer_list` doesn’t exist.
-    2. Then, it discovers the **implicit** copy assignment operator. However, this function can only be used if it can convert the initializer list into an IntArray.
-    3. The compiler realizes that `{ 1, 3, 5, 7, 9, 11 }` is a `std::initializer_list`, which can be converted to a temporary `IntArray` using list constructor.
-    4. Then, the implicit copy assignment operator will do shallow copy.
-    5. Finally, the temporary `IntArray` is destroyed, leaving `array->m_data` as a dangling pointer.
+    ⚠️ **Diễn biến:**
+    1. Trình biên dịch tạo ra một object tạm thời (**temporary object**) từ lệnh `IntBox { 20 }`. Object tạm này xin cấp phát một vùng nhớ chứa số `20`.
+    2. Trình biên dịch không tìm thấy hàm overload assignment operator nào do bạn viết, nên nó tự động gọi **implicit** copy assignment operator.
+    3. Hàm này thực hiện **shallow copy**. Lúc này, cả hai đang trỏ chung vào vùng nhớ chứa số `20` (⚠️ Vùng nhớ cũ chứa số 10 của `box` bị leak).
+    4. Ngay khi kết thúc dòng lệnh `box = IntBox(20);`, object tạm hết giá trị sử dụng và bị destroy. Destructor của nó được gọi và **xóa luôn vùng nhớ chứa số `20`**.
+    5. Kết quả: `box.m_data` tức thì biến thành một **dangling pointer**.
 
 
 ## Move constructors and move assignment
