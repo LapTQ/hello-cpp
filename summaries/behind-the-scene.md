@@ -2091,14 +2091,42 @@
     2. Khi `box` được return, C++ nhận diện nó sắp bị hủy nên gọi **Move constructor** để "chuyền" con trỏ sang một temporary object (object tạm). `box.m_data` bị gán `nullptr`. Khi `box` kết thúc vòng đời, lệnh `delete nullptr` an toàn và không làm gì cả. => **0 lần cấp phát thêm**.
     3. Temporary object gọi **Move assignment** để chuyền tiếp con trỏ cho `mainBox`. Sau đó temporary object bị destroy (cũng `delete nullptr`). => **0 lần cấp phát thêm**.
 
-* ✅ Thông thường, khi khởi tạo (initialize) hoặc gán (assign), C++ mặc định dùng copy semantics. Nhưng, nếu thỏa mãn ĐỒNG THỜI 3 điều kiện sau, C++ sẽ ưu tiên gọi move semantics:
-    1. Class đó hỗ trợ move semantics (có viết move constructor/assignment).
-    2. Object đang được initialize/assign từ một **rvalue** cùng type.
-    3. Thao tác không bị elided.
+* Làm sao biết C++ chọn copy semantics hay move semantics khi khởi tạo/gán? C++ sẽ tự động chọn:
+	* copy semantics khi đối tượng đích là **l-value**.
+ 	* move semantics khi đối tượng đích là **r-value** cùng class type và class đó có hỗ trợ move semantics.
+	* 💡 Nguyên nhân: C++ không bao giờ tự động move tài nguyên của một l-value (biến có tên, vẫn còn tồn tại và có thể được tái sử dụng trong scope) => copy lvalue để đảm bảo an toàn. Còn với r-value, việc rút tài nguyên của một đối tượng sắp chết là an toàn.
+	* Nếu bạn có một **l-value** nhưng biết **chắc chắn** mình không cần dùng dữ liệu của nó nữa, thì có thể ép C++ chọn move semantics bằng cách: ép kiểu thành **r-value reference** với `std::move`.
+		```C++
+		std::string str { "Du lieu rat lon..." }; 
+		std::vector<std::string> v;
+	
+		v.push_back(str); // l-value => copy. Biến 'str' gốc vẫn giữ nguyên giá trị ban đầu.
+	
+		v.push_back(std::move(str)); 	// r-value => move. ⚠️ Dữ liệu bên trong 'str' gốc đã bị "bốc" đi mất.
+		```
+		* ⚠️ Sau khi bị move (như biến `str` ở bước 2), dữ liệu có nó đã bị bốc đi mất: 
+			* ⚠️ **KHÔNG NÊN:** Đọc giá trị cũ của nó.
+			* 👍 **AN TOÀN:** gọi bất kỳ function nào không phụ thuộc vào giá trị hiện tại của object đó (ví dụ: gán giá trị mới).
 
-* ✅ Với các type có hỗ trợ move, move semantics có thể được **tự động** gọi khi **return by value** từ một hàm, kể cả khi object trả về đang là một l-value.
-
-    Cả `std::vector` và `std::string` đều hỗ trợ move semantics => return chúng bằng value OK!!!
+		```C++
+		template <typename T>
+		void mySwapCopy(T& a, T& b)		// Phiên bản Copy (Chậm chạp do cấp phát bộ nhớ liên tục)
+		{
+			T tmp { a }; // a là l-value => Gọi Copy constructor
+			a = b;       // b là l-value => Gọi Copy assignment
+			b = tmp;     // tmp là l-value => Gọi Copy assignment
+		}
+	
+		template <typename T>
+		void mySwapMove(T& a, T& b)		// Phiên bản Move
+		{
+			T tmp { std::move(a) }; // Ép 'a' thành r-value => Gọi Move constructor
+			a = std::move(b);       // Ép 'b' thành r-value => Gọi Move assignment
+			b = std::move(tmp);     // Ép 'tmp' thành r-value => Gọi Move assignment
+		}
+		```
+	* ✅ Khi **return by value** từ một hàm, C++ cũng chọn move semantic nếu class đó hỗ trợ move, kể cả khi object trả về đang là một l-value.
+ 		* Cả `std::vector` và `std::string` đều hỗ trợ move semantics => return chúng bằng value OK!!!
 * **Implicit move constructor/assignment**: Sẽ được compiler tự động sinh ra nếu thỏa mãn ĐỒNG THỜI cả 3 điều kiện sau:
     1. Không có user-declared copy constructors/assignment.
     2. Không có user-declared move constructors/assignment.
@@ -2110,54 +2138,15 @@
 
     ⚠️ Hệ quả: implicit constructor/assignment sẽ **copy pointers** thay vì move chúng! Nếu muốn move một pointer member, bắt buộc bạn phải tự viết move constructor và move assignment.
 
-* ✅ `std::move`:
-    * Là hàm dùng để cast (thông qua `static_cast`) object truyền vào thành một **r-value reference**, nhằm ép dùng move semantics:
-        ```C++
-        template <typename T>
-        void mySwapCopy(T& a, T& b)		// Phiên bản Copy (Chậm chạp do cấp phát bộ nhớ liên tục)
-        {
-            T tmp { a }; // a là l-value => Gọi Copy constructor
-            a = b;       // b là l-value => Gọi Copy assignment
-            b = tmp;     // tmp là l-value => Gọi Copy assignment
-        }
 
-        template <typename T>
-        void mySwapMove(T& a, T& b)		// Phiên bản Move
-        {
-            T tmp { std::move(a) }; // Ép 'a' thành r-value => Gọi Move constructor
-            a = std::move(b);       // Ép 'b' thành r-value => Gọi Move assignment
-            b = std::move(tmp);     // Ép 'tmp' thành r-value => Gọi Move assignment
-        }
-        ```
+## Smart pointer
 
-        ```C++
-        std::string str { "Du lieu rat lon..." }; 
-		std::vector<std::string> v;
-
-		// 1. Thao tác Copy
-		v.push_back(str); 
-		// Gọi l-value push_back => Trình biên dịch COPY chuỗi này vào vector.
-		// Biến 'str' gốc vẫn giữ nguyên giá trị ban đầu.
-
-		// 2. Thao tác Move
-		v.push_back(std::move(str)); 
-		// Gọi r-value push_back => Trình biên dịch MOVE chuỗi này vào vector.
-		// ⚠️ Lúc này, dữ liệu bên trong 'str' gốc đã bị "bốc" đi mất.
-        ```
-        * ⚠️ Sau khi bị move (như biến `str` ở bước 2), dữ liệu có nó đã bị bốc đi mất: 
-	        * ⚠️ **KHÔNG NÊN:** Đọc giá trị của nó.
-	        * 👍 **AN TOÀN:** gọi bất kỳ function nào không phụ thuộc vào giá trị hiện tại của object đó (ví dụ: gán giá trị mới).
-
-
-## Smart pointer classes
-
-* **Smart pointer**: a class that holds a pointer, and deallocates that pointer when the class object goes out of scope. ✅ => avoid memory leaks.
+* **Smart pointer**: là một wrapper bọc ngoài một pointer, để **tự động deallocate pointer** đó khi nó out of scope. ✅ => tránh memory leaks.
     ```C++
-    void func1()
     {
         int* ptr { new int };
 
-        return; // the function returns early, and ptr won’t be deleted!
+        return; // hàm return sớm, ptr sẽ không được delete!
 
         delete ptr;
     } // => memory leak
@@ -2165,104 +2154,64 @@
 
     ```C++
     template <typename T>
-    class Auto_ptr     // "smart pointer"
+    class Auto_ptr     // mô phỏng "smart pointer"
     {
         T* m_ptr {};
     public:
-        Auto_ptr(T* ptr=nullptr)
-            :m_ptr(ptr)
-        { }
-
+        Auto_ptr(T* ptr=nullptr) :m_ptr(ptr) { }
         ~Auto_ptr() { delete m_ptr; }
 
         T& operator*() const { return *m_ptr; }
         T* operator->() const { return m_ptr; }
     };
 
-    void func2()
     {
         Auto_ptr<int> ptr { new int };
 
-        // no explicit delete here
-    }   // ptr destructor will be called here
+        // không cần gọi delete tại đây
+    }
     ```
-    ❌ `Auto_ptr` is critically flaw with shallow copy. Read more in github lesson.
+    ❌ Lưu ý: Bản implement `Auto_ptr` ở trên có một lỗ hổng chí mạng khi xử lý shallow copy. (Xem code trên github).
 
 * `std::unique_ptr`:
-    * ✅ should be used to manage any **dynamically allocated object** that the ownership is not shared by multiple objects.
-    * Properties:
-        * ⚠️/✅ designed with move semantics in mind, copy initialization and copy assignment are disabled.
+    * ✅ là smart pointer nên được dùng khi tài nguyên chỉ thuộc quyền sở hữu của 1 smart pointer duy nhất.
+    * Đặc điểm (Properties):
+        * Chỉ hỗ trợ move semantics, không hỗ trợ copy semantics:
             ```C++
-            std::unique_ptr<int> res1 { new int };  // resource created here
-            std::unique_ptr<int> res2 { new int };  // Start as nullptr
+            std::unique_ptr<int> a { new int };
+            std::unique_ptr<int> b;
 
-            // res2 = res1; // Won't compile: copy assignment is disabled
-	        res2 = std::move(res1); // res2 assumes ownership, res1 is set to null
+            // b = a; // Lỗi compile: a là lvalue, trong khi copy assignment đã bị disabled
+            b = std::move(a); // b tiếp nhận ownership, a trở thành null
             ```
-        * has an overloaded `operator*` (returns a reference) and `operator->` (returns a pointer). ✅ Before we use either of these operators, we should check whether the `std::unique_ptr` actually has a resource. Because, ⚠️ it might be created empty, or the resource might have been moved elsewhere.
-            ```C++
-            std::unique_ptr<int> res{ new int { 6 } };
-
-            if (res)    // make sure res contains a resource
-            {
-                std::cout << *res << '\n';  // dereference operator*
-            }
-            ```
-    * ✅ It is okay to use `std::unique_ptr` with both scalar objects and arrays. It's smart enough. However, `std::array` or `std::vector` (or `std::string`) are almost always better choices.
-    * ✅ `std::make_unique`: optional, but is preferred over creating `std::unique_ptr` yourself. It makes the code simpler, and resolves an exception safety issue.
+    * ✅ `std::make_unique`: = `unique_ptr` + khởi tạo + exception safety (khuyên dùng).
         ```C++
-        auto f1{ std::make_unique<int>(6) };    // create a dynamically allocated int with value 6
-        auto f2{ std::make_unique<int[]>(4) };  // create a dynamically allocated array of int of length 4
+        auto f1{ std::make_unique<int>(6) };    // tạo một dynamically allocated int với value là 6
+        auto f2{ std::make_unique<int[]>(4) };  // tạo một dynamically allocated array kiểu int có độ dài 4
         ```
-    * Because  `std::unique_ptr` has move semantics, you should pass/return it by value.
-        ```C++
-        std::unique_ptr<std::string> createString()
-        {
-            return std::make_unique<std::string>("Knock");
-        }
-
-        void takeOwnership(std::unique_ptr<std::string> res) // pass by value to take ownership
-        {
-            if (res)
-            ;
-        } // res is destroyed here
-        ```
-    * If you don't want the function to take ownership of the resource - although you can pass it by const reference - it’s better to just pass the resource. Use `get()`:
-        ```C++
-        void useResource(const std::string* res)	// okay, just pass the resource
-        {
-            if (res)
-            ;
-        }
-
-        auto res2{ std::make_unique<std::string>("Knock") };
-        useResource(res2.get());
-        ```
-* `std::shared_ptr`:
-    * is used when you need multiple smart pointers co-owning a resource. It keeps track of how many std::shared_ptr are sharing the resource and the resource will not be deallocated if at least one `std::shared_ptr` is pointing to it. As soon as the last `std::shared_ptr` goes out of scope (or is reassigned to point at something else), the resource will be deallocated.
+*. `std::shared_ptr`:
+    * là smart pointer nên được dùng khi tài nguyên thuộc quyền sở hữu của cùng lúc nhiều 1 smart pointer. Resource sẽ KHÔNG bị deallocate nếu vẫn còn ít nhất một `std::shared_ptr` trỏ tới nó. Ngay khi `std::shared_ptr` cuối cùng rơi vào trạng thái out of scope (hoặc được gán trỏ sang một vùng nhớ khác), resource mới chính thức bị deallocate.
         ```C++
         {
             int* res { new int };
             std::shared_ptr<int> ptr1{ res };
             {
-                std::shared_ptr<int> ptr2 { ptr1 }; // make another std::shared_ptr from ptr1
-            } // ptr2 goes out of scope here, but nothing happens
-        } // ptr1 goes out of scope here, and the allocated int is destroyed
+                std::shared_ptr<int> ptr2 { ptr1 }; // tạo một std::shared_ptr mới từ ptr1 (share ownership)
+            } // ptr2 out of scope tại đây, nhưng không có chuyện gì xảy ra (resource vẫn an toàn)
+        } // ptr1 out of scope tại đây, lúc này resource (int) mới thực sự bị destroy
         ```
-    * ❌ Don't create a second shared pointer from the resource directly
+    * ❌ Tuyệt đối KHÔNG tạo một shared pointer thứ hai trực tiếp từ resource gốc (raw pointer):
         ```C++
         {
             int* res { new int };
             std::shared_ptr<int> ptr1{ res };
             {
-                std::shared_ptr<int> ptr2 { res }; // make another std::shared_ptr from res
-            } // the allocated int is destroyed
-        } // the allocated int is destroyed
+                std::shared_ptr<int> ptr2 { res }; // ❌ tạo shared_ptr thứ hai TRỰC TIẾP từ res
+            } // resource bị destroy (do ptr2 out of scope)
+        } // resource lại bị destroy lần nữa => Lỗi nghiêm trọng (double free)
         ```
-    * `std::make_shared`: optional, but is preferred over creating `std::shared_ptr` yourself.
-    * ⚠️ Circular dependencies and `std::weak_ptr`: See in github lesson.
-    * A `std::unique_ptr` can be converted into a `std::shared_ptr`. However, `std::shared_ptr` can not be safely converted to a `std::unique_ptr`.
-    * In C++17 and earlier, `std::shared_ptr` does not have proper support for managing arrays.
+    * `std::make_shared`: =. `std::shared_ptr` + khởi tạo + exception safety (khuyên dùng).
+    * ⚠️ Lỗi **Circular dependencies** (phụ thuộc vòng) và cách giải quyết bằng `std::weak_ptr`: Xem chi tiết trong bài học trên github.
 
 
 # Inheritance
