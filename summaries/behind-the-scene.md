@@ -2189,7 +2189,7 @@
         auto f1{ std::make_unique<int>(6) };    // tạo một dynamically allocated int với value là 6
         auto f2{ std::make_unique<int[]>(4) };  // tạo một dynamically allocated array kiểu int có độ dài 4
         ```
-*. `std::shared_ptr`:
+* `std::shared_ptr`:
     * là smart pointer nên được dùng khi tài nguyên thuộc quyền sở hữu của cùng lúc nhiều 1 smart pointer. Resource sẽ KHÔNG bị deallocate nếu vẫn còn ít nhất một `std::shared_ptr` trỏ tới nó. Ngay khi `std::shared_ptr` cuối cùng rơi vào trạng thái out of scope (hoặc được gán trỏ sang một vùng nhớ khác), resource mới chính thức bị deallocate.
         ```C++
         {
@@ -2210,7 +2210,7 @@
             } // resource bị destroy (do ptr2 out of scope)
         } // resource lại bị destroy lần nữa => Lỗi nghiêm trọng (double free)
         ```
-    * `std::make_shared`: =. `std::shared_ptr` + khởi tạo + exception safety (khuyên dùng).
+    * `std::make_shared`: = `std::shared_ptr` + khởi tạo + exception safety (khuyên dùng).
     * ⚠️ Lỗi **Circular dependencies** (phụ thuộc vòng) và cách giải quyết bằng `std::weak_ptr`: Xem chi tiết trong bài học trên github.
 
 
