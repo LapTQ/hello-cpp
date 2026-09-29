@@ -742,16 +742,44 @@
 	    * **Implicit default constructor**: là **default constructor** do compiler tự động sinh ra. Nó không có member initializer list và có phần body rỗng.
       		* Với aggregate: luôn luôn có.
         	* Với non-aggregate: nếu không có bất kỳ user-declared constructor nào.
+    * **Implicit conversion** thông qua constructor:
+	    * Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `std::string_view`. Khi compiler thấy lệnh gọi `printFoo("hello"sv);`, nó sẽ tìm một hàm cho phép convert từ `std::string_view` sang `Foo`. Hàm đó chính là constructor `Foo(std::string_view)`.
+	        ```C++
+	        class Foo {
+	            std::string_view m_value{};
+	
+	        public:
+	            Foo(std::string_view value)  // cho phép implicit conversion từ std::string_view sang Foo
+	                : m_value{ value }
+	            { }
+	        };
+	
+	        void printFoo(Foo f) { }
+	
+			printFoo("hello"sv); // convert 1 bước từ `std::string_view` thành `Foo`
+	        ```
+	    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion.
+	        ```C++
+			printFoo("hello");   // Lỗi compile: cần 2 user-defined conversions (C-style string literal -> std::string_view -> Foo)
+	        ```
+	    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor. Ta nâng cấp class `Foo` như sau:
+	        ```C++
+	        class Foo
+			// ...
+	            explicit Foo(std::string_view value) // Đánh dấu explicit
+	        // ...
+	
+			printFoo("hello"sv); // Lỗi compile: không thể tự động convert std::string_view sang Foo
+			printFoo(static_cast<Foo>("hello"sv)); // Hợp lệ, ép kiểu explicit (tường minh)            
+	        ```
 
 | Kiểu khởi tạo | Ví dụ | Aggregate | Non-aggregate |
 | :--- | :--- | :--- | :--- |
 | **default-initialization** | `Foo foo;` | [1] | Gọi default constructor |
 | **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor |
 | **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] | Gọi constructor **phù hợp** với list |
-| **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };` | Gọi Copy Constructor? |  |
-|  | `Foo f4 = f3;    // copy initialization` | ? |  |
-|  | `Foo f6(f3);     // direct-initialization` | ? |  |
-| **Constructor Member Initializer List** | `: m_y { std::max(x, y) }, m_x { m_y }` |  | [3] |
+| **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };`, `Foo f5 { Foo { 1, 2, 3 } }` |  |  |
+| **Constructor member initializer list** | `: m_y { std::max(x, y) }, m_x { m_y }` |  | [3] |
 
 * Trong đó:
 	* [1]
@@ -829,7 +857,7 @@
 		1. Chạy member initializer list của delegated constructor để khởi tạo các members.
 		2. Chạy body của delegated constructor.
 	2. Chạy body của delegating constructor (constructor gốc).
-* Constructor thực chất không làm nhiệm vụ tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
+* Constructor thực chất không tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
 * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
 	
 	Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
@@ -876,36 +904,7 @@
     * Mặc định, các members của một `struct` là `public`.
     * Mặc định, các members của một `class` là `private`.
     * ⚠️ C++ access levels hoạt động theo phạm vi class (per-class), không phải theo object (per-object). (Nghĩa là các object cùng class có thể truy cập private member của nhau).
-* **Converting constructor**:
-    * **Implicit conversion**: Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `std::string_view`. Khi compiler thấy lệnh gọi `printFoo("hello"sv);`, nó sẽ tìm một hàm cho phép convert từ `std::string_view` sang `Foo`. Hàm đó chính là constructor `Foo(std::string_view)`.
-        ```C++
-        class Foo {
-            std::string_view m_value{};
 
-        public:
-            Foo(std::string_view value)  // cho phép implicit conversion từ std::string_view sang Foo
-                : m_value{ value }
-            { }
-        };
-
-        void printFoo(Foo f) { }
-
-		printFoo("hello"sv); // convert 1 bước từ `std::string_view` thành `Foo`
-        ```
-    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion.
-        ```C++
-		printFoo("hello");   // Lỗi compile: cần 2 user-defined conversions (C-style string literal -> std::string_view -> Foo)
-        ```
-    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor. Ta nâng cấp class `Foo` như sau:
-        ```C++
-        class Foo
-		// ...
-            explicit Foo(std::string_view value) // Đánh dấu explicit
-        // ...
-
-		printFoo("hello"sv); // Lỗi compile: không thể tự động convert std::string_view sang Foo
-		printFoo(static_cast<Foo>("hello"sv)); // Hợp lệ, ép kiểu explicit (tường minh)            
-        ```
 
 
 ## Templates
@@ -1580,8 +1579,6 @@
 
 ## C-style string, `std::string`, `std::string_view`
 
-* `std::string` và `std::string_view` không phải là fundamental type (chúng là các class type).
-* `std::string_view` read-only đến một string sẵn có mà không tạo copy.
 * C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
 * `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
 * Các string literal:
