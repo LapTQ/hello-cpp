@@ -2032,163 +2032,121 @@
 
 ## Move constructors and move assignment
 
-* Copy semantics and Move semantics:
+* Copy semantics và Move semantics:
     * **Copy semantics**:
-        * refers to how copies of objects are made.
-        * For class types, copy semantics are typically implemented via the copy constructor and copy assignment operator.
+        * Quy định cách một object được copy.
+        * Với các class types, cơ chế này thường được implement thông qua **copy constructor** và **copy assignment operator**.
     * **Move semantics**:
-        * determine how the data from one object is moved (transfer ownership) to another object.
-        * 👍 When move semantics is invoked, any data member that can be moved is moved, and any data member that can’t be moved is copied. => more efficient than copy semantics
-* Copy semantics:
+        * Quy định cách data được move (chuyển giao quyền sở hữu - transfer ownership) từ object này sang object khác.
+        * 👍 Khi move semantics được gọi, data member nào move được thì sẽ move, cái nào không move được thì mới phải copy. => Hiệu năng cao hơn hẳn so với copy semantics.
+* **Copy semantics**:
     ```C++
-    class Resource
-    {
-    public:
-        Resource() { std::cout << "Resource acquired\n"; }
-        ~Resource() { std::cout << "Resource destroyed\n"; }
+    class IntBox {
+        // ...
     };
 
-    template <typename T>
-    class MyClass
-    {
-        T* m_ptr {};
-    public:
-        MyClass(T* ptr=nullptr)
-            :m_ptr(ptr)
-        { }
-
-        ~MyClass() { delete m_ptr; }
-
-        // Copy constructor
-        MyClass(const MyClass& a)
-        {
-            m_ptr = new T;
-            *m_ptr = *a.m_ptr;		// use assignment to copy the value
-        }
-
-        // Copy assignment
-        MyClass& operator=(const MyClass& a)
-        {
-            // Self-assignment detection
-            if (&a == this)
-                return *this;
-
-            delete m_ptr;
-
-            m_ptr = new T;
-            *m_ptr = *a.m_ptr;
-
-            return *this;
-        }
-    };
-
-    MyClass<Resource> generateResource()
-    {
-        MyClass<Resource> res{new Resource};
-        return res; // this return value will invoke the copy constructor
+    IntBox generateBox() {
+        IntBox box { 10 }; 
+        return box; // return-by-value sẽ gọi Copy constructor
     }
 
-    MyClass<Resource> mainres;
-    mainres = generateResource(); // this assignment will invoke the copy assignment
+	IntBox mainBox { 0 };
+	mainBox = generateBox(); // Phép gán sẽ gọi Copy assignment
     ```
-    Here is what happens:
-    1. `res` is constructed in `generateResource()` => Resource acquired
-    2. When `res` is returned by value, it's copy constructed to a temporary object => Resource acquired
-    3. `res` is destroyed => Resource destroyed
-    4. The temporary object is copy assigned to `mainres` => Resource acquired
-    5. The temporary object is destroyed => Resource destroyed
-    6. `mainres` is destroyed => Resource destroyed 
-    
-    => 👎️ unnecessarily expensive copying
-* Move semantics:
-    * while the copy constructors/assignment take a **const l-value reference** parameter, the move constructors/assignment use **non-const rvalue reference** parameters:
+    **Diễn biến (👎 Cực kỳ tốn kém):**
+    1. `box { 10 }` được tạo ra bên trong hàm `generateBox()` => Sinh ra 1 lần cấp phát bộ nhớ.
+    2. Khi `box` được return by value, nó gọi Copy constructor để tạo ra một **temporary object** (object tạm) => Sinh ra thêm 1 lần cấp phát bộ nhớ nữa.
+    3. Hàm kết thúc, biến cục bộ `box` bị destroy => Hủy 1 vùng bộ nhớ.
+    4. Object tạm dùng Copy assignment để gán giá trị cho `mainBox` (thực hiện deep copy) => Sinh ra thêm 1 lần cấp phát bộ nhớ nữa.
+    5. Phép gán xong, object tạm hoàn thành sứ mệnh và bị destroy => Hủy 1 vùng bộ nhớ.
+* **Move semantics** (Ngữ nghĩa di chuyển):
+    * Khác với copy constructor/assignment (nhận parameter là **const l-value reference** `const IntBox&`), move constructor/assignment sử dụng parameter là **non-const rvalue reference** (`IntBox&&`) để "ăn cắp" quyền sở hữu tài nguyên thay vì sao chép vùng nhớ:
     ```C++
-    template<typename T>
-    class MyClass
-    {
-        // ...
+    class IntBox {
+        // ... (Constructor và Destructor như cũ)
 
-        // Move constructor
-        MyClass(MyClass&& a) noexcept
-            : m_ptr(a.m_ptr)
-        {
-            a.m_ptr = nullptr;	// don't forget
+        // 1. Move constructor
+        IntBox(IntBox&& source) noexcept
+            : m_data(source.m_data) {	// sao chép địa chỉ
+            source.m_data = nullptr; 	// ⚠️ BẮT BUỘC: Cắt đứt kết nối của object cũ
         }
 
-        // Move assignment
-        MyClass& operator=(MyClass&& a) noexcept
-        {
-            // Self-assignment detection
-            if (&a == this)
+        // 2. Move assignment
+        IntBox& operator=(IntBox&& source) noexcept {            
+            // Self-assignment guard
+            if (this == &source)
                 return *this;
 
-            delete m_ptr;
+            delete m_data;           // Dọn dẹp vùng nhớ cũ
 
-            m_ptr = a.m_ptr;
-            a.m_ptr = nullptr;	// don't forget
+            m_data = source.m_data;  // sao chép địa chỉ
+            source.m_data = nullptr; // ⚠️ BẮT BUỘC: Cắt đứt kết nối
 
             return *this;
         }
     };
-
-    // ...
     ```
-    Here is what happens:
-    1. `res` is constructed in `generateResource()` => Resource acquired
-    2. When `res` is returned by value, it's move constructed to a temporary object, then `res` is destroyed.
-    3. The temporary object is move assigned to `mainres`, then the temporary object is destroyed.
-    4. `mainres` is destroyed => Resource destroyed
+    **Diễn biến:**
+    1. `box(10)` được tạo ra bên trong `generateBox()` => **Cấp phát 1 vùng nhớ duy nhất**.
+    2. Khi `box` được return, C++ nhận diện nó sắp bị hủy nên gọi **Move constructor** để "chuyền" con trỏ sang một temporary object (object tạm). `box.m_data` bị gán `nullptr`. Khi `box` kết thúc vòng đời, lệnh `delete nullptr` an toàn và không làm gì cả. => **0 lần cấp phát thêm**.
+    3. Temporary object gọi **Move assignment** để chuyền tiếp con trỏ cho `mainBox`. Sau đó temporary object bị destroy (cũng `delete nullptr`). => **0 lần cấp phát thêm**.
 
-* ⚠️ Normally, when an object is being initialized with (or assigned) an object of the **same type**, copy semantics will be used (assuming the copy isn’t elided). However, when all of the following are true, move semantics will be invoked instead:
-    1. The type of the object supports move semantics.
-    2. The object is being initialized/assigned with an rvalue object of the same type.
-    3. The move isn’t elided.
+* ✅ Thông thường, khi khởi tạo (initialize) hoặc gán (assign), C++ mặc định dùng copy semantics. Nhưng, nếu thỏa mãn ĐỒNG THỜI 3 điều kiện sau, C++ sẽ ưu tiên gọi move semantics:
+    1. Class đó hỗ trợ move semantics (có viết move constructor/assignment).
+    2. Object đang được initialize/assign từ một **rvalue** cùng type.
+    3. Thao tác không bị elided.
 
-* ✅ For move-capable types, move semantics might be invoked **automatically** when **returning by value** from a function, even if the returned object is an l-value.
+* ✅ Với các type có hỗ trợ move, move semantics có thể được **tự động** gọi khi **return by value** từ một hàm, kể cả khi object trả về đang là một l-value.
 
-    Both `std::vector` and `std::string` support move semantics => it is okay to return them by value!!!
-* **Implicit** move constructor/assignment: ... if all of the following are true:
-    1. There are no user-declared copy constructors/assignment.
-    2. There are no user-declared move constructors/assignment.
-    3. There is no user-declared destructor.
+    Cả `std::vector` và `std::string` đều hỗ trợ move semantics => return chúng bằng value OK!!!
+* **Implicit move constructor/assignment**: Sẽ được compiler tự động sinh ra nếu thỏa mãn ĐỒNG THỜI cả 3 điều kiện sau:
+    1. Không có user-declared copy constructors/assignment.
+    2. Không có user-declared move constructors/assignment.
+    3. Không có user-declared destructor.
 
-    These move functions will do a member-wise move as follows:
-    * If member has a move constructor or move assignment (as appropriate), it will be invoked.
-    * Otherwise, the member will be copied.
+    Các implicit move functions này sẽ **move từng member một** theo quy tắc:
+    * Có move constructor/assignment -> Sẽ gọi hàm move tương ứng.
+    * Không có -> copy.
 
-    ⚠️ This means that implicit constructor/assignment will copy pointers, not move them! If you want to move a pointer member, you will need to define the move constructor and move assignment yourself.
+    ⚠️ Hệ quả: implicit constructor/assignment sẽ **copy pointers** thay vì move chúng! Nếu muốn move một pointer member, bắt buộc bạn phải tự viết move constructor và move assignment.
 
 * ✅ `std::move`:
-    * a function that casts (using `static_cast`) its argument into an r-value reference, so that move semantics can be invoked
+    * Là hàm dùng để cast (thông qua `static_cast`) object truyền vào thành một **r-value reference**, nhằm ép dùng move semantics:
         ```C++
         template <typename T>
-        void mySwapCopy(T& a, T& b)
+        void mySwapCopy(T& a, T& b)		// Phiên bản Copy (Chậm chạp do cấp phát bộ nhớ liên tục)
         {
-            T tmp { a }; // invokes copy constructor because a is an l-value
-            a = b; // invokes copy assignment because b is an l-value
-            b = tmp; // invokes copy assignment because tmp is an l-value
+            T tmp { a }; // a là l-value => Gọi Copy constructor
+            a = b;       // b là l-value => Gọi Copy assignment
+            b = tmp;     // tmp là l-value => Gọi Copy assignment
         }
 
         template <typename T>
-        void mySwapMove(T& a, T& b)
+        void mySwapMove(T& a, T& b)		// Phiên bản Move
         {
-            T tmp { std::move(a) }; // invokes move constructor
-            a = std::move(b); // invokes move assignment
-            b = std::move(tmp); // invokes move assignment
+            T tmp { std::move(a) }; // Ép 'a' thành r-value => Gọi Move constructor
+            a = std::move(b);       // Ép 'b' thành r-value => Gọi Move assignment
+            b = std::move(tmp);     // Ép 'tmp' thành r-value => Gọi Move assignment
         }
         ```
 
         ```C++
-        std::string str { "Knock" };    // use std::string because it is movable (std::string_view is not)
-        std::vector<std::string> v;
+        std::string str { "Du lieu rat lon..." }; 
+		std::vector<std::string> v;
 
-        v.push_back(str); // calls l-value version of push_back => copies
-        std::cout << "str: " << str << '\n';	// str is unchanged
+		// 1. Thao tác Copy
+		v.push_back(str); 
+		// Gọi l-value push_back => Trình biên dịch COPY chuỗi này vào vector.
+		// Biến 'str' gốc vẫn giữ nguyên giá trị ban đầu.
 
-        v.push_back(std::move(str)); // calls r-value version of push_back => moves
-        std::cout << "str: " << str << '\n'; // ⚠️ str is now indeterminate
+		// 2. Thao tác Move
+		v.push_back(std::move(str)); 
+		// Gọi r-value push_back => Trình biên dịch MOVE chuỗi này vào vector.
+		// ⚠️ Lúc này, dữ liệu bên trong 'str' gốc đã bị "bốc" đi mất.
         ```
-        👍 With a moved-from object (like `str`), it is safe to call any function that does not depend on the current value of the object.
+        * ⚠️ Sau khi bị move (như biến `str` ở bước 2), dữ liệu có nó đã bị bốc đi mất: 
+	        * ⚠️ **KHÔNG NÊN:** Đọc giá trị của nó.
+	        * 👍 **AN TOÀN:** gọi bất kỳ function nào không phụ thuộc vào giá trị hiện tại của object đó (ví dụ: gán giá trị mới).
 
 
 ## Smart pointer classes
