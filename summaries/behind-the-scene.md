@@ -227,6 +227,119 @@
 * Lệnh `static_assert` được kiểm tra ngay từ *compile-time* chứ không phải chờ đến *runtime* => vì vậy, bắt buộc phải truyền vào một *constant expression*.
 
 
+## Command line arguments
+
+* `argc`: the number of arguments passed to the program, always be at least 1.
+* `argv`: C-style array of char pointers (the length of this array is `argc`), each of which points to a C-style string.
+* To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet).
+
+
+## Ellipsis
+
+* 👍 Ellipsis allows us to pass a **variable** number of parameters to a function. (See code in github lesson). 
+
+
+## Lambdas
+
+* **Functors** are objects that contain an overloaded `operator()` that make them callable.
+* **Lambdas** are a special kind of functor.
+* ✅ Lambdas aren’t functions, which is part of how they avoid the limitation of C++ not supporting nested functions.
+* Lambdas can have no name if we defined a it right where it was needed. This use is called a **function literal**:
+    ```C++
+    int x{ 7 };
+    int y{};
+    y = [](int a) -> int { return a * 2; }(x);  // y = 14
+    ```
+* (C++14) Lamdas’re allowed to use `auto` for parameters. A unique lambda will be generated for each different type that `auto` resolves to.
+* In lambda, static variables work exactly the same as regular functions.
+* (C++17) Lambdas are implicitly constexpr if:
+    1. They have no captures, or all captures must be constexpr.
+    2. Functions called by the lambda must be constexpr.
+* Lambda **captures**:
+    * 👎️ Unlike nested blocks, where any identifier accessible in the outer block is accessible in the nested block. Lambdas can only access objects defined outside the lambda if:
+        * they have static (or thread local) storage duration (e.g., global variables and static locals)
+        * or, they are constexpr (explicitly or implicitly)
+        * or, they are listed in **capture clause**.
+    * ⚠️ The captured variables of a lambda are **copies** of the outer scope variables.
+        ```C++
+        int y{ 5 };
+        [y]() { } ();  // y is cloned
+        ```
+    * ⚠️ 
+        * At **compile** time, when the compiler encounters a lambda definition, it creates a custom object definition for the lambda. Each captured variable becomes a data member of the object.
+        * At runtime, when the lambda definition is encountered, the lambda object is instantiated. The members of the lambda are initialized at that point and ⚠️ persisted across multiple calls to the lambda!
+    * Captures are const by default:
+        ```C++
+        [y]() { ++y } (); // error, inside the lambda, y is const.
+        ```
+    * *Mutable* captures:
+        ```C++
+        int y{ 5 };
+
+        auto increment {[y]() mutable
+        {
+            ++y;
+            std::cout << y << '\n';
+        }};
+        increment();    // 6, y is modified inside the lambda. But it's a copy of the outer y.
+        increment();    // 7, y is persisted across multiple calls to the lambda
+
+        std::cout << y << '\n'; // 5, y is not modified outside the lambda.
+        ```
+    * Capture by reference
+        ```C++
+        int y{ 5 };
+        [&y]() { ++y; } ();
+        std::cout << y << '\n'; // 6, y is modified.
+        ```
+    * Multiple captured variables: 
+        * This can include a mix of variables captured by value or by reference
+            ```C++
+            [x, &y]() { } ();
+            ```
+        * **Default captures** capture all variables.
+            * To capture all variables by value, use `=`.
+            * To capture all variables by reference, use `&`.
+            * can be mixed with normal captures.
+
+            ```C++
+            int a{ 1 }, b{ 2 }, c{ 3 };
+            auto d{ [=]() { return a + b + c; } () };   // a, b, c are captured by value.            
+            auto e{ [&, a, b]() { return a + b + c; } () };   // a, b are captured by value, c is captured by reference.
+    * Defining new variables in the lambda-capture:
+        * The newly defined variable is the same for every call. But if a lambda is "mutable" and modifies a variable that was defined in the capture, the original value will be overridden.
+            ```C++
+            int x{ 2 };
+            int y{ 5 };
+
+            auto f { [new_var{ x * y }]() mutable { new_var++; } };
+            
+            f();    // new_var is 11
+            f();    // new_var is 12
+    * ⚠️ Dangling captured variables
+        ```C++
+        // returns a lambda
+        auto print1(const std::string& name)
+        {
+            return [&]() {          // Capture name by reference
+                std::cout << name;  // Undefined behavior
+            };
+        }
+
+        auto print2(const std::string& name)
+        {
+            return [=]() {          // Capture name by value
+                std::cout << name;
+            };
+        }
+
+        auto printWilly1{ print1("Willy") }; // the temporary string literal "Willy" dies at the end of this command
+        printWilly1(); // `name` is a dangling reference 
+        auto printWilly2{ print1("Willy") };
+        printWilly2(); // okay
+        ```
+
+
 ## Kiểu dữ liệu cơ bản (Fundamental data types)
 
 * Chuẩn C++ không quy định kích thước chính xác (tính theo bit) cho bất kỳ fundamental type nào.
@@ -743,42 +856,58 @@
       		* Với aggregate: luôn luôn có.
         	* Với non-aggregate: nếu không có bất kỳ user-declared constructor nào.
     * **Implicit conversion** thông qua constructor:
-	    * Ở ví dụ dưới, hàm `printFoo` nhận parameter kiểu `Foo`, nhưng ta lại truyền vào `std::string_view`. Khi compiler thấy lệnh gọi `printFoo("hello"sv);`, nó sẽ tìm một hàm cho phép convert từ `std::string_view` sang `Foo`. Hàm đó chính là constructor `Foo(std::string_view)`.
+	    * Ở ví dụ dưới, hàm `printDollar` nhận kiểu `Dollar`, nhưng ta lại truyền vào `int`. Khi đó, compiler sẽ tìm một constructor phù hợp cho phép convert từ `int` sang `Dollar`. Constructor đó là `Dollar(int ...)`:
 	        ```C++
-	        class Foo {
-	            std::string_view m_value{};
+	        class Dollar {
+	            int m_value{};
 	
 	        public:
-	            Foo(std::string_view value)  // cho phép implicit conversion từ std::string_view sang Foo
+	            Dollar(int value)  // cho phép implicit conversion từ int sang Dollar
 	                : m_value{ value }
 	            { }
 	        };
 	
-	        void printFoo(Foo f) { }
+	        void printDollar(Dollar d) { }
 	
-			printFoo("hello"sv); // convert 1 bước từ `std::string_view` thành `Foo`
+			printDollar(5);
 	        ```
-	    * Compiler chỉ cho phép **tối đa 1** implicit user-defined conversion.
+	    * Để ngăn chặn implicit conversion, thêm từ khóa `explicit` trước constructor:
 	        ```C++
-			printFoo("hello");   // Lỗi compile: cần 2 user-defined conversions (C-style string literal -> std::string_view -> Foo)
-	        ```
-	    * Để ngăn chặn implicit conversion, dùng từ khóa `explicit` để báo compiler không được dùng constructor này làm converting constructor. Ta nâng cấp class `Foo` như sau:
-	        ```C++
-	        class Foo
+	        class Dollar
 			// ...
-	            explicit Foo(std::string_view value) // Đánh dấu explicit
+	            explicit Dollar(int value) // Đánh dấu explicit
 	        // ...
 	
-			printFoo("hello"sv); // Lỗi compile: không thể tự động convert std::string_view sang Foo
-			printFoo(static_cast<Foo>("hello"sv)); // Hợp lệ, ép kiểu explicit (tường minh)            
+			printDollar(5); // Lỗi compile
+			printDollar(static_cast<Dollar>(5)); // Hợp lệ, ép kiểu explicit (tường minh)            
 	        ```
+   	* **Delegating constructors**:
+   		```C++
+		class Dollar {
+			int m_value{};
 
-| Kiểu khởi tạo | Ví dụ | Aggregate | Non-aggregate |
+		public:
+			Dollar(int value)
+				: m_value{ value }
+			{ }
+
+   	 		Dollar()
+   	 			: Dollar{ 0 }	// uỷ quyền cho Dollar(int value)
+   	 		{ }
+		};
+   	 	```
+   	 	Trình tự thực thi:
+			1. Delegated constructor chạy:
+				1. Chạy member initializer list của delegated constructor để khởi tạo các members.
+				2. Chạy body của delegated constructor.
+			2. Chạy body của delegating constructor (constructor gốc).
+
+| Cú pháp khởi tạo cần lưu ý | Ví dụ | Aggregate | Non-aggregate |
 | :--- | :--- | :--- | :--- |
 | **default-initialization** | `Foo foo;` | [1] | Gọi default constructor |
 | **value/zero-initialization** | `Foo foo{};` | ~ **Aggregate Initialization** [2] với list rỗng | Gọi default constructor |
 | **direct-list initialization** với **member initializer list** | `Foo foo{1, 2, 3};` | **Aggregate Initialization** [2] | Gọi constructor **phù hợp** với list |
-| **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };`, `Foo f5 { Foo { 1, 2, 3 } }` |  |  |
+| **direct-list initialization** với 1 đối tượng cùng kiểu | `Foo f5 { f3 };` | ? |  |
 | **Constructor member initializer list** | `: m_y { std::max(x, y) }, m_x { m_y }` |  | [3] |
 
 * Trong đó:
@@ -852,32 +981,27 @@
         * Nếu không có mặt trong list + CÓ default member initializer => dùng default.
         * Nếu thiếu cả 2 => **default-initialization** (mang giá trị rác).
 
-* **Delegating constructors** (Ủy quyền constructor). Trình tự thực thi:
-	1. Quá trình khởi tạo được ủy quyền cho một constructor khác (delegated constructor):
-		1. Chạy member initializer list của delegated constructor để khởi tạo các members.
-		2. Chạy body của delegated constructor.
-	2. Chạy body của delegating constructor (constructor gốc).
 * Constructor thực chất không tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
 * ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
 	
 	Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
 
-* **List constructor**:
-    * Các containers (như `std::vector`) thường có một constructor đặc biệt gọi là **list constructor**, cho phép tạo instance bằng một **initializer list**.
-        ```C++
-        std::vector<int> primes{ 2, 3, 5, 7 };
-        ```
-    * Nó thực hiện 3 công việc (nếu cần):
-        * Đảm bảo container được cấp phát đủ bộ nhớ (storage) để chứa tất cả giá trị khởi tạo.
-        * Cài đặt chiều dài (length) của container bằng với số phần tử trong initializer list.
-        * Khởi tạo các phần tử theo đúng thứ tự (sequential order).
+* **List constructor**: là constructor nhận vào một `std::initializer_list`, cho phép tạo instance bằng một **initializer list**.
+    * dễ thấy nhất là khi bạn dùng các container của thư viện chuẩn (như `std::vector`), VD: `std::vector<int> primes{ 2, 3, 5, 7 };`.
+    * Thứ tự ưu tiên:
+        * Nếu initializer list rỗng (`{}`) -> tìm **default constructor**.
+        * Nếu initializer list có phần tử -> ưu tiên **list constructor** phù hợp hơn các constructors khác.
+	* `std::initializer_list` là view (giống `std::string_view`) 
+        * ✅ => OK nếu pass `std::initializer_list` by value.
+        * ⚠️ => copy 1 `std::initializer_list` không copy dữ liệu bên trong.
 
-        ```C++
-        std::vector vowels { 'a', 'e', 'i', 'o', 'u' }; //  Dùng CTAD (C++17) để tự suy luận (deduce) type là char (được khuyên dùng).
-        ```
-    * Luật ưu tiên đặc biệt của C++:
-        * Nếu initializer list rỗng (`{}`) -> Ưu tiên gọi **default constructor** hơn list constructor.
-        * Nếu initializer list có phần tử -> Ưu tiên gọi một **list constructor** phù hợp hơn các constructors khác.
+
+* **Destructor**:
+	* được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
+    	* khi nó out of scope một cách bình thường.
+    	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
+* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
+* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
 
 
 * **Implicit object**:
@@ -906,45 +1030,9 @@
     * ⚠️ C++ access levels hoạt động theo phạm vi class (per-class), không phải theo object (per-object). (Nghĩa là các object cùng class có thể truy cập private member của nhau).
 
 
-
-## Templates
-
-* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
-* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
-* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
-* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
-* Function templates có thể được overload.
-* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
-* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
-* Khi cần viết một implementation riêng cho một specific type:
-    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
-    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
-    
-    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
-
-
-## Program-defined types and header files
-
-* Lưu ý đoạn code sau là một full definition, không phải forward declaration:
-    ```C++
-    struct Fraction
-    {
-        int numerator {};
-        int denominator {};
-    };
-    ```
-* Khác với functions (chỉ cần forward declaration là dùng được), header files thường phải chứa full definition của một class. Lý do: compiler cần biết cấu trúc khai báo của các members để đảm bảo chúng được sử dụng đúng cách, đồng thời cần tính toán chính xác kích thước object của type đó để tiến hành instantiate.
-* Với non-template classes, quy chuẩn chung là đặt class definition vào header file, và phần member function definitions vào file `.cpp` cùng tên. Tuy nhiên, nếu áp dụng cách này cho templates, bạn sẽ gặp linker error. Lý do tóm tắt:
-    1. C++ compile từng file một cách độc lập.
-    2. Compiler chỉ instantiate một class template nếu nó thực sự được sử dụng (nghĩa là: compiler bắt buộc phải nhìn thấy đồng thời cả full class template definition chứ không chỉ declaration, VÀ các specific template type(s) đang cần dùng tới).
-
-    => Do đó, compiler sẽ không instantiate template bên trong file `.cpp` để link với lời gọi từ `main.cpp`. Chi tiết xem [tại đây](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes).
-* Với template specialization: compiler phải nhìn thấy full definition của CẢ non-specialized class VÀ specialized class thì mới dùng được template specialization. => Nếu compiler chỉ nhìn thấy definition của bản non-specialized, nó sẽ dùng luôn bản đó thay vì bản specialization.
- 
-
 ## Nested types
 
-- Một nested class KHÔNG có quyền truy cập vào `this` pointer của outer class (class chứa nó). Tuy nhiên, nó CÓ THỂ truy cập mọi private members của outer class miễn là nằm trong scope:
+- Nested class KHÔNG có quyền truy cập vào `this` pointer của outer class. Tuy nhiên, nó CÓ THỂ truy cập mọi private members của outer class miễn là nằm trong scope:
 
     ```C++
     #include <string>
@@ -985,16 +1073,6 @@
         p.print(john2);
     }
     ```
-
-## Destructor
-
-* **Destructor**:
-	* được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
-    	* khi nó out of scope một cách bình thường.
-    	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
-* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
-* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
-
 
 ## Static members
 
@@ -1069,6 +1147,58 @@
         };
         ```
 * **Friend member functions**: Thay vì cấp quyền friend cho toàn bộ class, ta có thể chỉ định cấp quyền friend cho duy nhất một member function cụ thể.
+
+
+## Overloading operators
+
+* 3 different ways:
+    1. Using friend functions
+    2. Using normal functions
+    3. Using member functions
+* Overload io operators: (See code in github lesson)
+* Overload subscript operator: (See code in github lesson)
+* Overload typecast: (See code in github lesson)
+    * Overloaded typecasts and converting constructors perform similar roles.
+    * In general, a converting constructor should be preferred, as it allows the type being constructed to own the construction.
+    * There are a few cases where an overloaded typecast should be used instead:
+        1. When providing a conversion to a fundamental type or a type you can’t add members to (since you can’t define constructors for these types).
+        2. When avoiding circular dependencies.
+* Overload assignment operator: (See code in github lesson and below)
+    
+
+## Templates
+
+* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
+* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
+* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
+* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
+* Function templates có thể được overload.
+* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
+* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
+* Khi cần viết một implementation riêng cho một specific type:
+    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
+    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
+    
+    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
+
+
+## Program-defined types and header files
+
+* Lưu ý đoạn code sau là một full definition, không phải forward declaration:
+    ```C++
+    struct Fraction
+    {
+        int numerator {};
+        int denominator {};
+    };
+    ```
+* Khác với functions (chỉ cần forward declaration là dùng được), header files thường phải chứa full definition của một class. Lý do: compiler cần biết cấu trúc khai báo của các members để đảm bảo chúng được sử dụng đúng cách, đồng thời cần tính toán chính xác kích thước object của type đó để tiến hành instantiate.
+* Với non-template classes, quy chuẩn chung là đặt class definition vào header file, và phần member function definitions vào file `.cpp` cùng tên. Tuy nhiên, nếu áp dụng cách này cho templates, bạn sẽ gặp linker error. Lý do tóm tắt:
+    1. C++ compile từng file một cách độc lập.
+    2. Compiler chỉ instantiate một class template nếu nó thực sự được sử dụng (nghĩa là: compiler bắt buộc phải nhìn thấy đồng thời cả full class template definition chứ không chỉ declaration, VÀ các specific template type(s) đang cần dùng tới).
+
+    => Do đó, compiler sẽ không instantiate template bên trong file `.cpp` để link với lời gọi từ `main.cpp`. Chi tiết xem [tại đây](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes).
+* Với template specialization: compiler phải nhìn thấy full definition của CẢ non-specialized class VÀ specialized class thì mới dùng được template specialization. => Nếu compiler chỉ nhìn thấy definition của bản non-specialized, nó sẽ dùng luôn bản đó thay vì bản specialization.
 
 
 ## Containers and arrays
@@ -1537,45 +1667,6 @@
             ```
         * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
 
-* `std::initializer_list`:
-    * Consider initialization using initializer lists syntax:
-    ```C++
-    int array[] { 5, 4, 3, 2, 1 };
-    ```
-    When a compiler sees an initializer list, it automatically converts it into an object of type std::initializer_list.
-    
-    => ✅ Therefore, if we create a constructor that takes a `std::initializer_list` parameter, we can create objects using the initializer list as an input.
-
-    ```C++
-    class Element
-    {
-    private:
-        int m_value{};
-    public:
-        Element(int value) : m_value{ value } {}
-    };
-
-    class MyArray
-    {
-    public:
-        // ...
-
-        MyArray(std::initializer_list<Element> list) // allow MyArray to be initialized via list initialization
-        {
-            // ...
-        }
-
-        // ...
-    };
-
-
-    MyArray array{ Element{1}, Element{2}, Element{3}}; // initializer list
-    ```
-    * It has a `size()` member function which returns the number of elements in the list.
-    * Much like `std::string_view`, `std::initializer_list` is a view. 
-        * ✅ => `std::initializer_list` is often passed by value
-        * ⚠️ => Copying a `std::initializer_list` does not copy the elements in the list.
-
 
 ## C-style string, `std::string`, `std::string_view`
 
@@ -1585,136 +1676,6 @@
     * `"Hello, world!"`: C-style string literal
     * `"Hello, world!"s`: `std::string` literal
     * `"Hello, world!"sv`: `std::string_view` literal.
-
-
-## Command line arguments
-
-* `argc`: the number of arguments passed to the program, always be at least 1.
-* `argv`: C-style array of char pointers (the length of this array is `argc`), each of which points to a C-style string.
-* To use a command line argument as a number, you must convert it from a string to a number. (See syntax-and-snippnet).
-
-
-## Ellipsis
-
-* 👍 Ellipsis allows us to pass a **variable** number of parameters to a function. (See code in github lesson). 
-
-
-## Lambdas
-
-* **Functors** are objects that contain an overloaded `operator()` that make them callable.
-* **Lambdas** are a special kind of functor.
-* ✅ Lambdas aren’t functions, which is part of how they avoid the limitation of C++ not supporting nested functions.
-* Lambdas can have no name if we defined a it right where it was needed. This use is called a **function literal**:
-    ```C++
-    int x{ 7 };
-    int y{};
-    y = [](int a) -> int { return a * 2; }(x);  // y = 14
-    ```
-* (C++14) Lamdas’re allowed to use `auto` for parameters. A unique lambda will be generated for each different type that `auto` resolves to.
-* In lambda, static variables work exactly the same as regular functions.
-* (C++17) Lambdas are implicitly constexpr if:
-    1. They have no captures, or all captures must be constexpr.
-    2. Functions called by the lambda must be constexpr.
-* Lambda **captures**:
-    * 👎️ Unlike nested blocks, where any identifier accessible in the outer block is accessible in the nested block. Lambdas can only access objects defined outside the lambda if:
-        * they have static (or thread local) storage duration (e.g., global variables and static locals)
-        * or, they are constexpr (explicitly or implicitly)
-        * or, they are listed in **capture clause**.
-    * ⚠️ The captured variables of a lambda are **copies** of the outer scope variables.
-        ```C++
-        int y{ 5 };
-        [y]() { } ();  // y is cloned
-        ```
-    * ⚠️ 
-        * At **compile** time, when the compiler encounters a lambda definition, it creates a custom object definition for the lambda. Each captured variable becomes a data member of the object.
-        * At runtime, when the lambda definition is encountered, the lambda object is instantiated. The members of the lambda are initialized at that point and ⚠️ persisted across multiple calls to the lambda!
-    * Captures are const by default:
-        ```C++
-        [y]() { ++y } (); // error, inside the lambda, y is const.
-        ```
-    * *Mutable* captures:
-        ```C++
-        int y{ 5 };
-
-        auto increment {[y]() mutable
-        {
-            ++y;
-            std::cout << y << '\n';
-        }};
-        increment();    // 6, y is modified inside the lambda. But it's a copy of the outer y.
-        increment();    // 7, y is persisted across multiple calls to the lambda
-
-        std::cout << y << '\n'; // 5, y is not modified outside the lambda.
-        ```
-    * Capture by reference
-        ```C++
-        int y{ 5 };
-        [&y]() { ++y; } ();
-        std::cout << y << '\n'; // 6, y is modified.
-        ```
-    * Multiple captured variables: 
-        * This can include a mix of variables captured by value or by reference
-            ```C++
-            [x, &y]() { } ();
-            ```
-        * **Default captures** capture all variables.
-            * To capture all variables by value, use `=`.
-            * To capture all variables by reference, use `&`.
-            * can be mixed with normal captures.
-
-            ```C++
-            int a{ 1 }, b{ 2 }, c{ 3 };
-            auto d{ [=]() { return a + b + c; } () };   // a, b, c are captured by value.            
-            auto e{ [&, a, b]() { return a + b + c; } () };   // a, b are captured by value, c is captured by reference.
-    * Defining new variables in the lambda-capture:
-        * The newly defined variable is the same for every call. But if a lambda is "mutable" and modifies a variable that was defined in the capture, the original value will be overridden.
-            ```C++
-            int x{ 2 };
-            int y{ 5 };
-
-            auto f { [new_var{ x * y }]() mutable { new_var++; } };
-            
-            f();    // new_var is 11
-            f();    // new_var is 12
-    * ⚠️ Dangling captured variables
-        ```C++
-        // returns a lambda
-        auto print1(const std::string& name)
-        {
-            return [&]() {          // Capture name by reference
-                std::cout << name;  // Undefined behavior
-            };
-        }
-
-        auto print2(const std::string& name)
-        {
-            return [=]() {          // Capture name by value
-                std::cout << name;
-            };
-        }
-
-        auto printWilly1{ print1("Willy") }; // the temporary string literal "Willy" dies at the end of this command
-        printWilly1(); // `name` is a dangling reference 
-        auto printWilly2{ print1("Willy") };
-        printWilly2(); // okay
-        ```
-
-
-## Overloading operators
-
-* 3 different ways:
-    1. Using friend functions
-    2. Using normal functions
-    3. Using member functions
-* Overload io operators: (See code in github lesson)
-* Overload subscript operator: (See code in github lesson)
-* Overload typecast: (See code in github lesson)
-    * Overloaded typecasts and converting constructors perform similar roles.
-    * In general, a converting constructor should be preferred, as it allows the type being constructed to own the construction.
-    * There are a few cases where an overloaded typecast should be used instead:
-        1. When providing a conversion to a fundamental type or a type you can’t add members to (since you can’t define constructors for these types).
-        2. When avoiding circular dependencies.
-* Overload assignment operator: (See code in github lesson and below)
 
 
 ## Memory allocation
