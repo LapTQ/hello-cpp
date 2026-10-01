@@ -852,9 +852,24 @@
             {}
         };
         ```
-	    * **Implicit default constructor**: là **default constructor** do compiler tự động sinh ra. Nó không có member initializer list và có phần body rỗng.
-      		* Với aggregate: luôn luôn có.
-        	* Với non-aggregate: nếu không có bất kỳ user-declared constructor nào.
+	    * **Implicit default constructor**:
+      		* nếu không có bất kỳ user-defined constructor nào, C++ sẽ tự động sinh ra 1 default constructor.
+        	* Nó không có member initializer list và có phần body rỗng.
+ 	* **Copy constructor**:
+	    * được gọi khi khởi tạo một object từ một object khác cùng kiểu. Parameter của copy constructor BẮT BUỘC phải là một **reference**.
+	
+	        ```C++
+	        class Point {
+	            Point(const Point& p)		// Copy constructor
+	            // ...
+	        };
+	
+	        Point p { ... };
+			Point pCopy { p }; // => gọi copy constructor
+	        ```
+	    * **Implicit copy constructor**:
+	    	* Nếu không có user-defined copy constructor, C++ sẽ tự động sinh ra 1 copy constructor.
+	        * Nó sẽ thực hiện copy từng member một.
     * **Implicit conversion** thông qua constructor:
 	    * Ở ví dụ dưới, hàm `printDollar` nhận kiểu `Dollar`, nhưng ta lại truyền vào `int`. Khi đó, compiler sẽ tìm một constructor phù hợp cho phép convert từ `int` sang `Dollar`. Constructor đó là `Dollar(int ...)`:
 	        ```C++
@@ -989,7 +1004,7 @@
 * **List constructor**: là constructor nhận vào một `std::initializer_list`, cho phép tạo instance bằng một **initializer list**.
     * dễ thấy nhất là khi bạn dùng các container của thư viện chuẩn (như `std::vector`), VD: `std::vector<int> primes{ 2, 3, 5, 7 };`.
     * Thứ tự ưu tiên:
-        * Nếu initializer list rỗng (`{}`) -> tìm **default constructor**.
+        * Nếu initializer list rỗng (`{}`) -> ưu tiên **default constructor**.
         * Nếu initializer list có phần tử -> ưu tiên **list constructor** phù hợp hơn các constructors khác.
 	* `std::initializer_list` là view (giống `std::string_view`) 
         * ✅ => OK nếu pass `std::initializer_list` by value.
@@ -1002,6 +1017,13 @@
     	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
 * Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
 * ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
+
+
+* **Copy assignment**:
+    * **Implicit copy assignment operator**:
+        * ⚠️ Compiler sẽ tự sinh ra một implicit `operator=` nếu bạn không khai báo bản user-defined.
+        * Có thể cấm copy assignment bằng cách set thành `private` hoặc dùng từ khóa `delete`.
+        * Nếu class có chứa `const` members, compiler sẽ mặc định đánh dấu implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
 
 
 * **Implicit object**:
@@ -1794,120 +1816,9 @@
         ```
 
 
-## Copy constructors và Copy assignment
-
-* **Copy constructor**:
-    * Dùng để khởi tạo một object mới từ một object đã có (cùng kiểu). Parameter của copy constructor BẮT BUỘC phải là một **reference**.
-
-        ```C++
-        class Point
-        {
-        private:
-            int m_x{ 0 };
-            int m_y{ 1 };
-
-        public:
-            Point(int x=0, int y=1)
-                : m_x{x}, m_y{y}
-            {
-            }
-
-            // Copy constructor
-            Point(const Point& p)
-                : m_x{ p.m_x }
-                , m_y{ p.m_y }
-            {
-            }
-        };
-
-        Point p { 5, 3 };
-		Point pCopy { p }; // => gọi copy constructor
-        ```
-    * **Implicit copy constructor**: C++ sẽ tự động sinh ra một public implicit copy constructor nếu không có user-defined copy constructor:
-        * Nó sẽ thực hiện **memberwise initialization** (copy từng member một).
-    * Các trường hợp **Pass by value**, **return by value**, và **initialization** cùng một class type sẽ tự động (implicitly) gọi copy constructor:
-
-        ```C++
-        void printPoint(Point p) // pass by value
-        {}
-
-        Point generatePoint() {
-            return Point{ 1, 2 };	// return by value
-        }
-
-		Point p3 { generatePoint() }; // Gọi 2 copy constructors ở đây: 1 cho giá trị return và 1 để khởi tạo p3
-        ```
-    * **Copy elision**: Compiler có khả năng tối ưu hóa để loại bỏ (optimize away) các lời gọi copy constructor không cần thiết. Khi đó ta nói constructor đã bị **elided**.
-* **Copy assignment**:
-    * Việc overload `operator=` khá đơn giản. Nhưng cẩn thận với self-assignment:
-        ```C++
-        class Point {
-        // ...
-
-            // Overload operator= (Đừng dùng phiên bản này. Xem phần Self-assignment)
-            Point& operator=(const Point& other)
-            {
-                m_x = other.m_x;
-                m_y = other.m_y;
-
-                return *this;
-            }
-        };
-
-        Point a{ 1, 2 };
-        Point b{ 3, 4 };
-
-        a = b; // gọi operator=
-        a = a; // self-assignment (tự gán cho chính nó)
-        ```
-    * ⚠️ **Self-assignment**: Hầu hết trường hợp chỉ gây lãng phí thời gian. Tuy nhiên, nó cực kỳ nguy hiểm nếu class có xử lý dynamic memory (cấp phát động):
-        ```C++
-        class IntBox
-        {
-            int* m_data;
-
-        public:
-            IntBox(int val) {
-                m_data = new int { val }; // Cấp phát động
-            }
-            
-            ~IntBox() {
-                delete m_data;
-            }
-
-            // Overloaded assignment (Phiên bản LỖI - Đừng dùng)
-            IntBox& operator= (const IntBox& other)
-            {
-                // Giải phóng bộ nhớ hiện tại
-                delete m_data; // 🚨 Nếu self-assignment, ta vừa xóa luôn dữ liệu của `other`!
-                
-                m_data = new int { *other.m_data }; // Lỗi (Undefined Behavior) vì *other.m_data đã bị xóa ở dòng trên
-
-                return *this;
-            }
-        };
-        ```
-
-    * ✅ **Giải pháp**: Chỉ cần thêm một **self-assignment guard** để thoát sớm nếu phát hiện tự gán:
-        ```C++
-        IntBox& operator= (const IntBox& other)
-        {
-            // self-assignment guard
-            if (this == &other)
-                return *this;
-            
-            //...
-        }
-        ```
-    * **Implicit copy assignment operator**:
-        * ⚠️ Compiler sẽ tự sinh ra một implicit `operator=` nếu bạn không khai báo bản user-defined.
-        * Có thể cấm copy assignment bằng cách set thành `private` hoặc dùng từ khóa `delete`.
-        * Nếu class có chứa `const` members, compiler sẽ mặc định đánh dấu implicit `operator=` là deleted. Nếu vẫn muốn class có thể assign được (cho các non-const members), bạn bắt buộc phải explicitly overload `operator=`.
-
-
 ## Shallow copy và deep copy
 
-* Copy constructor và Assignment operator mặc định mặc định sử dụng **shallow copy**. Cách này không có vấn đề gì với các class đơn giản. ⚠️ Nhưng nếu class có dynamically allocated memory, shallow copy sẽ chỉ copy địa chỉ của pointer:
+* **Implicit copy constructor** và **implicit assignment operator** là **shallow copy**. Việc này OK với các class đơn giản. ⚠️ Nhưng nếu class có dynamically allocated memory, shallow copy sẽ chỉ copy địa chỉ của pointer:
     ```C++
     class IntBox {
         int* m_data;
@@ -1920,37 +1831,58 @@
         ~IntBox() { delete m_data; }
     };
 
-	IntBox box1 { 10 };
+	IntBox a { 10 };
 	{
-		IntBox box2{ box1 }; // shallow copy, gọi default copy constructor
-	} // `box2` bị destroy tại đây => m_data của `box1` trở thành dangling pointer
+		IntBox b{ a }; // shallow copy, gọi default copy constructor
+	} // `b` bị destroy tại đây => m_data của `a` trở thành dangling pointer
     ```
-* Để thực hiện **Deep copy**, ta bắt buộc phải tự tự viết copy constructors và overload assignment operators:
+* Để **deep copy**, ta bắt buộc phải tự viết copy constructors và overload assignment operators:
     ```C++
     class IntBox {
     // ...
 
-        // 1. User-defined Copy Constructor (Deep copy)
-        IntBox(const IntBox& source)
+        // 1. Copy Constructor
+        IntBox(const IntBox& other)
         {
-            // Cấp phát vùng nhớ mới và chép giá trị (không chép địa chỉ)
-            m_data = new int { *source.m_data }; 
+            // Cấp phát vùng nhớ mới và chép giá trị
+            m_data = new int { *other.m_data }; 
         }
 
-        // 2. Overloaded Assignment Operator (Deep copy)
-        IntBox& operator=(const IntBox& source)
+        // 2. Overloaded Assignment Operator
+        IntBox& operator=(const IntBox& other)
         {
-            if (this == &source)    // self-assignment guard
-                return *this;
+            // ⚠️ Tạm thời chưa có self-assignment guard
 
             delete m_data;          // giải phóng vùng nhớ cũ của đích đến trước
-            m_data = new int { *source.m_data }; // cấp phát và chép giá trị mới
+            m_data = new int { *other.m_data }; // cấp phát và chép giá trị mới
             
             return *this;
         }
     };
     ```
+    * Lưu ý vấn đề **self-assignment**: `a = a;`
+     	* ⚠️ Hầu hết trường hợp chỉ gây lãng phí thời gian. Tuy nhiên, nó cực kỳ nguy hiểm nếu class có xử lý dynamic memory:
+        	```C++
+         	IntBox& operator= (const IntBox& other)
+            {
+                delete m_data; 	// 🚨 Nếu self-assignment, ta vừa xóa luôn dữ liệu của `other`!
+                m_data = new int { *other.m_data }; // Undefined Behavior
+         	// ...
+			```
+		* ✅ **Giải pháp**: Chỉ cần thêm một **self-assignment guard** để thoát sớm nếu phát hiện tự gán:
+	        ```C++
+         	IntBox& operator= (const IntBox& other)
+	        {
+	            // self-assignment guard
+	            if (this == &other)
+	                return *this;
+	            
+	            //...
+	        }
+	        ```
+      	 
 * ✅ Các class trong standard library (như `std::string` và `std::vector`) đều được implement cơ chế **deep copying** chuẩn chỉnh.
+
 * ⚠️ **Rule of Three**: Nếu bạn tự định nghĩa bất kỳ cái nào trong:
     1. Destructor
     2. Copy constructor
@@ -1988,15 +1920,8 @@
     5. Kết quả: `box.m_data` tức thì biến thành một **dangling pointer**.
 
 
-## Move constructors and move assignment
+## Copy semantics và Move semantics
 
-* Copy semantics và Move semantics:
-    * **Copy semantics**:
-        * Quy định cách một object được copy.
-        * Với các class types, cơ chế này thường được implement thông qua **copy constructor** và **copy assignment operator**.
-    * **Move semantics**:
-        * Quy định cách data được move (chuyển giao quyền sở hữu - transfer ownership) từ object này sang object khác.
-        * 👍 Khi move semantics được gọi, data member nào move được thì sẽ move, cái nào không move được thì mới phải copy. => Hiệu năng cao hơn hẳn so với copy semantics.
 * **Copy semantics**:
     ```C++
     class IntBox {
@@ -2017,8 +1942,11 @@
     3. Hàm kết thúc, biến cục bộ `box` bị destroy => Hủy 1 vùng bộ nhớ.
     4. Object tạm dùng Copy assignment để gán giá trị cho `mainBox` (thực hiện deep copy) => Sinh ra thêm 1 lần cấp phát bộ nhớ nữa.
     5. Phép gán xong, object tạm hoàn thành sứ mệnh và bị destroy => Hủy 1 vùng bộ nhớ.
-* **Move semantics** (Ngữ nghĩa di chuyển):
-    * Khác với copy constructor/assignment (nhận parameter là **const l-value reference** `const IntBox&`), move constructor/assignment sử dụng parameter là **non-const rvalue reference** (`IntBox&&`) để "ăn cắp" quyền sở hữu tài nguyên thay vì sao chép vùng nhớ:
+
+* **Copy elision**: Compiler có khả năng tối ưu hóa để loại bỏ (optimize away) các lời gọi copy constructor không cần thiết. Khi đó ta nói constructor đã bị **elided**.
+
+* **Move semantics**:
+    * Khác với copy constructor/assignment (nhận parameter là **const l-value reference** `const IntBox&`), move constructor/assignment sử dụng parameter là **non-const rvalue reference** (`IntBox&&`):
     ```C++
     class IntBox {
         // ... (Constructor và Destructor như cũ)
@@ -2049,10 +1977,10 @@
     2. Khi `box` được return, C++ nhận diện nó sắp bị hủy nên gọi **Move constructor** để "chuyền" con trỏ sang một temporary object (object tạm). `box.m_data` bị gán `nullptr`. Khi `box` kết thúc vòng đời, lệnh `delete nullptr` an toàn và không làm gì cả. => **0 lần cấp phát thêm**.
     3. Temporary object gọi **Move assignment** để chuyền tiếp con trỏ cho `mainBox`. Sau đó temporary object bị destroy (cũng `delete nullptr`). => **0 lần cấp phát thêm**.
 
-* Làm sao biết C++ chọn copy semantics hay move semantics khi khởi tạo/gán? C++ sẽ tự động chọn:
+* Làm sao biết C++ chọn copy semantics hay move semantics khi khởi tạo/gán? Nhìn chung, C++ sẽ tự động chọn:
 	* copy semantics khi đối tượng đích là **l-value**.
  	* move semantics khi đối tượng đích là **r-value** cùng class type và class đó có hỗ trợ move semantics.
-	* 💡 Nguyên nhân: C++ không bao giờ tự động move tài nguyên của một l-value (biến có tên, vẫn còn tồn tại và có thể được tái sử dụng trong scope) => copy lvalue để đảm bảo an toàn. Còn với r-value, việc rút tài nguyên của một đối tượng sắp chết là an toàn.
+	* 💡 Tư duy: C++ không bao giờ tự động move tài nguyên của một l-value (biến có tên, vẫn còn tồn tại và có thể được tái sử dụng trong scope) => copy lvalue để đảm bảo an toàn. Còn với r-value, việc rút tài nguyên của một đối tượng sắp chết là an toàn.
 	* Nếu bạn có một **l-value** nhưng biết **chắc chắn** mình không cần dùng dữ liệu của nó nữa, thì có thể ép C++ chọn move semantics bằng cách: ép kiểu thành **r-value reference** với `std::move`.
 		```C++
 		std::string str { "Du lieu rat lon..." }; 
@@ -2083,18 +2011,14 @@
 			b = std::move(tmp);     // Ép 'tmp' thành r-value => Gọi Move assignment
 		}
 		```
+  	* Khi move semantics được gọi, data member nào move được thì sẽ move, cái nào không move được thì mới phải copy.
+  		* ⚠️ Hệ quả: implicit constructor/assignment sẽ **copy pointers** thay vì move chúng! Nếu muốn move một pointer member, bắt buộc bạn phải tự viết move constructor và move assignment.
 	* ✅ Khi **return by value** từ một hàm, C++ cũng chọn move semantic nếu class đó hỗ trợ move, kể cả khi object trả về đang là một l-value.
  		* Cả `std::vector` và `std::string` đều hỗ trợ move semantics => return chúng bằng value OK!!!
 * **Implicit move constructor/assignment**: Sẽ được compiler tự động sinh ra nếu thỏa mãn ĐỒNG THỜI cả 3 điều kiện sau:
     1. Không có user-declared copy constructors/assignment.
     2. Không có user-declared move constructors/assignment.
     3. Không có user-declared destructor.
-
-    Các implicit move functions này sẽ **move từng member một** theo quy tắc:
-    * Có move constructor/assignment -> Sẽ gọi hàm move tương ứng.
-    * Không có -> copy.
-
-    ⚠️ Hệ quả: implicit constructor/assignment sẽ **copy pointers** thay vì move chúng! Nếu muốn move một pointer member, bắt buộc bạn phải tự viết move constructor và move assignment.
 
 
 ## Smart pointer
