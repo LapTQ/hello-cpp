@@ -1005,16 +1005,15 @@
         * Nếu thiếu cả 2 => **default-initialization** (mang giá trị rác).
 
 * Constructor thực chất không tạo ra object. Việc cấp phát bộ nhớ (memory allocation) cho object đã được compiler thực hiện từ *trước khi* constructor được gọi.
-* ✅ Nếu constructor bị dừng/hủy (aborted) giữa chừng, tất cả các class members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
-	
-	Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
 
 
 * **Destructor**:
 	* được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
     	* khi nó out of scope một cách bình thường.
     	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
-	* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
+	* Nếu constructor bị aborted giữa chừng (hủy ngang) vì bất kỳ lí do gì:
+ 		* destructor của object đó sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
+   		* các members đã được tạo và khởi tạo thành công (trước khi chạy vào **body** của constructor) vẫn sẽ được destruct bình thường.
 	* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
 
 
