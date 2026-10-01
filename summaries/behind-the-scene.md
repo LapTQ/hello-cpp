@@ -544,22 +544,22 @@
 	        ```
 	        => reference không phải lúc nào cũng bind trực tiếp vào đúng object ban đầu.
 
-* **R-value references**:
-    * Là reference được khởi tạo bằng một r-value. **Không thể** được khởi tạo bằng l-value:
+* **Rvalue references**:
+    * Là reference được khởi tạo bằng một rvalue. **Không thể** được khởi tạo bằng lvalue:
         ```C++
         int x{ 5 };
-        int& lref{ x }; // l-value reference
-        int&& rref{ 5 }; // r-value reference
+        int& lref{ x }; // lvalue reference
+        int&& rref{ 5 }; // rvalue reference
         ```
     * Bản thân các ***biến*** (variables) mang kiểu rvalue reference lại được tính là **lvalues**.
         ```C++
-        int&& ref{ 5 }; // r-value reference
-        func2(ref); // in "l-value reference"!!!
+        int&& ref{ 5 }; // rvalue reference
+        func2(ref); // in "lvalue reference"!!!
         ```
   	* So sánh với "**lvalue reference to const** được khởi tạo bằng một rvalue":
   		```C++
 		const int& lref { 5 };	// **lvalue reference to const** được khởi tạo bằng một rvalue
-		int&& rref{ 5 }; 		// r-value reference
+		int&& rref{ 5 }; 		// rvalue reference
 
   	 	// Cơ chế diễn giải của compiler cho *rvalue reference* y hệt **lvalue reference to const**, chỉ khác là bỏ `const` đi
   	 	// int __temp = 100;
@@ -567,21 +567,21 @@
   	 	```
   	 	* Giống: kéo dài vòng đời.
   	  	* Khác:
-  	  		* **l-value reference to const**:
-  	  	 		* có thể khởi tạo bằng cả l-value và r-value.
+  	  		* **lvalue reference to const**:
+  	  	 		* có thể khởi tạo bằng cả lvalue và rvalue.
   	  	 		* ✅ không thể sửa đổi giá trị
-  	  	   	* **r-value references**:
-  				* chỉ có thể khởi tạo bằng r-value.
-  	  	   		* ✅ non-const **r-value reference** có thể sửa đổi giá trị
+  	  	   	* **rvalue references**:
+  				* chỉ có thể khởi tạo bằng rvalue.
+  	  	   		* ✅ non-const **rvalue reference** có thể sửa đổi giá trị
 
-* Cho phép overload hàm riêng rẽ cho l-value và r-value:
+* Cho phép overload hàm riêng rẽ cho lvalue và rvalue:
 	```C++
-	void func2(int& x)  { std::cout << "l-value reference" << '\n'; }
-	void func2(int&& x) { std::cout << "r-value reference" << '\n'; }
+	void func2(int& x)  { std::cout << "lvalue reference" << '\n'; }
+	void func2(int&& x) { std::cout << "rvalue reference" << '\n'; }
 
 	int x{ 5 };
-	func2(x); // => "l-value reference"
-	func2(5); // => "r-value reference"
+	func2(x); // => "lvalue reference"
+	func2(5); // => "rvalue reference"
 	```
 
 
@@ -1434,7 +1434,7 @@
 * **Copy elision**: Compiler có khả năng tối ưu hóa để loại bỏ (optimize away) các lời gọi copy constructor không cần thiết. Khi đó ta nói constructor đã bị **elided**.
 
 * **Move semantics**:
-    * Khác với copy constructor/assignment (nhận parameter là **const l-value reference** `const IntBox&`), move constructor/assignment sử dụng parameter là **non-const rvalue reference** (`IntBox&&`):
+    * Khác với copy constructor/assignment (nhận parameter là **const lvalue reference** `const IntBox&`), move constructor/assignment sử dụng parameter là **non-const rvalue reference** (`IntBox&&`):
     ```C++
     class IntBox {
         // ... (Constructor và Destructor như cũ)
@@ -1466,17 +1466,17 @@
     3. Temporary object gọi **Move assignment** để chuyền tiếp con trỏ cho `mainBox`. Sau đó temporary object bị destroy (cũng `delete nullptr`). => **0 lần cấp phát thêm**.
 
 * Làm sao biết C++ chọn copy semantics hay move semantics khi khởi tạo/gán? Nhìn chung, C++ sẽ tự động chọn:
-	* copy semantics khi đối tượng đích là **l-value**.
- 	* move semantics khi đối tượng đích là **r-value** cùng class type và class đó có hỗ trợ move semantics.
-	* 💡 Tư duy: C++ không bao giờ tự động move tài nguyên của một l-value (biến có tên, vẫn còn tồn tại và có thể được tái sử dụng trong scope) => copy lvalue để đảm bảo an toàn. Còn với r-value, việc rút tài nguyên của một đối tượng sắp chết là an toàn.
-	* Nếu bạn có một **l-value** nhưng biết **chắc chắn** mình không cần dùng dữ liệu của nó nữa, thì có thể ép C++ chọn move semantics bằng cách: ép kiểu thành **r-value reference** với `std::move`.
+	* copy semantics khi đối tượng đích là **lvalue**.
+ 	* move semantics khi đối tượng đích là **rvalue** cùng class type và class đó có hỗ trợ move semantics.
+	* 💡 Tư duy: C++ không bao giờ tự động move tài nguyên của một lvalue (biến có tên, vẫn còn tồn tại và có thể được tái sử dụng trong scope) => copy lvalue để đảm bảo an toàn. Còn với rvalue, việc rút tài nguyên của một đối tượng sắp chết là an toàn.
+	* Nếu bạn có một **lvalue** nhưng biết **chắc chắn** mình không cần dùng dữ liệu của nó nữa, thì có thể ép C++ chọn move semantics bằng cách: ép kiểu thành **rvalue reference** với `std::move`.
 		```C++
 		std::string str { "Du lieu rat lon..." }; 
 		std::vector<std::string> v;
 	
-		v.push_back(str); // l-value => copy. Biến 'str' gốc vẫn giữ nguyên giá trị ban đầu.
+		v.push_back(str); // lvalue => copy. Biến 'str' gốc vẫn giữ nguyên giá trị ban đầu.
 	
-		v.push_back(std::move(str)); 	// r-value => move. ⚠️ Dữ liệu bên trong 'str' gốc đã bị "bốc" đi mất.
+		v.push_back(std::move(str)); 	// rvalue => move. ⚠️ Dữ liệu bên trong 'str' gốc đã bị "bốc" đi mất.
 		```
 		* ⚠️ Sau khi bị move (như biến `str` ở bước 2), dữ liệu có nó đã bị bốc đi mất: 
 			* ⚠️ **KHÔNG NÊN:** Đọc giá trị cũ của nó.
@@ -1486,22 +1486,22 @@
 		template <typename T>
 		void mySwapCopy(T& a, T& b)		// Phiên bản Copy (Chậm chạp do cấp phát bộ nhớ liên tục)
 		{
-			T tmp { a }; // a là l-value => Gọi Copy constructor
-			a = b;       // b là l-value => Gọi Copy assignment
-			b = tmp;     // tmp là l-value => Gọi Copy assignment
+			T tmp { a }; // a là lvalue => Gọi Copy constructor
+			a = b;       // b là lvalue => Gọi Copy assignment
+			b = tmp;     // tmp là lvalue => Gọi Copy assignment
 		}
 	
 		template <typename T>
 		void mySwapMove(T& a, T& b)		// Phiên bản Move
 		{
-			T tmp { std::move(a) }; // Ép 'a' thành r-value => Gọi Move constructor
-			a = std::move(b);       // Ép 'b' thành r-value => Gọi Move assignment
-			b = std::move(tmp);     // Ép 'tmp' thành r-value => Gọi Move assignment
+			T tmp { std::move(a) }; // Ép 'a' thành rvalue => Gọi Move constructor
+			a = std::move(b);       // Ép 'b' thành rvalue => Gọi Move assignment
+			b = std::move(tmp);     // Ép 'tmp' thành rvalue => Gọi Move assignment
 		}
 		```
   	* Khi move semantics được gọi, data member nào move được thì sẽ move, cái nào không move được thì mới phải copy.
   		* ⚠️ Hệ quả: implicit constructor/assignment sẽ **copy pointers** thay vì move chúng! Nếu muốn move một pointer member, bắt buộc bạn phải tự viết move constructor và move assignment.
-	* ✅ Khi **return by value** từ một hàm, C++ cũng chọn move semantic nếu class đó hỗ trợ move, kể cả khi object trả về đang là một l-value.
+	* ✅ Khi **return by value** từ một hàm, C++ cũng chọn move semantic nếu class đó hỗ trợ move, kể cả khi object trả về đang là một lvalue.
  		* Cả `std::vector` và `std::string` đều hỗ trợ move semantics => return chúng bằng value OK!!!
 * **Implicit move constructor/assignment**: Sẽ được compiler tự động sinh ra nếu thỏa mãn ĐỒNG THỜI cả 3 điều kiện sau:
     1. Không có user-declared copy constructors/assignment.
@@ -2141,7 +2141,7 @@
         3. The standard library containers will use the `noexcept` operator to determine whether to use move semantics (faster) or copy semantics (slower).
 * `std::move_if_noexcept`:
     * Consider the case where we are copying some object. If the copy fails for some reason, the object being copied is not harmed. However, if we move the object instead, and the move fails, ⚠️ the source object might be left in modified state.
-    * `std::move_if_noexcept` is a counterpart to `std::move` that is used in the same way, but only performs the move if the object has a `noexcept` move constructor. Otherwise, it will return a copyable l-value.
+    * `std::move_if_noexcept` is a counterpart to `std::move` that is used in the same way, but only performs the move if the object has a `noexcept` move constructor. Otherwise, it will return a copyable lvalue.
         => ✅ We can use the `noexcept` specifier in conjunction with `std::move_if_noexcept` to provide strong exception safety guarantees.
 
 
