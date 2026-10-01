@@ -896,6 +896,14 @@
 			printDollar(5); // Lỗi compile
 			printDollar(static_cast<Dollar>(5)); // Hợp lệ, ép kiểu explicit (tường minh)            
 	        ```
+  	* **List constructor**: là constructor nhận vào một `std::initializer_list`, cho phép tạo instance bằng một **initializer list**.
+	    * dễ thấy nhất là khi bạn dùng các container của thư viện chuẩn (như `std::vector`), VD: `std::vector<int> primes{ 2, 3, 5, 7 };`.
+	    * Thứ tự ưu tiên:
+	        * Nếu initializer list rỗng (`{}`) -> ưu tiên **default constructor**.
+	        * Nếu initializer list có phần tử -> ưu tiên **list constructor** phù hợp hơn các constructors khác.
+		* `std::initializer_list` là view (giống `std::string_view`) 
+	        * ✅ => OK nếu pass `std::initializer_list` by value.
+	        * ⚠️ => copy 1 `std::initializer_list` không copy dữ liệu bên trong.
    	* **Delegating constructors**:
    		```C++
 		class Dollar {
@@ -1001,22 +1009,13 @@
 	
 	Đây là một phần của nguyên lý [***RAII***](https://www.learncpp.com/cpp-tutorial/destructors).
 
-* **List constructor**: là constructor nhận vào một `std::initializer_list`, cho phép tạo instance bằng một **initializer list**.
-    * dễ thấy nhất là khi bạn dùng các container của thư viện chuẩn (như `std::vector`), VD: `std::vector<int> primes{ 2, 3, 5, 7 };`.
-    * Thứ tự ưu tiên:
-        * Nếu initializer list rỗng (`{}`) -> ưu tiên **default constructor**.
-        * Nếu initializer list có phần tử -> ưu tiên **list constructor** phù hợp hơn các constructors khác.
-	* `std::initializer_list` là view (giống `std::string_view`) 
-        * ✅ => OK nếu pass `std::initializer_list` by value.
-        * ⚠️ => copy 1 `std::initializer_list` không copy dữ liệu bên trong.
-
 
 * **Destructor**:
 	* được tự động gọi khi một object của class đó bị destroy (phá hủy). Ví dụ:
     	* khi nó out of scope một cách bình thường.
     	* Khi một 1 object cấp phát động bị xóa tường minh bằng `delete`.
-* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
-* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
+	* Nếu constructor bị aborted (hủy ngang) vì bất kỳ lý do gì, destructor sẽ KHÔNG BAO GIỜ được gọi (do quá trình tạo object chưa hoàn tất).
+	* ⚠️ Do `std::exit()` không dọn dẹp các local variables => sẽ KHÔNG có destructor nào được gọi. Cẩn thận nếu bạn đang phụ thuộc vào destructor để dọn dẹp (như đóng file, giải phóng bộ nhớ, ghi log...).
 
 
 * **Copy assignment**:
