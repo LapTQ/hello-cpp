@@ -1184,518 +1184,6 @@
         1. When providing a conversion to a fundamental type or a type you can’t add members to (since you can’t define constructors for these types).
         2. When avoiding circular dependencies.
 * Overload assignment operator: (See code in github lesson and below)
-    
-
-## Templates
-
-* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
-* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
-* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
-* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
-* Function templates có thể được overload.
-* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
-* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
-* Khi cần viết một implementation riêng cho một specific type:
-    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
-    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
-    
-    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
-
-
-## Program-defined types and header files
-
-* Lưu ý đoạn code sau là một full definition, không phải forward declaration:
-    ```C++
-    struct Fraction
-    {
-        int numerator {};
-        int denominator {};
-    };
-    ```
-* Khác với functions (chỉ cần forward declaration là dùng được), header files thường phải chứa full definition của một class. Lý do: compiler cần biết cấu trúc khai báo của các members để đảm bảo chúng được sử dụng đúng cách, đồng thời cần tính toán chính xác kích thước object của type đó để tiến hành instantiate.
-* Với non-template classes, quy chuẩn chung là đặt class definition vào header file, và phần member function definitions vào file `.cpp` cùng tên. Tuy nhiên, nếu áp dụng cách này cho templates, bạn sẽ gặp linker error. Lý do tóm tắt:
-    1. C++ compile từng file một cách độc lập.
-    2. Compiler chỉ instantiate một class template nếu nó thực sự được sử dụng (nghĩa là: compiler bắt buộc phải nhìn thấy đồng thời cả full class template definition chứ không chỉ declaration, VÀ các specific template type(s) đang cần dùng tới).
-
-    => Do đó, compiler sẽ không instantiate template bên trong file `.cpp` để link với lời gọi từ `main.cpp`. Chi tiết xem [tại đây](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes).
-* Với template specialization: compiler phải nhìn thấy full definition của CẢ non-specialized class VÀ specialized class thì mới dùng được template specialization. => Nếu compiler chỉ nhìn thấy definition của bản non-specialized, nó sẽ dùng luôn bản đó thay vì bản specialization.
-
-
-## Containers and arrays
-
-* **Array**: 
-    * Là một container data type lưu trữ một chuỗi các giá trị **liên tiếp nhau** trong memory.
-    * Có 3 loại array chính trong C++:
-        * ⚠️ **C-style arrays**: Hành vi khá bất thường và nguy hiểm.
-        * `std::vector`: Linh hoạt nhất.
-        * `std::array`: Hạn chế hơn so với `std::vector`, nhưng hiệu năng có thể tốt hơn, đặc biệt với các arrays kích thước nhỏ.
-* Vấn đề về **length** và **subscript**:
-    * ⚠️ Khi thiết kế các container classes trong C++ standard library, người ta đã quyết định gán kiểu **unsigned** cho **length** và **subscripts**. Tuy nhiên nhìn nhận lại, đây là một lựa chọn sai lầm. Thực tế (như đã bàn trước đây), ta nên ưu tiên dùng signed values để lưu trữ số lượng (quantities).
-* `std::vector`
-    * KHÔNG THỂ là `constexpr`.
-    * ⚠️ Length và indices của `std::vector` mang kiểu `size_type` (thường là alias của `std::size_t`). Thực chất `std::size_t` là một typedef của một kiểu `unsigned integral` lớn (thường là `unsigned long` hoặc `unsigned long long`).
-        ```C++
-        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index là unsigned
-        ```
-    * Bên dưới, `std::vector` lưu trữ các elements bằng một C-style array. 👍 C-style array cho phép indexing bằng cả `signed` và `unsigned` types (xem lại phần *Pointer arithmetic*).
-    * Truy cập array elements (Accessing elements):
-        * ⚠️ Dùng `operator[]`: KHÔNG kiểm tra bounds (no bounds checking).
-        * 👍 Dùng hàm `.at()`: CÓ kiểm tra bounds lúc runtime, nhưng tốc độ chậm hơn `operator[]`.
-            ```C++
-            std::vector<int> primes{ 2, 3, 5, 7 };
-
-            std::cout << primes[9]; // undefined behavior (lỗi không xác định)
-            std::cout << primes.at(9); // throws exception (ném ra ngoại lệ)
-            ```
-        * 👍 Indexing bằng một `constexpr signed int`: KHÔNG bị coi là narrowing conversion (do compiler tự ngầm định chuyển sang `std::size_t` một cách an toàn).
-            ```C++
-            constexpr int index { 3 };         // constexpr
-            std::cout << primes[index] << '\n'; // Hợp lệ, không bị tính là narrowing conversion
-            ```
-        * 👍 Indexing bằng một `non-constexpr std::size_t`: KHÔNG bị coi là narrowing conversion (vì đã đúng kiểu).
-            ```C++
-            std::size_t index2 { 3 };           // non-constexpr kiểu std::size_t
-            std::cout << primes[index2] << '\n'; // Hợp lệ, không cần convert
-            ```
-        * ⚠️ Indexing bằng một `non-constexpr signed value`: SẼ bị coi là narrowing conversion (compiler có thể văng warning).
-            ```C++
-            int index3 { 3 };                   // non-constexpr signed value
-            std::cout << primes[index3] << '\n'; // Có thể sinh warning: implicit convert sang std::size_t gây narrowing conversion
-            ```
-        * 👍 Indexing vào kết quả của hàm `.data()` bằng `signed value`: KHÔNG bị coi là narrowing conversion.
-
-             Hàm `.data()` trả về một pointer trỏ trực tiếp tới C-style array bên dưới => Tránh được hoàn toàn các vấn đề cảnh báo ép kiểu (sign conversion issues).
-
-            ```C++
-            int index3 { 3 };                   // non-constexpr signed value
-            std::cout << primes.data()[index] << '\n'; // Hợp lệ: không có warning về sign conversion
-            ```
-    * `std::vector<bool>`:
-        * ⚠️ Đây KHÔNG PHẢI là một real container và có thể làm hỏng (break) generic code. Theo chuẩn C++, `vector<bool>` là một special container được tối ưu hóa: mỗi phần tử `bool` chỉ chiếm 1 **bit** thay vì 1 **byte** như `bool` thông thường. Hệ lụy:
-            * 👎️ KHÔNG THỂ lấy địa chỉ (take address) của một bit riêng lẻ bên trong 1 byte.
-            * 👎️ Các thao tác như `operator[]` KHÔNG THỂ trả về `bool&`.
-            * 👎️ KHÔNG THỂ gán địa chỉ của nó cho một `bool*` như các containers bình thường khác.
-            ```C++
-            std::vector<bool> v_bool = {true, false, true};
-            bool& ref = v_bool[0];  // Lỗi
-            bool* ptr = &v_bool[0]; // Lỗi
-            ```
-        * Hiệu năng của nó phụ thuộc rất nhiều vào mức độ optimize của từng implementation (trình biên dịch). Một số bản implement thực tế có thể chậm hơn các cấu trúc dữ liệu thay thế.
-* Fixed-size arrays vs dynamic arrays:
-    * `std::array` and C-style arrays are fixed-size array types.
-    * `std::vector` is a dynamic array.
-    * **Length** vs **capacity**:
-        * **capacity** is how many elements the std::vector has allocated storage for.
-        * **length** is how many elements are currently being used.
-        * A std::vector with a capacity of 5 has allocated space for 5 elements. If the vector contains 2 elements in active use, the length (size) of the vector is 2. The 3 remaining elements have memory allocated for them, but they are not considered to be in active use. They can be used later without overflowing the vector. (See syntax-and-snippnet for a demo).
-    * Reallocation process:
-        * When `std::vector` acquires new memory with capacity for the desired number of elements, these elements are **value-initialized**.
-        * The elements in the old memory are copied (or moved, if possible) into the new memory. The old memory is then returned to the system.
-        * The capacity and length of the std::vector are set to the new values.
-
-        => ⚠️ Reallocation is an expensive process.
-    * ⚠️ Resizing a vector changes both capacity and length:
-        ```C++
-        std::vector<int> arr2(3); // vector containing 3, the length is also being set to 3
-        arr2.push_back(4);        // push on top of the stack
-        for (auto i : arr2)
-            std::cout << i << ' ';  // [0 0 0 4] instead of [4 0 0]
-
-        std::vector arr3{1, 2, 3};
-        arr3.resize(5);  // also changes the length
-        arr3.push_back(4);
-        for (auto i : arr3)
-            std::cout << i << ' ';  // [1 2 3 0 0 4]
-        ```
-    * 👍 `reserve()` member function changes the capacity (but not the length):
-        ```C++
-        std::vector<int> arr4{};
-        arr4.reserve(5);  // reserve 5 elements
-        arr4.push_back(1);
-        for (auto i : arr4)
-            std::cout << i << ' ';  // [1]
-        ```
-    * `push_back()` vs `emplace_back()`:
-        * Both push element to end of vector.
-        * When we already have an object to be push, `push_back` and `emplace_back` are similar in efficiency.
-        * However, in cases where we are creating a temporary object, `emplace_back` is more efficient:
-        ```C++
-        class Foo
-        {
-        public:
-            Foo(int x, std::string b) {}
-        };
-
-        void func4()
-        {
-            std::vector<Foo> arr5;
-            arr5.push_back({ 1, "a" }); // creates a temporary object, and then copies it into the vector
-            arr5.emplace_back(1, "a");          // forwards the arguments so the object can be created directly in the vector (no copy made)
-        }
-        ```
-* `std::array`:
-    * When to use `std::array` over `std::vector`:
-        * `std::vector` is slightly less performant than `std::array`.
-        * (Main reason) `std::vector` only supports constexpr in very limited contexts.
-
-            👎️ => Define `std::array` as constexpr whenever possible. If your `std::array` is not constexpr, consider using a `std::vector` instead.
-    * the length of a `std::array` **must** be a constant expression.
-        ```C++
-        std::vector<int> b(7);    // a std::vector of 7 ints (for comparison)
-
-        std::array<int, 7> arr2 {};  // using literal constant
-
-        constexpr int len3 { 7 };
-        std::array<int, len3> arr3 {};  // using constexpr variable
-        ```
-    * is an aggregate => to initialize it, we provide an initializer list.
-        ```C++
-        std::array<int, 5> arr5 { 1, 2, 3, 4, 5 };  // list initialization
-        std::array<int, 5> arr6 = { 1, 2, 3, 4, 5 }; // copy-list initialization
-
-        std::array<int, 5> arr7; // member default initialization (in most case left uninitialized)    
-        std::array<int, 5> arr8 {}; // member value initialization (zero-initialized)
-
-        std::array<int, 5> arr9 { 1, 2 }; // [1 2 0 0 0]
-
-        // CTAD (C++17)
-        constexpr std::array arr12 { 1, 2, 3}; // type is deduced to std::array<int, 3>
-        ```
-    * ⚠️ Aggregate initialization syntax works for `std::array`:
-        ```C++
-        struct House
-        {
-            int number{};
-            int stories{};
-            int roomsPerStory{};
-        };
-
-        void func1()
-        {
-            // work
-            std::array<House, 3> houses{};
-            houses[0] = { 13, 1, 7 };
-            houses[1] = { 14, 2, 5 };
-            houses[2] = { 15, 2, 4 };
-
-            // work
-            constexpr std::array houses2 { // CTAD to deduce <House, 3>
-                House{ 13, 1, 7 },
-                House{ 14, 2, 5 },
-                House{ 15, 2, 4 }
-            };
-
-            // ⚠️ doesn't work
-            constexpr std::array<House, 3> houses3 { 
-                { 13, 1, 7 },
-                { 14, 2, 5 },
-                { 15, 2, 4 }
-            };
-
-            // works
-            constexpr std::array<House, 3> houses4 {
-                { // extra set of braces 
-                    { 13, 4, 30 }, 
-                    { 14, 3, 10 }, 
-                    { 15, 3, 40 }, 
-                }
-            };
-        }
-        ```
-        A `std::array` is defined as a "struct" like this:
-        ```C++
-        template<typename T, std::size_t N>
-        struct array
-        {
-            T implementation_defined_name[N];
-        }
-        ```
-        where `implementation_defined_name` is a C-style array with N elements of type T.
-
-        => ⚠️ in the 3rd example, `{ 13, 1, 7 }` is used to initialize `implementation_defined_name`. Then the compiler will discover that we’ve provided two more initialization values (`{ 14, 2, 7 }` and `{ 15, 2, 5 }`) which exceeds the number of members in the struct.
-    * Brace elision for `std::array`: 
-        
-        Given the explanation above, you may be wondering why the following single-brace syntax work?
-        ```C++
-        constexpr std::array<int, 3> arr { 1, 2, 3 }; // single braces
-        constexpr std::array<int, 3> arr { { 1, 2, 3 } }; // double braces
-        ```
-        Generally, you can omit braces when initializing a `std::array` with:
-        * scalar values, or
-        * with class types where the type is explicitly named.
-
-        👍 There is no harm in always initializing `std::array` with double braces.
-    * Length and indexing of `std::array` is similar to `std::vector`. 👍 But, because the length of a `std::array` is constexpr, each of the `.size()`, `std::size()`, `.ssize()` (C++20) will return the length as a constexpr value (even when called on a non-constexpr std::array object)
-        ```C++
-        std::array<int, 5> arr13 { 1, 2, 3, 4, 5 }; // not constexpr
-        constexpr int len13 { arr13.size() };  // ok, return value is constexpr std::size_t and can be converted to int, not a narrowing conversion
-        ```
-    * While 👎️ `operator[]` does no bounds checking and 👎️ `at()` member function 
-  only does runtime bounds checking (remind that function parameters can’t be constexpr), 👍 the `std::get()` function template does compile-time bounds checking.
-
-        ```C++
-        constexpr std::array<int, 5> arr14 { 1, 2, 3, 4, 5 };
-        std::cout << std::get<2>(arr14) << '\n';  // 3
-        std::cout << std::get<10>(arr14) << '\n';  // compile-time error
-        ```
-    * ⚠️ Pass `std::array` by (const) reference: the type of the non-type template parameter for std::array should be `std::size_t`, not `int`. 
-        ```C++
-        void passByRef(const std::array<int, 5>& arr) // we must explicitly specify <int, 5> here
-        {
-            // ...
-        }
-
-        template <typename T, std::size_t N>
-        void passByRef2(const std::array<T, N>& arr)
-        {
-            // ...
-        }
-        ```
-    * ⚠️ Returning a `std::array`: Unlike `std::vector`, `std::array` is not move-capable, so **returning it by value** will make a copy => Consider using an out parameter or use `std::vector` instead.
-* Arrays of references:
-    * ⚠️ You **cannot** make an array of references. Because, the elements of an array must be assignable, while references can’t be reseated.
-        ```C++
-        int x { 1 };
-        int y { 2 };
-        std::array<int&, 2> refarr { x, y }; // compile error
-
-        int& ref1 { x };
-        int& ref2 { y };
-        std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
-        valarr[0] = 10;
-        std::cout << valarr[0] << " " << x << '\n'; // 10 1
-        ```
-    * 👍 `std::reference_wrapper` behaves like a modifiable lvalue reference to T:
-        ```C++
-        std::array<std::reference_wrapper<int>, 2> arr { x, y };
-        arr[0].get() = 10;
-        std::cout << arr[0] << " " << x << '\n'; // 10 10
-        ```
-
-        Notes about `std::reference_wrapper`:
-        * `Operator=` will "reseat" a `std::reference_wrapper`.
-        * `std::reference_wrapper<T>` will implicitly convert to `T&`.
-        * `get()` member function can be used to get a `T&`.
-* C-style array:
-    * Syntax: use square brackets (`[]`) to declare a C-style array:
-        ```C++
-        int arr[5]; // define an array of 5 int values
-        ```
-    * The length of a C-style array **must** be a constant expression of type `std::size_t` (Just like `std::array`).
-    * CTAD doesn’t work with C-style array, so we must explicitly specified element's type.
-        ```C++
-        auto arr7[5] { 1, 2, 3, 4, 5 }; // compile error
-        ```
-    * C-style arrays are aggregates (Just like `std::array`) => they can be initialized using aggregate initialization.
-    * When we initialize a C-style array with an initializer list, we can omit the length:
-        ```C++
-        int arr8[] { 1, 2, 3, 4, 5 }; // the length is deduced
-        ```
-    * Getting the length of a C-style array:
-        * (C++17) can use `std::size()` or `std::ssize()`.
-        * ⚠️ Prior to C++17, there was no standard library function to get the length of a C-style array => we can use this function instead:
-            ```C++
-            template <typename T, std::size_t N>
-            constexpr std::size_t length(const T(&)[N]) noexcept
-            {
-                return N;
-            }
-
-            int arr[5];
-            std::cout << length(arr) << '\n'; // prior to C++17
-            std::cout << std::size(arr) << '\n'; // C++17, returns unsigned integral
-            std::cout << std::ssize(arr) << '\n'; // C++20, returns signed integral
-            ```
-    * C-style arrays don’t support assignment:
-        ```C++
-        int arr9[3] { 1, 2, 3 };
-        arr9[0] = 4; // ok
-        arr9 = { 4, 5, 6 }; // compile error
-        ```
-    * C-style array decay:
-        * In most cases, when a C-style array is used in an expression, the array will be implicitly converted into a pointer, initialized with the address of the first element (with index 0).
-            ```C++
-            int arr1[] { 1, 2, 3, 4, 5 };   // array
-            auto ptr{ arr1 }; // decayed array. Type deduction should deduce type int*
-            std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n'; // true
-            std::cout << std::boolalpha << (&arr1[0] == ptr) << '\n'; // true
-
-            ```
-        * Cases in C++ where an C-style array doesn’t decay:
-            * When used as an argument to `sizeof()` or `typeid()`.
-            * When taking the address of the array using `operator&`.
-            * When passed as a member of a class type.
-            * When passed by reference.
-        * 👍 => avoid expensive copy
-        * 👍 => a single function can accept arrays of different sizes
-            ```C++
-            void f(const int* arr) // pass by const address
-            {
-                // ...
-            }
-
-            int arr1[] { 1, 2, 3, 4, 5 };
-            f(arr1);
-            ```
-        * Syntax:
-            * 👎️ declaring the function parameter as `int* arr` makes it not obvious that `arr` is a "pointer to an array" rather than a pointer to a single integer.
-            * 👎️ declaring the function parameter as `int arr[]` is more preferred, but makes it less obvious that `arr` has decayed
-
-            ```C++
-            void f(const int arr[]) // pass by const address
-            {
-                // ...
-            }
-            ```
-        * ⚠️ Problems: Loss of length information. Consequence:
-            * `sizeof()` will return different values for arrays and decayed arrays:
-                ```C++
-                void printArraySize(int arr[])
-                {
-                    std::cout << sizeof(arr) << '\n'; // prints 4 (assuming 32-bit addresses)
-                }
-
-                int arr1[] { 1, 2, 3, 4, 5 };
-                std::cout << sizeof(arr1) << '\n'; // prints 20 (assuming 32-bit addresses)
-                ```
-            * make refactoring difficult
-            * Some work-arounds:
-                * pass the length of the array as a separate parameter.
-                    * 👎️ sign conversion issues
-                    * 👎️ cannot do compile-time validation
-                    * 👎️ only work with explicit call. If the array is passed as operand, we cannot pass in the length.
-                * mark the end of the array using a special element.
-                    * 👎️ need special handling for the terminating element.
-                    * 👎️ mismatch between the array actual length and the number of semantically valid elements.
-    * C-style string: 
-        * simply declare a C-style array variable of `char`:
-            ```C++
-            char str1[8]{};                    // 8 char, including hidden null-terminator character
-            const char str2[]{ "string" };     // 7 char, including hidden null-terminator character
-            ```
-        * Outputting: `std::cout` outputs characters until it encounters the null terminator. `std::cout` makes some assumptions:
-            * If you pass it a non-char **pointer**, it will simply print the contents of that pointer.
-            * If you pass it an object of type `char*` or `const char*`, it will print a string.
-            ```C++
-            const char str2[]{ "string" };
-            std::cout << str2 << '\n'; // string
-
-            int narr[]{ 9, 7, 5, 3, 1 };
-            std::cout << narr << '\n'; // 0x7ffeeb1b3b40
-
-            char c{ 'Q' };
-            std::cout << &c << '\n'; // undefined behavior
-            // intending to print the address of c. However, &c has type char*, so std::cout will try to print this as a string.
-            // But, because c is not null-terminated, we get undefined behavior.
-            ```
-        * Inputting:
-            * ⚠️ Prior to C++20, `std::cin` would extract as many charaters as possible (stopping at the first non-leading whitespace) => might overflow.
-            * In C++20, `operator>>` only work for inputing non-decayed C-style strings => extract only as many characters as length will allow
-            * *See syntax-and-snippnet for the the recommended way to read C-style strings.*
-        * ⚠️ Getting the length:
-            * `std::size()` or `std::ssize()` returns the actual length of the array, not the length of the string => use `strlen()`
-            * But `strlen()` is slow, as it has to traverse through the array to count until it hits the null terminator.
-        * C-style string symbolic constants:
-            ```C++
-            const char name[] { "Alex" };     // case 1: const C-style string initialized with C-style string literal
-            const char* const color{ "Orange" };    // case 2: const pointer to C-style string literal
-            ```
-            While producing the same results, the memory allocation for the 2 methods behave differently:
-            * Case 1:
-                * “Alex” is put into (probably read-only) memory somewhere.
-                * program allocates memory for a C-style array of length 5 and initializes it with “Alex"
-
-                => 2 copies of “Alex”.
-            * Case 2:
-                * places the string “Orange” into read-only memory somewhere.
-                * initializes the pointer with the address of the string.
-* Multidimensional arrays: *see code in github lesson*.
-* Iterate through an array: Different ways:
-    * using indexes
-    * using *Pointer arithmetic*:
-        * All standard library containers offer direct support for iteration:
-            * using member functions `begin()` and `end()`
-            * or, using functions `std::begin` and `std::end`
-
-        ```C++
-        template <typename T>
-        void print(const T* begin, const T* end)
-        {
-            for (auto p{ begin }; p != end; ++p) // ++ to move to next element.
-            {
-                std::cout << *p << ' '; // Indirection to get value of current element.
-            }
-        }
-
-        std::array array{ 1, 2, 3 };
-
-        auto begin{ array.begin() };
-        auto end{ array.end() };
-        print(begin, end);
-
-        auto begin2{ std::begin(array) };
-        auto end2{ std::end(array) };
-        print(begin2, end2);
-        ```
-
-        ```C++
-        void printArray(const int* begin, const int* end)
-        {
-            for (; begin != end; ++begin)   // iterate from begin up to (but excluding) end
-            {
-                std::cout << *begin << ' '; // dereference our loop variable to get the current element
-            }
-        }
-
-        constexpr int arr[]{ 9, 7, 5, 3, 1 };
-
-        const int* begin{ arr };                // begin points to start element
-        const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
-
-        printArray(begin, end);
-        ```
-        * ⚠️ Much like pointers and references, iterators can be left “dangling” if the elements being iterated over change address or are destroyed.
-    * Range-based for-loops: They use iterators.
-        ```C++
-        template <typename T>
-        void print(const std::vector<T>& arr)
-        {
-            for (auto num : arr) // iterate and copy each value into `num`
-            {
-                // ...
-            }
-        }
-        ```
-        * Work with a wide variety of array types, including non-decayed C-style arrays, std::array, std::vector, linked list, trees, and maps.
-        * The loop variable should have the same type as the array elements => prefer using `auto`
-        * ⚠️ Elements are copied to the loop variable 
-            * Expensive for some types => ✅ can use reference to avoid such copy.
-            * Cannot change the values in the array => ✅ can use non-const reference.
-            ```C++
-            for (const auto& num : arr) // if non-const, the reference can change the values in the array
-            {
-                // ...
-            }
-            ```
-        * Loops in reverse (C++20):
-            ```C++
-            #include <ranges> // C++20
-            for (const auto& num : std::views::reverse(arr))
-            {
-                // ...
-            }
-            ```
-        * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
-
-
-## C-style string, `std::string`, `std::string_view`
-
-* C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
-* `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
-* Các string literal:
-    * `"Hello, world!"`: C-style string literal
-    * `"Hello, world!"s`: `std::string` literal
-    * `"Hello, world!"sv`: `std::string_view` literal.
 
 
 ## Memory allocation
@@ -1745,73 +1233,75 @@
         * Là cách request memory từ OS khi cần thiết (lúc runtime).
         * ⚠️ Lập trình viên phải tự tay dispose (giải phóng) memory đã cấp phát.
         * Sử dụng **heap** memory (thường chậm hơn stack memory).
-* Dynamic memory allocation:
-    * Cấp phát biến đơn ("single" variables):
-        ```C++
-        int* ptr{ new int };    // dynamically allocate một số nguyên và gán địa chỉ cho ptr
-        delete ptr;     // trả lại memory cho OS
-        ptr = nullptr;
 
-        // dynamically allocate và khởi tạo (initialize)
-        int* ptr1{ new int (5) };   // direct initialization
-        int* ptr2{ new int { 6 } }; // uniform initialization
-        delete ptr1;
-        ptr1 = nullptr;
-        delete ptr2;
-        ptr2 = nullptr;
-        ```
-    * Cấp phát arrays (demo bằng C-style arrays):
-        ```C++
-        std::size_t length{ 10 };   // không bắt buộc phải là constexpr
-        int* array{ new int[length]{} }; 
-        delete[] array;
+## Dynamic memory allocation
 
-        // dynamically allocate và khởi tạo
-        int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
-        auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
-        int* array4{ new int[]{ 9, 7, 5, 3, 1 } };      // Không bắt buộc phải ghi rõ size của array.
-        delete[] array2;
-        delete[] array3;
-        delete[] array4;
-        ```
-    * Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
-    * ⚠️ Deallocate memory có thể vô tình tạo ra nhiều dangling pointers:
-        ```C++
-        int* ptr3{ new int{} };
-        int* otherPtr{ ptr3 }; // otherPtr lúc này trỏ tới cùng một địa chỉ memory với ptr3
-        delete ptr3; // vùng nhớ bị xóa => ptr3 và otherPtr giờ đều trở thành dangling pointers.
-        ptr3 = nullptr;
-        // tuy nhiên, otherPtr vẫn đang là một dangling pointer!
-        ```
-    * ⚠️ Quá trình allocate có thể thất bại: Trong vài trường hợp hiếm, OS không còn memory để cấp phát. Mặc định, một exception `bad_alloc` sẽ bị throw và chương trình sẽ crash. ✅ Để tránh điều này, ta có thể yêu cầu trả về null pointer (thay vì crash) bằng cách thêm `std::nothrow`:
-        ```C++
-        int* value { new (std::nothrow) int };
-        ```
-    * ⚠️ **Memory leaks**: Xảy ra khi ta làm mất địa chỉ memory trước khi trả nó về cho OS => OS vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
-        ```C++
-        {
-            int* ptr{ new int{} };
-        } // ptr rơi vào out of scope, ta mất luôn địa chỉ của vùng nhớ vừa allocate => memory leak
+* Cấp phát biến đơn ("single" variables):
+	```C++
+	int* ptr{ new int };    // dynamically allocate một số nguyên và gán địa chỉ cho ptr
+	delete ptr;     // trả lại memory cho OS
+	ptr = nullptr;
 
-        {
-            int value = 5;
-            int* ptr{ new int{} }; // allocate memory
-            ptr = &value; // gán con trỏ sang địa chỉ mới => mất địa chỉ memory cũ => memory leak
-        }
-        ```
+	// dynamically allocate và khởi tạo (initialize)
+	int* ptr1{ new int (5) };   // direct initialization
+	int* ptr2{ new int { 6 } }; // uniform initialization
+	delete ptr1;
+	ptr1 = nullptr;
+	delete ptr2;
+	ptr2 = nullptr;
+	```
+* Cấp phát arrays (demo bằng C-style arrays):
+	```C++
+	std::size_t length{ 10 };   // không bắt buộc phải là constexpr
+	int* array{ new int[length]{} }; 
+	delete[] array;
 
-        ```C++
-        void func1()
-        {
-            int* ptr = new int;
+	// dynamically allocate và khởi tạo
+	int* array2{ new int[5]{ 9, 7, 5, 3, 1 } };
+	auto* array3{ new int[5]{ 9, 7, 5, 3, 1 } };    // type deduction
+	int* array4{ new int[]{ 9, 7, 5, 3, 1 } };      // Không bắt buộc phải ghi rõ size của array.
+	delete[] array2;
+	delete[] array3;
+	delete[] array4;
+	```
+* Thực chất khi gọi `delete ptr`, ta không xóa biến `ptr`. Biến này vẫn tồn tại và có thể được gán một giá trị mới (VD: `nullptr`) giống như bất kỳ variable nào khác.
+* ⚠️ Deallocate memory có thể vô tình tạo ra nhiều dangling pointers:
+	```C++
+	int* ptr3{ new int{} };
+	int* otherPtr{ ptr3 }; // otherPtr lúc này trỏ tới cùng một địa chỉ memory với ptr3
+	delete ptr3; // vùng nhớ bị xóa => ptr3 và otherPtr giờ đều trở thành dangling pointers.
+	ptr3 = nullptr;
+	// tuy nhiên, otherPtr vẫn đang là một dangling pointer!
+	```
+* ⚠️ Quá trình allocate có thể thất bại: Trong vài trường hợp hiếm, OS không còn memory để cấp phát. Mặc định, một exception `bad_alloc` sẽ bị throw và chương trình sẽ crash. ✅ Để tránh điều này, ta có thể yêu cầu trả về null pointer (thay vì crash) bằng cách thêm `std::nothrow`:
+	```C++
+	int* value { new (std::nothrow) int };
+	```
+* ⚠️ **Memory leaks**: Xảy ra khi ta làm mất địa chỉ memory trước khi trả nó về cho OS => OS vĩnh viễn không thể sử dụng lại vùng memory đó nữa.
+	```C++
+	{
+		int* ptr{ new int{} };
+	} // ptr rơi vào out of scope, ta mất luôn địa chỉ của vùng nhớ vừa allocate => memory leak
 
-            return; // hàm return sớm, ptr chưa kịp delete!
+	{
+		int value = 5;
+		int* ptr{ new int{} }; // allocate memory
+		ptr = &value; // gán con trỏ sang địa chỉ mới => mất địa chỉ memory cũ => memory leak
+	}
+	```
 
-            delete ptr;
-        } // => memory leak
-        
-        => ✅ Giải pháp: Xem phần **smart pointer**.
-        ```
+	```C++
+	void func1()
+	{
+		int* ptr = new int;
+
+		return; // hàm return sớm, ptr chưa kịp delete!
+
+		delete ptr;
+	} // => memory leak
+	
+	=> ✅ Giải pháp: Xem phần **smart pointer**.
+	```
 
 
 ## Shallow copy và deep copy
@@ -2653,6 +2143,518 @@
     * Consider the case where we are copying some object. If the copy fails for some reason, the object being copied is not harmed. However, if we move the object instead, and the move fails, ⚠️ the source object might be left in modified state.
     * `std::move_if_noexcept` is a counterpart to `std::move` that is used in the same way, but only performs the move if the object has a `noexcept` move constructor. Otherwise, it will return a copyable l-value.
         => ✅ We can use the `noexcept` specifier in conjunction with `std::move_if_noexcept` to provide strong exception safety guarantees.
+
+
+## Containers and arrays
+
+* **Array**: 
+    * Là một container data type lưu trữ một chuỗi các giá trị **liên tiếp nhau** trong memory.
+    * Có 3 loại array chính trong C++:
+        * ⚠️ **C-style arrays**: Hành vi khá bất thường và nguy hiểm.
+        * `std::vector`: Linh hoạt nhất.
+        * `std::array`: Hạn chế hơn so với `std::vector`, nhưng hiệu năng có thể tốt hơn, đặc biệt với các arrays kích thước nhỏ.
+* Vấn đề về **length** và **subscript**:
+    * ⚠️ Khi thiết kế các container classes trong C++ standard library, người ta đã quyết định gán kiểu **unsigned** cho **length** và **subscripts**. Tuy nhiên nhìn nhận lại, đây là một lựa chọn sai lầm. Thực tế (như đã bàn trước đây), ta nên ưu tiên dùng signed values để lưu trữ số lượng (quantities).
+* `std::vector`
+    * KHÔNG THỂ là `constexpr`.
+    * ⚠️ Length và indices của `std::vector` mang kiểu `size_type` (thường là alias của `std::size_t`). Thực chất `std::size_t` là một typedef của một kiểu `unsigned integral` lớn (thường là `unsigned long` hoặc `unsigned long long`).
+        ```C++
+        for (std::size_t index{ arr.size() - 1 }; index >= 0; --index) // index là unsigned
+        ```
+    * Bên dưới, `std::vector` lưu trữ các elements bằng một C-style array. 👍 C-style array cho phép indexing bằng cả `signed` và `unsigned` types (xem lại phần *Pointer arithmetic*).
+    * Truy cập array elements (Accessing elements):
+        * ⚠️ Dùng `operator[]`: KHÔNG kiểm tra bounds (no bounds checking).
+        * 👍 Dùng hàm `.at()`: CÓ kiểm tra bounds lúc runtime, nhưng tốc độ chậm hơn `operator[]`.
+            ```C++
+            std::vector<int> primes{ 2, 3, 5, 7 };
+
+            std::cout << primes[9]; // undefined behavior (lỗi không xác định)
+            std::cout << primes.at(9); // throws exception (ném ra ngoại lệ)
+            ```
+        * 👍 Indexing bằng một `constexpr signed int`: KHÔNG bị coi là narrowing conversion (do compiler tự ngầm định chuyển sang `std::size_t` một cách an toàn).
+            ```C++
+            constexpr int index { 3 };         // constexpr
+            std::cout << primes[index] << '\n'; // Hợp lệ, không bị tính là narrowing conversion
+            ```
+        * 👍 Indexing bằng một `non-constexpr std::size_t`: KHÔNG bị coi là narrowing conversion (vì đã đúng kiểu).
+            ```C++
+            std::size_t index2 { 3 };           // non-constexpr kiểu std::size_t
+            std::cout << primes[index2] << '\n'; // Hợp lệ, không cần convert
+            ```
+        * ⚠️ Indexing bằng một `non-constexpr signed value`: SẼ bị coi là narrowing conversion (compiler có thể văng warning).
+            ```C++
+            int index3 { 3 };                   // non-constexpr signed value
+            std::cout << primes[index3] << '\n'; // Có thể sinh warning: implicit convert sang std::size_t gây narrowing conversion
+            ```
+        * 👍 Indexing vào kết quả của hàm `.data()` bằng `signed value`: KHÔNG bị coi là narrowing conversion.
+
+             Hàm `.data()` trả về một pointer trỏ trực tiếp tới C-style array bên dưới => Tránh được hoàn toàn các vấn đề cảnh báo ép kiểu (sign conversion issues).
+
+            ```C++
+            int index3 { 3 };                   // non-constexpr signed value
+            std::cout << primes.data()[index] << '\n'; // Hợp lệ: không có warning về sign conversion
+            ```
+    * `std::vector<bool>`:
+        * ⚠️ Đây KHÔNG PHẢI là một real container và có thể làm hỏng (break) generic code. Theo chuẩn C++, `vector<bool>` là một special container được tối ưu hóa: mỗi phần tử `bool` chỉ chiếm 1 **bit** thay vì 1 **byte** như `bool` thông thường. Hệ lụy:
+            * 👎️ KHÔNG THỂ lấy địa chỉ (take address) của một bit riêng lẻ bên trong 1 byte.
+            * 👎️ Các thao tác như `operator[]` KHÔNG THỂ trả về `bool&`.
+            * 👎️ KHÔNG THỂ gán địa chỉ của nó cho một `bool*` như các containers bình thường khác.
+            ```C++
+            std::vector<bool> v_bool = {true, false, true};
+            bool& ref = v_bool[0];  // Lỗi
+            bool* ptr = &v_bool[0]; // Lỗi
+            ```
+        * Hiệu năng của nó phụ thuộc rất nhiều vào mức độ optimize của từng implementation (trình biên dịch). Một số bản implement thực tế có thể chậm hơn các cấu trúc dữ liệu thay thế.
+* Fixed-size arrays vs dynamic arrays:
+    * `std::array` and C-style arrays are fixed-size array types.
+    * `std::vector` is a dynamic array.
+    * **Length** vs **capacity**:
+        * **capacity** is how many elements the std::vector has allocated storage for.
+        * **length** is how many elements are currently being used.
+        * A std::vector with a capacity of 5 has allocated space for 5 elements. If the vector contains 2 elements in active use, the length (size) of the vector is 2. The 3 remaining elements have memory allocated for them, but they are not considered to be in active use. They can be used later without overflowing the vector. (See syntax-and-snippnet for a demo).
+    * Reallocation process:
+        * When `std::vector` acquires new memory with capacity for the desired number of elements, these elements are **value-initialized**.
+        * The elements in the old memory are copied (or moved, if possible) into the new memory. The old memory is then returned to the system.
+        * The capacity and length of the std::vector are set to the new values.
+
+        => ⚠️ Reallocation is an expensive process.
+    * ⚠️ Resizing a vector changes both capacity and length:
+        ```C++
+        std::vector<int> arr2(3); // vector containing 3, the length is also being set to 3
+        arr2.push_back(4);        // push on top of the stack
+        for (auto i : arr2)
+            std::cout << i << ' ';  // [0 0 0 4] instead of [4 0 0]
+
+        std::vector arr3{1, 2, 3};
+        arr3.resize(5);  // also changes the length
+        arr3.push_back(4);
+        for (auto i : arr3)
+            std::cout << i << ' ';  // [1 2 3 0 0 4]
+        ```
+    * 👍 `reserve()` member function changes the capacity (but not the length):
+        ```C++
+        std::vector<int> arr4{};
+        arr4.reserve(5);  // reserve 5 elements
+        arr4.push_back(1);
+        for (auto i : arr4)
+            std::cout << i << ' ';  // [1]
+        ```
+    * `push_back()` vs `emplace_back()`:
+        * Both push element to end of vector.
+        * When we already have an object to be push, `push_back` and `emplace_back` are similar in efficiency.
+        * However, in cases where we are creating a temporary object, `emplace_back` is more efficient:
+        ```C++
+        class Foo
+        {
+        public:
+            Foo(int x, std::string b) {}
+        };
+
+        void func4()
+        {
+            std::vector<Foo> arr5;
+            arr5.push_back({ 1, "a" }); // creates a temporary object, and then copies it into the vector
+            arr5.emplace_back(1, "a");          // forwards the arguments so the object can be created directly in the vector (no copy made)
+        }
+        ```
+* `std::array`:
+    * When to use `std::array` over `std::vector`:
+        * `std::vector` is slightly less performant than `std::array`.
+        * (Main reason) `std::vector` only supports constexpr in very limited contexts.
+
+            👎️ => Define `std::array` as constexpr whenever possible. If your `std::array` is not constexpr, consider using a `std::vector` instead.
+    * the length of a `std::array` **must** be a constant expression.
+        ```C++
+        std::vector<int> b(7);    // a std::vector of 7 ints (for comparison)
+
+        std::array<int, 7> arr2 {};  // using literal constant
+
+        constexpr int len3 { 7 };
+        std::array<int, len3> arr3 {};  // using constexpr variable
+        ```
+    * is an aggregate => to initialize it, we provide an initializer list.
+        ```C++
+        std::array<int, 5> arr5 { 1, 2, 3, 4, 5 };  // list initialization
+        std::array<int, 5> arr6 = { 1, 2, 3, 4, 5 }; // copy-list initialization
+
+        std::array<int, 5> arr7; // member default initialization (in most case left uninitialized)    
+        std::array<int, 5> arr8 {}; // member value initialization (zero-initialized)
+
+        std::array<int, 5> arr9 { 1, 2 }; // [1 2 0 0 0]
+
+        // CTAD (C++17)
+        constexpr std::array arr12 { 1, 2, 3}; // type is deduced to std::array<int, 3>
+        ```
+    * ⚠️ Aggregate initialization syntax works for `std::array`:
+        ```C++
+        struct House
+        {
+            int number{};
+            int stories{};
+            int roomsPerStory{};
+        };
+
+        void func1()
+        {
+            // work
+            std::array<House, 3> houses{};
+            houses[0] = { 13, 1, 7 };
+            houses[1] = { 14, 2, 5 };
+            houses[2] = { 15, 2, 4 };
+
+            // work
+            constexpr std::array houses2 { // CTAD to deduce <House, 3>
+                House{ 13, 1, 7 },
+                House{ 14, 2, 5 },
+                House{ 15, 2, 4 }
+            };
+
+            // ⚠️ doesn't work
+            constexpr std::array<House, 3> houses3 { 
+                { 13, 1, 7 },
+                { 14, 2, 5 },
+                { 15, 2, 4 }
+            };
+
+            // works
+            constexpr std::array<House, 3> houses4 {
+                { // extra set of braces 
+                    { 13, 4, 30 }, 
+                    { 14, 3, 10 }, 
+                    { 15, 3, 40 }, 
+                }
+            };
+        }
+        ```
+        A `std::array` is defined as a "struct" like this:
+        ```C++
+        template<typename T, std::size_t N>
+        struct array
+        {
+            T implementation_defined_name[N];
+        }
+        ```
+        where `implementation_defined_name` is a C-style array with N elements of type T.
+
+        => ⚠️ in the 3rd example, `{ 13, 1, 7 }` is used to initialize `implementation_defined_name`. Then the compiler will discover that we’ve provided two more initialization values (`{ 14, 2, 7 }` and `{ 15, 2, 5 }`) which exceeds the number of members in the struct.
+    * Brace elision for `std::array`: 
+        
+        Given the explanation above, you may be wondering why the following single-brace syntax work?
+        ```C++
+        constexpr std::array<int, 3> arr { 1, 2, 3 }; // single braces
+        constexpr std::array<int, 3> arr { { 1, 2, 3 } }; // double braces
+        ```
+        Generally, you can omit braces when initializing a `std::array` with:
+        * scalar values, or
+        * with class types where the type is explicitly named.
+
+        👍 There is no harm in always initializing `std::array` with double braces.
+    * Length and indexing of `std::array` is similar to `std::vector`. 👍 But, because the length of a `std::array` is constexpr, each of the `.size()`, `std::size()`, `.ssize()` (C++20) will return the length as a constexpr value (even when called on a non-constexpr std::array object)
+        ```C++
+        std::array<int, 5> arr13 { 1, 2, 3, 4, 5 }; // not constexpr
+        constexpr int len13 { arr13.size() };  // ok, return value is constexpr std::size_t and can be converted to int, not a narrowing conversion
+        ```
+    * While 👎️ `operator[]` does no bounds checking and 👎️ `at()` member function 
+  only does runtime bounds checking (remind that function parameters can’t be constexpr), 👍 the `std::get()` function template does compile-time bounds checking.
+
+        ```C++
+        constexpr std::array<int, 5> arr14 { 1, 2, 3, 4, 5 };
+        std::cout << std::get<2>(arr14) << '\n';  // 3
+        std::cout << std::get<10>(arr14) << '\n';  // compile-time error
+        ```
+    * ⚠️ Pass `std::array` by (const) reference: the type of the non-type template parameter for std::array should be `std::size_t`, not `int`. 
+        ```C++
+        void passByRef(const std::array<int, 5>& arr) // we must explicitly specify <int, 5> here
+        {
+            // ...
+        }
+
+        template <typename T, std::size_t N>
+        void passByRef2(const std::array<T, N>& arr)
+        {
+            // ...
+        }
+        ```
+    * ⚠️ Returning a `std::array`: Unlike `std::vector`, `std::array` is not move-capable, so **returning it by value** will make a copy => Consider using an out parameter or use `std::vector` instead.
+* Arrays of references:
+    * ⚠️ You **cannot** make an array of references. Because, the elements of an array must be assignable, while references can’t be reseated.
+        ```C++
+        int x { 1 };
+        int y { 2 };
+        std::array<int&, 2> refarr { x, y }; // compile error
+
+        int& ref1 { x };
+        int& ref2 { y };
+        std::array valarr { ref1, ref2 }; // ok, but this is actually a std::array<int, 2>, not an array of references
+        valarr[0] = 10;
+        std::cout << valarr[0] << " " << x << '\n'; // 10 1
+        ```
+    * 👍 `std::reference_wrapper` behaves like a modifiable lvalue reference to T:
+        ```C++
+        std::array<std::reference_wrapper<int>, 2> arr { x, y };
+        arr[0].get() = 10;
+        std::cout << arr[0] << " " << x << '\n'; // 10 10
+        ```
+
+        Notes about `std::reference_wrapper`:
+        * `Operator=` will "reseat" a `std::reference_wrapper`.
+        * `std::reference_wrapper<T>` will implicitly convert to `T&`.
+        * `get()` member function can be used to get a `T&`.
+* C-style array:
+    * Syntax: use square brackets (`[]`) to declare a C-style array:
+        ```C++
+        int arr[5]; // define an array of 5 int values
+        ```
+    * The length of a C-style array **must** be a constant expression of type `std::size_t` (Just like `std::array`).
+    * CTAD doesn’t work with C-style array, so we must explicitly specified element's type.
+        ```C++
+        auto arr7[5] { 1, 2, 3, 4, 5 }; // compile error
+        ```
+    * C-style arrays are aggregates (Just like `std::array`) => they can be initialized using aggregate initialization.
+    * When we initialize a C-style array with an initializer list, we can omit the length:
+        ```C++
+        int arr8[] { 1, 2, 3, 4, 5 }; // the length is deduced
+        ```
+    * Getting the length of a C-style array:
+        * (C++17) can use `std::size()` or `std::ssize()`.
+        * ⚠️ Prior to C++17, there was no standard library function to get the length of a C-style array => we can use this function instead:
+            ```C++
+            template <typename T, std::size_t N>
+            constexpr std::size_t length(const T(&)[N]) noexcept
+            {
+                return N;
+            }
+
+            int arr[5];
+            std::cout << length(arr) << '\n'; // prior to C++17
+            std::cout << std::size(arr) << '\n'; // C++17, returns unsigned integral
+            std::cout << std::ssize(arr) << '\n'; // C++20, returns signed integral
+            ```
+    * C-style arrays don’t support assignment:
+        ```C++
+        int arr9[3] { 1, 2, 3 };
+        arr9[0] = 4; // ok
+        arr9 = { 4, 5, 6 }; // compile error
+        ```
+    * C-style array decay:
+        * In most cases, when a C-style array is used in an expression, the array will be implicitly converted into a pointer, initialized with the address of the first element (with index 0).
+            ```C++
+            int arr1[] { 1, 2, 3, 4, 5 };   // array
+            auto ptr{ arr1 }; // decayed array. Type deduction should deduce type int*
+            std::cout << std::boolalpha << (typeid(ptr) == typeid(int*)) << '\n'; // true
+            std::cout << std::boolalpha << (&arr1[0] == ptr) << '\n'; // true
+
+            ```
+        * Cases in C++ where an C-style array doesn’t decay:
+            * When used as an argument to `sizeof()` or `typeid()`.
+            * When taking the address of the array using `operator&`.
+            * When passed as a member of a class type.
+            * When passed by reference.
+        * 👍 => avoid expensive copy
+        * 👍 => a single function can accept arrays of different sizes
+            ```C++
+            void f(const int* arr) // pass by const address
+            {
+                // ...
+            }
+
+            int arr1[] { 1, 2, 3, 4, 5 };
+            f(arr1);
+            ```
+        * Syntax:
+            * 👎️ declaring the function parameter as `int* arr` makes it not obvious that `arr` is a "pointer to an array" rather than a pointer to a single integer.
+            * 👎️ declaring the function parameter as `int arr[]` is more preferred, but makes it less obvious that `arr` has decayed
+
+            ```C++
+            void f(const int arr[]) // pass by const address
+            {
+                // ...
+            }
+            ```
+        * ⚠️ Problems: Loss of length information. Consequence:
+            * `sizeof()` will return different values for arrays and decayed arrays:
+                ```C++
+                void printArraySize(int arr[])
+                {
+                    std::cout << sizeof(arr) << '\n'; // prints 4 (assuming 32-bit addresses)
+                }
+
+                int arr1[] { 1, 2, 3, 4, 5 };
+                std::cout << sizeof(arr1) << '\n'; // prints 20 (assuming 32-bit addresses)
+                ```
+            * make refactoring difficult
+            * Some work-arounds:
+                * pass the length of the array as a separate parameter.
+                    * 👎️ sign conversion issues
+                    * 👎️ cannot do compile-time validation
+                    * 👎️ only work with explicit call. If the array is passed as operand, we cannot pass in the length.
+                * mark the end of the array using a special element.
+                    * 👎️ need special handling for the terminating element.
+                    * 👎️ mismatch between the array actual length and the number of semantically valid elements.
+    * C-style string: 
+        * simply declare a C-style array variable of `char`:
+            ```C++
+            char str1[8]{};                    // 8 char, including hidden null-terminator character
+            const char str2[]{ "string" };     // 7 char, including hidden null-terminator character
+            ```
+        * Outputting: `std::cout` outputs characters until it encounters the null terminator. `std::cout` makes some assumptions:
+            * If you pass it a non-char **pointer**, it will simply print the contents of that pointer.
+            * If you pass it an object of type `char*` or `const char*`, it will print a string.
+            ```C++
+            const char str2[]{ "string" };
+            std::cout << str2 << '\n'; // string
+
+            int narr[]{ 9, 7, 5, 3, 1 };
+            std::cout << narr << '\n'; // 0x7ffeeb1b3b40
+
+            char c{ 'Q' };
+            std::cout << &c << '\n'; // undefined behavior
+            // intending to print the address of c. However, &c has type char*, so std::cout will try to print this as a string.
+            // But, because c is not null-terminated, we get undefined behavior.
+            ```
+        * Inputting:
+            * ⚠️ Prior to C++20, `std::cin` would extract as many charaters as possible (stopping at the first non-leading whitespace) => might overflow.
+            * In C++20, `operator>>` only work for inputing non-decayed C-style strings => extract only as many characters as length will allow
+            * *See syntax-and-snippnet for the the recommended way to read C-style strings.*
+        * ⚠️ Getting the length:
+            * `std::size()` or `std::ssize()` returns the actual length of the array, not the length of the string => use `strlen()`
+            * But `strlen()` is slow, as it has to traverse through the array to count until it hits the null terminator.
+        * C-style string symbolic constants:
+            ```C++
+            const char name[] { "Alex" };     // case 1: const C-style string initialized with C-style string literal
+            const char* const color{ "Orange" };    // case 2: const pointer to C-style string literal
+            ```
+            While producing the same results, the memory allocation for the 2 methods behave differently:
+            * Case 1:
+                * “Alex” is put into (probably read-only) memory somewhere.
+                * program allocates memory for a C-style array of length 5 and initializes it with “Alex"
+
+                => 2 copies of “Alex”.
+            * Case 2:
+                * places the string “Orange” into read-only memory somewhere.
+                * initializes the pointer with the address of the string.
+* Multidimensional arrays: *see code in github lesson*.
+* Iterate through an array: Different ways:
+    * using indexes
+    * using *Pointer arithmetic*:
+        * All standard library containers offer direct support for iteration:
+            * using member functions `begin()` and `end()`
+            * or, using functions `std::begin` and `std::end`
+
+        ```C++
+        template <typename T>
+        void print(const T* begin, const T* end)
+        {
+            for (auto p{ begin }; p != end; ++p) // ++ to move to next element.
+            {
+                std::cout << *p << ' '; // Indirection to get value of current element.
+            }
+        }
+
+        std::array array{ 1, 2, 3 };
+
+        auto begin{ array.begin() };
+        auto end{ array.end() };
+        print(begin, end);
+
+        auto begin2{ std::begin(array) };
+        auto end2{ std::end(array) };
+        print(begin2, end2);
+        ```
+
+        ```C++
+        void printArray(const int* begin, const int* end)
+        {
+            for (; begin != end; ++begin)   // iterate from begin up to (but excluding) end
+            {
+                std::cout << *begin << ' '; // dereference our loop variable to get the current element
+            }
+        }
+
+        constexpr int arr[]{ 9, 7, 5, 3, 1 };
+
+        const int* begin{ arr };                // begin points to start element
+        const int* end{ arr + std::size(arr) }; // end points to one-past-the-end element
+
+        printArray(begin, end);
+        ```
+        * ⚠️ Much like pointers and references, iterators can be left “dangling” if the elements being iterated over change address or are destroyed.
+    * Range-based for-loops: They use iterators.
+        ```C++
+        template <typename T>
+        void print(const std::vector<T>& arr)
+        {
+            for (auto num : arr) // iterate and copy each value into `num`
+            {
+                // ...
+            }
+        }
+        ```
+        * Work with a wide variety of array types, including non-decayed C-style arrays, std::array, std::vector, linked list, trees, and maps.
+        * The loop variable should have the same type as the array elements => prefer using `auto`
+        * ⚠️ Elements are copied to the loop variable 
+            * Expensive for some types => ✅ can use reference to avoid such copy.
+            * Cannot change the values in the array => ✅ can use non-const reference.
+            ```C++
+            for (const auto& num : arr) // if non-const, the reference can change the values in the array
+            {
+                // ...
+            }
+            ```
+        * Loops in reverse (C++20):
+            ```C++
+            #include <ranges> // C++20
+            for (const auto& num : std::views::reverse(arr))
+            {
+                // ...
+            }
+            ```
+        * Behind the scenes, the range-based for-loop calls `begin()` and `end()` of the type to iterate over.
+
+
+## C-style string, `std::string`, `std::string_view`
+
+* C-style string và `std::string` đều có thể tự động ép kiểu (implicitly convert) sang `std::string_view`. Nhưng `std::string_view` không implicitly convert thành `std::string`.
+* `std::string` là chủ sở hữu duy nhất của dữ liệu, còn `std::string_view` chỉ là một viewer.
+* Các string literal:
+    * `"Hello, world!"`: C-style string literal
+    * `"Hello, world!"s`: `std::string` literal
+    * `"Hello, world!"sv`: `std::string_view` literal.
+
+
+## Templates
+
+* Function templates bản chất không phải là hàm thực sự, chúng dùng để sinh ra (generate) hàm.
+* Quá trình sinh hàm từ function templates được gọi là **instantiation**.
+* Một **function instance** chỉ được instantiate **đúng 1 lần duy nhất** ở lần gọi hàm đầu tiên trong mỗi translation unit. Các lần gọi tiếp theo sẽ tái sử dụng instance đã được tạo.
+* ⚠️ Cẩn thận với **modifiable static local variables** trong function templates: mỗi function được instantiate ra sẽ có một bản sao static local variable hoàn toàn độc lập.
+* Function templates có thể được overload.
+* **Non-type template parameter**: là template parameter có kiểu cố định, đóng vai trò như một placeholder cho một giá trị `constexpr`.
+* Các function được implicitly instantiate từ template sẽ tự động là implicitly inline.
+* Khi cần viết một implementation riêng cho một specific type:
+    1. Cách 1 (không áp dụng cho class type): Định nghĩa một non-template function cho type đó. Khi tiến hành overload resolution, hàm này sẽ được ưu tiên hơn template function.
+    2. Cách 2: Dùng **template specialization**. Cách này cũng đem lại kết quả tương tự (xem code trên github).
+    
+    **Partial template specialization**: Tính đến C++23, function không thể được partial specialize, chỉ class mới làm được điều này (xem code trên github).
+
+
+## Program-defined types and header files
+
+* Lưu ý đoạn code sau là một full definition, không phải forward declaration:
+    ```C++
+    struct Fraction
+    {
+        int numerator {};
+        int denominator {};
+    };
+    ```
+* Khác với functions (chỉ cần forward declaration là dùng được), header files thường phải chứa full definition của một class. Lý do: compiler cần biết cấu trúc khai báo của các members để đảm bảo chúng được sử dụng đúng cách, đồng thời cần tính toán chính xác kích thước object của type đó để tiến hành instantiate.
+* Với non-template classes, quy chuẩn chung là đặt class definition vào header file, và phần member function definitions vào file `.cpp` cùng tên. Tuy nhiên, nếu áp dụng cách này cho templates, bạn sẽ gặp linker error. Lý do tóm tắt:
+    1. C++ compile từng file một cách độc lập.
+    2. Compiler chỉ instantiate một class template nếu nó thực sự được sử dụng (nghĩa là: compiler bắt buộc phải nhìn thấy đồng thời cả full class template definition chứ không chỉ declaration, VÀ các specific template type(s) đang cần dùng tới).
+
+    => Do đó, compiler sẽ không instantiate template bên trong file `.cpp` để link với lời gọi từ `main.cpp`. Chi tiết xem [tại đây](https://www.learncpp.com/cpp-tutorial/template-classes/#:~:text=Splitting%20up%20template%20classes).
+* Với template specialization: compiler phải nhìn thấy full definition của CẢ non-specialized class VÀ specialized class thì mới dùng được template specialization. => Nếu compiler chỉ nhìn thấy definition của bản non-specialized, nó sẽ dùng luôn bản đó thay vì bản specialization.
 
 
 ## Static and dynamic libraries
