@@ -1840,9 +1840,9 @@
       	* ✅ LUÔN LUÔN khai báo destructors của base classes là `virtual` trong các base classes. Bởi vì, nếu derived class có cấp phát động và bạn dùng đa hình (tức dùng derived class thông qua base class pointer/reference), thì mới có thể deallocate 1 cách an toàn.
       	* ❌ TUYỆT ĐỐI KHÔNG virtualize `operator=` => vô vàn lỗi tiềm ẩn.
 	* **Pure virtual functions** (hay **abstract functions**): bắt buộc phải được override ở các derived classes:
-	        ```C++
-	        virtual void doSomething() = 0; // pure virtual function
-	        ```
+		```C++
+		virtual void doSomething() = 0; // pure virtual function
+		```
 	  	* Nó biến class chứa nó thành một **abstract class** (không thể khởi tạo object trực tiếp).
 		* Nó có thể không có body. Nhưng nếu có, phần body **bắt buộc** phải được viết ở bên ngoài class declaration:
 	        ```C++
