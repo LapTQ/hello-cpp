@@ -1586,7 +1586,9 @@
 
 # Inheritance
 
-* ⚠️ If `Derived` inherits from `Base`, then `Derived` is really 2 parts: a `Base` part, and a `Derived` part. When C++ constructs derived objects, it does so in phases: first, the most-base class is constructed, then **each** child class is constructed **in order** until the most-child class is constructed last.
+* ⚠️ Khi `Derived` kế thừa từ `Base`, nó sẽ bao gồm 2 phần: phần `Base` và phần `Derived`. Quá trình C++ construct 1 `Derived` diễn ra theo từng giai đoạn:
+	1. Class gốc sẽ được construct trước tiên
+	2. Sau đó, **từng** child class được construct **theo đúng thứ tự** từ trên xuống cho tới class con cuối cùng.
     ```
        Derived object:
     -------------------
@@ -1599,15 +1601,13 @@
     |     int m_y     |
     -------------------
     ```
-* What actually happens when derived is instantiated:
-    1. Memory for derived is set aside (enough for both the base and derived portions)
-    2. The appropriate `Derived` constructor is called
-    3. The `Base` object is constructed first using the appropriate Base constructor. 
-      
-        ⚠️ If no base constructor is specified, the **default base constructor** will be used.
-    4. The member initializer list initializes variables
-    5. The body of the constructor executes
-    6. Control is returned to the caller
+* Trình tự khi 1 `Derived` được instantiated:
+    1. Cấp phát memory cho derived object (đủ dung lượng cho cả phần base và phần derived).
+    2. `Derived` constructor tương ứng được gọi.
+	    1. Phần `Base` được construct thông qua Base constructor. ⚠️ Nếu không chỉ định rõ base constructor nào, **default base constructor** sẽ được gọi.
+	    2. Chạy member initializer list.
+	    3. Chạy phần body của constructor.
+    6. Quyền điều khiển được trả về cho nơi gọi hàm (caller).
 
     ```C++
     class Base
@@ -1615,9 +1615,7 @@
     public:
         int m_id {};
 
-        Base(int id=1)
-            : m_id { id }
-        {
+        Base(int id=1) : m_id { id } {
             std::cout << "Base\n";
         }
     };
@@ -1627,9 +1625,8 @@
     public:
         double m_cost {};
 
-        Derived1(double cost=2)     // no base constructor is specified => will call default base constructor (Base(int id=1))
-            : m_cost { cost }
-        {
+        Derived1(double cost=2)     // không chỉ định rõ base constructor => sẽ gọi default base constructor (Base(int id=1))
+            : m_cost { cost } {
             std::cout << "Derived\n";
         }
     };
@@ -1637,42 +1634,42 @@
     Base base;
     Derived1 derived;
     ```
-    This prints:
+    Kết quả in ra:
     ```
     Base
     Base
     Derived
     ```
-* C++ prevents initializing **inherited** member variables in the member initializer list:
+* C++ KHÔNG cho phép khởi tạo các **inherited** member variables trực tiếp bên trong member initializer list:
     ```C++
     Derived::Derived(int id, double cost)
-        : m_id { id }       // error
+        : m_id { id }       // Lỗi
         , m_cost { cost }
     { }
     ```
 
     ```C++
     Derived(double cost=0.0, int id=0)
-        : Base{ id }        // okay, call Base(int) constructor
+        : Base{ id }        // Hợp lệ, gọi Base(int) constructor
         , m_cost{ cost }
     { }
     ```
-* Access specifiers:
-    1. `public`: accessible by anybody
-    2. `protected`: accessible base members, friends, and derived classes
-    3. `private`: accessible by base members and friends, but not derived classes
+* **Access specifiers**):
+    1. `public`: truy cập được từ bất cứ đâu.
+    2. `protected`: chỉ các base members, friends, và derived classes mới được phép truy cập.
+    3. `private`: chỉ các base members và friends được phép truy cập, derived classes thì KHÔNG.
 
-    * C++ defaults to private inheritance.
-    * The access specifier for an inherited member may be changed depending on the type of inheritance used:
+    * Mặc định, C++ sử dụng private inheritance (kế thừa private).
+    * Access specifier của một inherited member có thể bị thay đổi tùy vào kiểu kế thừa:
         ```
-        Base class's        |           Kind of inheritance
+        Base class's        |            Kind of inheritance
         access specifier    | Public       | Protected    | Private
         -----------------------------------------------------------------
         Public              | Public       | Protected    | Private
         Protected           | Protected    | Protected    | Private
         Private             | Inaccessible | Inaccessible | Inaccessible 
         ```
-    * Overrided function does not inherit the access specifier in the base class.
+    * Một overridden function KHÔNG kế thừa access specifier từ base class. (Nghĩa là bạn có thể thoải mái định nghĩa lại quyền truy cập mới ở derived class).
         ```C++
         class Base
         {
@@ -1683,10 +1680,10 @@
         class Derived: public Base
         {
         public:
-            void print() {}
+            void print() {} // Định nghĩa lại access specifier thành public
         };
         ```
-    * Given a set of overloaded functions in the base class, there is no way to change the access specifier for a single overload. You can only change them all.
+    * Nếu base class có một nhóm các overloaded functions, ta không thể thay đổi access specifier cho riêng lẻ một bản overload nào. Bắt buộc phải thay đổi cho tất cả cùng lúc.
         ```C++
         class Base
         {
@@ -1697,11 +1694,11 @@
         class Derived: public Base
         {
         public:
-            using Base::print;  // change all Base::print overloads to public
+            using Base::print;  // thay đổi access specifier của TOÀN BỘ các bản overloads của Base::print thành public
         };
-        ``` 
-* Overloading resolution: 
-    * ⚠️ First, **all** overloaded functions in the same class with that name are considered. If no overloaded functions are found, the search continues in the base class:
+        ```
+* **Overloading resolution**:
+    * ⚠️ Compiler sẽ ưu tiên tìm trong **toàn bộ** các overloaded functions của `Derived` trước. Nếu không tìm thấy, nó mới tìm tiếp trong `Base`:
         ```C++
         class Base
         {
@@ -1716,21 +1713,21 @@
         };
 
         Derived d{};
-        d.print(5); // calls Derived::print(double), not Base::print(int)
+        d.print(5); // gọi Derived::print(double), thay vì Base::print(int)
         ```
-    * What if we want to call `Base::print(int)` instead?
-        * Option 1: Override
+    * Nhưng nếu ta thực sự muốn gọi `Base::print(int)` thì sao?
+        * Cách 1: **Override** để tạo wrapper:
             ```C++
             class Derived: public Base
             {
             public:
                 void print(int value)
                 {
-                    Base::print(value); // call Base::print(int)
+                    Base::print(value);
                 }
             };
             ```
-        * Option 2: Use `using`. This tells the compiler to consider all `Base::print` functions when resolving print
+        * Cách 2: Dùng từ khóa `using` => đưa toàn bộ các hàm `Base::print` vào danh sách xem xét khi phân giải overloading.
             ```C++
             class Derived: public Base
             {
@@ -1740,13 +1737,13 @@
             };
 
             Derived d{};
-            d.print(5); // calls Base::print(int)
+            d.print(5); // hàm khớp nhất sẽ được chọn => gọi Base::print(int)
             ```
-* Hiding functionality: 
-    * 2 options:
-        1. mark member functions as `delete` in the derived class.
-        2. change the access specifier in the derived class.
-    * However, the base version of the function is still accessible:
+* Ẩn 1 hàm:
+    * 2 cách:
+        1. Cách 1: Đánh dấu member functions là `delete` bên trong derived class.
+        2. Cách 2: Thay đổi access specifier của hàm đó bên trong derived class.
+    * ⚠️ Tuy nhiên, ta vẫn có thể truy cập được base version của hàm đó thông qua các cách sau:
         ```C++
         class Base
         {
@@ -1762,220 +1759,137 @@
 
         Derived derived { 7 };
 
-        derived.getValue();         // won't work
-        derived.Base::getValue();   // call the Base::getValue() function directly
-        static_cast<Base&>(derived).getValue();   // casting to a Base& (rather than a Base to avoid making a copy)
-* Multiple inheritance: See code in github lesson.
-* ⚠️ **Object slicing**: Consider this example:
-    ```C++
-    class Base
-    {
-    public:
-        std::string_view getName() const { return "Base"; }
-    };
-
-    class Derived: public Base
-    {
-    public:
-        std::string_view getName() const { return "Derived"; }
-    };
-
-    Derived derived {};
-    ```
-
-    * Pointers and references to the base **part** of derived objects:
-        ```C++
-        Base& rBase{ derived };    // reference to the base part of `derived`
-        rBase.getName();            // call Base::getName(), not Derived::getName()
-
-        Base* pBase{ &derived };   // pointer to the base part of `derived`
-        pBase->getName();           // call Base::getName(), not Derived::getName()
+        derived.getValue();         // Lỗi compile
+        derived.Base::getValue();   // Hợp lệ, gọi trực tiếp hàm Base::getValue()
+        static_cast<Base&>(derived).getValue();   // Hợp lệ, ép kiểu sang Base& (ưu tiên dùng reference thay vì Base để tránh copy object)
         ```
-        ⚠️ => A pointers/references to the base **part** can only see members of the base class.
-    * Not using pointers/references might make a **copy** of the base part:
-        ```C++
-        Base base { derived };     // "copies" the Base portion of `derived` into `base`
-        base.getName() << '\n';    // base is a Base, always calls Base::getName()
-        ```
+* **Multiple inheritance** (Đa kế thừa): Xem code trên github.
 
-        ⚠️ The Frankenobject:
-        ```C++
-        Derived d1 {};
-        Derived d2 {};
-        Base& b{ d1 };
-        b = d2;
-        ```
-        Here is what happens in the above code: Because `b` is a `Base`, and `operator=` is not virtual by default => only the `Base` part of `d2` is copied into `d1`, while the `Derived` part of `d1` remains unchanged => `d1` is now a Frankenobject: composed of parts of multiple objects.
+* ⚠️ **Pointers** và **references** "trỏ tới **`Base` part**" của `Derived` chỉ có thể nhìn thấy CHỈ CÓ THỂ nhìn thấy các members thuộc `Base`:
+	```C++
+	class Base {
+	public:
+		std::string_view getName() const { return "Base"; }
+	};
 
-        ⚠️ Sliding vectors:
-        ```C++
-        std::vector<Base6> v{};
-        v.push_back(Base6{});    // add a Base object to our vector
-        v.push_back(Derived6{}); // add a Derived object to our vector => sliced
+	class Derived: public Base {
+	public:
+		std::string_view getName() const { return "Derived"; }
+	};
 
-        for (const auto& element : v)
-            std::cout << "I am a " << element.getName() << '\n';
-            // Outputs:
-            // I am a Base
-            // I am a Base
-        ```
-        => ✅ use pointers or references wrapper (See code in github lesson).
-* Virtual functions and polymorphism:
-    * A virtual function, when called, resolves to the **most-derived** version of the function for the **actual type** of the object being referenced or pointed to. Consider this example:
+	Derived derived {};
+
+	Base& rBase{ derived };    // reference tới phần base của `derived`
+	rBase.getName();            // gọi Base::getName(), KHÔNG PHẢI Derived::getName()
+
+	Base* pBase{ &derived };   // pointer trỏ tới phần base của `derived`
+	pBase->getName();           // gọi Base::getName(), KHÔNG PHẢI Derived::getName()
+	```
+
+	* ⚠️ **Franken object**:
+		```C++
+		Derived d1 {};
+		Derived d2 {};
+		Base& b{ d1 };		// b trỏ tới `Base` part của d1
+		b = d2;				// `operator=` mặc định KHÔNG PHẢI là `virtual` => `Base` part của `d2` được copy đè lên `Base` part của `d1`
+							// trong khi đó, `Derived` part của `d1` vẫn bị giữ nguyên.
+		```
+		=> `d1` biến thành một **Franken object**: bị chắp vá dữ liệu lộn xộn từ nhiều objects khác nhau.
+* ⚠️ Hiện tượng **object slicing**:
+	* Nếu KHÔNG dùng pointers/references, C++ sẽ tạo ra một bản **copy** của `Base` part:
+		```C++
+		Base base { derived };     // "copy" riêng phần Base của `derived` vào `base` (phần Derived bị loại bỏ - hiện tượng slicing)
+		base.getName() << '\n';    // `base` hoàn toàn là một object Base, luôn gọi Base::getName()
+		```
+	* Khi dùng với **vector**:
+		```C++
+		std::vector<Base> v{};
+		v.push_back(Base{});    // add một Base object vào vector bình thường
+		v.push_back(Derived{}); // add một Derived object vào vector => phần Derived bị cắt xén (sliced)
+
+		for (const auto& element : v)
+			std::cout << "I am a " << element.getName() << '\n';
+			// Kết quả in ra:
+			// I am a Base
+			// I am a Base
+		```
+		=> ✅ Giải pháp: Cần lưu trữ các elements dưới dạng **pointers** hoặc sử dụng các **references wrapper** (như `std::reference_wrapper`). (Xem code minh họa trong bài học trên github).
+* **Virtual functions** và đa hình:
+    * Khi 1 pointer/reference gọi một virtual function, nó gọi phiên bản **most-derived**, dựa trên **actual type** của object mà pointer/reference trỏ:
         ```C++
-        class Base
-        {
+        class Base {
         public:
-            std::string_view getName() const { return "Base"; }
+            virtual std::string_view getName() const { return "Base"; } 
         };
 
-        class Derived: public Base
-        {
+        class Derived: public Base {
         public:
             std::string_view getName() const { return "Derived"; }
         };
 
         Derived derived {};
-        ```
 
-        ```C++
-        Base& rBase{ derived };   // reference to the Base part
-        rBase.getName();  // normally resolve to Base::getName(), but because it's virtual, it calls Derived::getName()
+        Base& rBase{ derived };   // reference tới `Base` part
+        rBase.getName();  		  // => ✅ gọi Derived::getName()
 
-        Base base { derived };    // ⚠️ not reference => copies the Base part
-        base.getName();           // => call Base::getName(), not Derived::getName() although getName() is virtual
-        ```
-        ⚠️ => Virtual function resolution only works when a member function is called through a pointer/reference.
-    * To call the Base version of a virtual function from a derived class, use the scope resolution operator:
-        ```C++
-        rBase.Base::getName(); // calls Base::getName()
-        ```
-    * If a function is virtual, all matching overrides in derived classes are also **implicitly** virtual.
-    * ⚠️ A virtual function is only overrided if its signature and return types match exactly:
-        ```C++
-        class A1
-        {
-            virtual std::string_view getName1(int x) { return "A"; }
-	        virtual std::string_view getName2(int x) { return "A"; }
-        };
-
-        class B1 : public A1
-        {
-            virtual std::string_view getName1(short x) { return "B"; } // not override: parameter is a short
-            virtual std::string_view getName2(int x) const { return "B"; } // not override: function is const
-        };
-        ```
-        => ✅ Use `override` keyword to let the compiler check for you: it raises errors if:
-        1. the base function is not virtual,
-        2. or, the child function does not override a base function.
-        ```C++
-        class C1 : public A1
-        {
-        public:
-            std::string_view getName1(short x) override { return "C"; } // compile error, function is not an override
-            std::string_view getName2(int x) const override { return "C"; } // compile error, non-virtual member function cannot be marked as override
-            std::string_view getName2(int x) override { return "C"; } // okay
-        };
+        Base base { derived };    // ⚠️ KHÔNG phải reference/pointer => base là 1 object riêng (sliced)
+        base.getName();           // => gọi Base::getName()
         ```
         
-        * ⚠️ ***Covariant return types***: One special case where the compiler allows a **different** "return type" to still be considered an override: if the return type of a virtual function is a pointer or reference to a class type, then the overriding function may return a pointer or reference to a **derived** class:
+        =>
+      	* ✅ LUÔN LUÔN khai báo destructors của base classes là `virtual` trong các base classes. Bởi vì, nếu derived class có cấp phát động và bạn dùng đa hình (tức dùng derived class thông qua base class pointer/reference), thì mới có thể deallocate 1 cách an toàn.
+      	* ❌ TUYỆT ĐỐI KHÔNG virtualize `operator=` => vô vàn lỗi tiềm ẩn.
+	* **Pure virtual functions** (hay **abstract functions**): bắt buộc phải được override ở các derived classes:
+	        ```C++
+	        virtual void doSomething() = 0; // pure virtual function
+	        ```
+	  	* Nó biến class chứa nó thành một **abstract class** (không thể khởi tạo object trực tiếp).
+		* Nó có thể không có body. Nhưng nếu có, phần body **bắt buộc** phải được viết ở bên ngoài class declaration:
+	        ```C++
+	        class Base {
+	        public:
+	            virtual void doSomething() = 0; // pure virtual function
+	        };
+	
+	        void Base::doSomething() { ... }
+	        ```
+    * Nếu muốn gọi phiên bản `Base` của virtual function:
         ```C++
-        class Base3
-        {
-        public:
-            virtual Base3* getThis() { std::cout << "called Base::getThis()\n"; return this; }
-            void printType() { std::cout << "returned a Base\n"; }
+        rBase.Base::getName(); // Ép gọi Base::getName()
+        ```
+    * 👍 Nếu một function được đánh dấu là `virtual`, tất cả các matching overrides ở các derived classes cũng sẽ **implicitly** là `virtual`.
+    * ⚠️ Một virtual function chỉ được **override** nếu chữ ký hàm và kiểu trả về khớp hoàn toàn:
+        ```C++
+        class Base {
+            virtual int get1(int x) {}
+            virtual int get2(int x) {}
         };
 
-        class Derived3 : public Base3
-        {
-        public:
-            // Normally override functions have to return objects of the same type as the base function
-            // However, it's okay to return Derived* instead of Base* because Derived is derived from Base.
-            Derived3* getThis() override { std::cout << "called Derived::getThis()\n";  return this; }
-            void printType() { std::cout << "returned a Derived\n"; }
-        };
-
-        void func4()
-        {
-            Derived3 d{};
-            Base3* b{ &d };
-            d.getThis()->printType(); // calls Derived::getThis(), returns a Derived*, calls Derived::printType
-            b->getThis()->printType(); // calls Derived::getThis(), returns a Base*, ⚠️ calls Base::printType because printType is not virtual
-        }
-        ```
-    * Use `final` keyword if you don’t want someone to override a virtual function, or inherit from a class.
-    * ⚠️ Call virtual functions from constructors or destructors:
-        * If you call a virtual function from within the base class constructor, it will always resolve to the base class version of the function. Because, at that point, the derived class portion of the object has not yet been constructed.
-        * Similarly, if you call a virtual function from within the base class destructor, it will always resolve to the base class version of the function. Because, at that point, the derived class portion of the object has already been destroyed.
-    * ✅ Virtual destructors: Always declare destructors as virtual in base classes. Because, if your derived class allocates resources, you might need to deallocate them through the base class pointer in polymorphic use.
-    * ⚠️ Unlike other functions, virtualizing the assignment operator really opens up a bag full of worms. => don’t do it.
-* **Pure virtual functions** (**abstract functions**):
-    * a special kind of virtual function that must be overridden in derived classes. It can have no body at all:
-        ```C++
-        class Base
-        {
-        public:
-            virtual void doSomething() = 0; // pure virtual function
+        class Derived : public Base {
+            int get1(short x) {} // KHÔNG override: short != int
+            int get2(int x) const {} // KHÔNG override: thêm const
         };
         ```
-    * A pure virtual function makes a class **abstract**.
-    * You can provide definition for pure virtual function, but the definition must be outside the class declaration (not inline):
+        * ✅ Ngoại lệ: nếu virtual function của cha có return type là một **pointer/reference** trỏ tới class `A`, mà overriding function của con là **pointer/reference** trỏ tới **con của `A`**, thì vẫn được tính là override hợp lệ
+	* ✅ Nên dùng từ khóa `override` để compiler báo lỗi nếu:
+        * Hàm cha không phải là virtual,
+    	* Hoặc, hàm con không override bất kỳ base function nào.
         ```C++
-        class Base
-        {
-        public:
-            virtual void doSomething() = 0; // pure virtual function
-        };
-
-        void Base::doSomething()
-        {
-            // ...
-        }
+        int get1(short x) override {} // Lỗi compile
         ```
-* Diamond problem and virtual inheritance: See code in github lesson.
-* Dynamic casting:
-    * We know that C++ allows implicit conversion from derived class pointers/references to base class pointers/references. However, sometimes we want to convert base class pointers/references to derived class pointers/references.
-        
-        For example, sometimes we want to access some derived-class-specific functionality from a base-class pointer/reference:
-        ```C++
-        class Base {};
-        class Derived: public Base {}
-        
-        Base* getObject(bool returnDerived)
-        {
-            if (returnDerived)
-                return new Derived{};
-            else
-                return new Base{};
-        }
+	* ⚠️ Gọi virtual functions từ bên trong constructors hoặc destructors **của `Base`** sẽ LUÔN LUÔN resolve về phiên bản của `Base`, vì:
+	    * Với constructor: tại thời điểm đó, derived của object vẫn chưa được construct.
+	    * Với destructor: tại thời điểm đó, derived part của object đã bị destroy.
+* Từ khoá `final`: cấm kế thừa từ một class hoặc override một virtual function.
 
-        Base* b { getObject(true) };
+* Ép kiểu:
+    * Cast từ pointers/references của derived class sang base class: implicit.
+    * Cast từ pointers/references của base class sang derived class: tường minh thông qua:
+  		* `dynamic_cast` (an toàn nhất)
+    	* `static_cast`
+     	* C-style cast
 
-        // Now we want to call some Derived-specific function on b
-
-        delete b;
-        ```
-
-        1. Solution 1: use virtual functions. But this might pollute the base class interface with functions that are only relevant to certain derived classes.
-        2. Solution 2: use `dynamic_cast` to safely downcast base class pointers/references to derived class pointers/references.
-    * `dynamic_cast`:
-        ```C++
-        Derived* d1 { dynamic_cast<Derived*>(b) };
-
-        if (d) // make sure d is non-null
-        {
-            // ...
-        }
-        ```
-
-        When `dynamic_cast` will not work:
-        * when `b` wasn’t pointing to a Derived object. In this case `dynamic_cast` will return a null pointer.
-        * With protected or private inheritance.
-        * For classes that do not declare or inherit any virtual functions (and thus don’t have a virtual table).
-        * In certain cases involving virtual base classes.
-    * Downcasting can also be done with `static_cast`. It's faster, but ⚠️ more dangerous because it does no runtime type checking.
-    * New programmers are sometimes confused about when to use `static_cast` vs `dynamic_cast`. => ✅ use `static_cast` unless you’re downcasting.
+* **Diamond problem** và **virtual inheritance**: Xem phần code minh họa trong bài học trên github.
 
 
 ## Exception handling
